@@ -1,0 +1,19 @@
+name = "arlib"
+defaultTargets = ["Arlib"]
+testDriver = ""
+
+# arlib — a curated, mathlib-style library of reusable Lean 4 lemmas distilled
+# from the meelgroup formalization projects. Pinned to the same Lean/Mathlib
+# release as the source projects so material migrates with zero porting.
+#
+# Pin Mathlib to the git tag matching the toolchain in `lean-toolchain`
+# (leanprover/lean4:v4.15.0). If you bump the toolchain, bump this tag too and
+# re-run `lake update` + `lake exe cache get`.
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+git = "https://github.com/leanprover-community/mathlib4.git"
+rev = "v4.15.0"
+
+[[lean_lib]]
+name = "Arlib"
