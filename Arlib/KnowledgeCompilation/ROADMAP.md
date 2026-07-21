@@ -98,7 +98,8 @@ Three directories, mirroring the shape of the argument.
 | `BalancedCut` | the v-tree separator, and the balanced partition it induces | **done** — first half of §4 |
 | `RectangleLemma` | d-SDNNF of size `s` ⟹ `Par₁(f) ≤ s`; SDNNF of size `s` ⟹ `Cov₁(f) ≤ s` | the crown jewel — see §4 |
 | `Copies` | Step 1: `copyTerm`, `collapse`, `OneHot`, soundness + one-hot completeness, and `copyTerm_eq_of_sat` (the crux of unambiguity) — **done**; assembling `ψ^∨` as a `DNF` and counting its terms still to do | partial |
-| `AffinePerms` | the Wegman–Carter family `x ↦ ax+b` over `𝔽_{2ᵗ}`, and its pairwise independence | reuse `Probability.PolyHash` |
+| `AffinePerms` | the Wegman–Carter family `x ↦ ax+b`, bijectivity, `|𝒫| = (q−1)q`, and exact pairwise independence | **done** — discharges I3 |
+| `Imported` | I1 and I1′ as `structure`s carrying explicit bounds | **done** |
 | `ClaimPerm` | the probabilistic argument producing a good permutation (Chebyshev) | see §3, gap G2 |
 | `Lifting` | Step 2 and `thm: fixed_to_best`: the protocol simulation | |
 | `Separation` | `thm: main`, `thm: sep`, `thm: union`, `thm: ex` | conditional on I1, I4 |
@@ -107,7 +108,8 @@ Three directories, mirroring the shape of the argument.
 
 ## 3. Imported results
 
-Four results are used but not proved by the paper. Each becomes an explicit hypothesis.
+Four results are used but not proved by the paper. Each becomes an explicit hypothesis — except
+I3, which turned out to be within reach and is now **proved** (see below), leaving three.
 
 **I1 — Göös–Jain–Watson-style fixed-partition hardness** (`thm: fixed_part`, line 311; and
 `thm: fixed_or`, line 671). *For every `k` there is `m = k^O(1)`, a function
@@ -121,12 +123,17 @@ here** — it is a substantial paper in its own right.
 Pipatsrisawat–Darwiche and Bova et al. Unlike I1 this is *within reach* and is the single
 highest-value target in the area; see §4.
 
-**I3 — Wegman–Carter pairwise independence** (`lem: indperm`, line 423). Provable, and
-mostly already present: `Arlib.Probability.PolyHash` builds the degree-`<k` polynomial
-family over a finite field and `Arlib.Probability.KWiseIndependent` states the interface.
-The paper's family is the `k = 2` case restricted to `a ≠ 0` (so that the maps are
-permutations), which is a genuine but small difference from `polyHash` — the restriction
-changes the normalisation to `1/(n'(n'-1))` and requires `c ≠ d`.
+**I3 — Wegman–Carter pairwise independence** (`lem: indperm`, line 423). **No longer an
+import: proved**, in `LowerBounds/AffinePerms.lean`. In the end it did not need
+`Probability.PolyHash` at all — the whole content is that `α·(a−b) = c−d` determines `α`,
+so the result is one short algebraic argument (`existsUnique_affine`), proved directly over
+an arbitrary finite field rather than only over `𝔽_{2ᵗ}`.
+
+It is stated as an exact **count** (`card_filter_maps_eq_one`: exactly one member of `𝒫`
+realises a given pair) rather than as a probability. That is sharper, it avoids introducing
+a probability space the file does not otherwise need, and it is the form a second-moment
+argument consumes. The two hypotheses do different jobs and both are needed: `a ≠ b` makes
+the division legal, `c ≠ d` is what keeps the answer inside `𝒫` rather than a constant map.
 
 **I4 — de Colnet–Mengel, Proposition 2** (`lem: AC`, line 527). Needed only for the
 arithmetic-circuit section. Note the paper's own footnote (line 119): the cited source
