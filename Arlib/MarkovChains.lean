@@ -102,6 +102,10 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
 * `Techniques.ImprovedRandomWalk` — `lem:improved-technical` and the Improved
   Random Walk Theorem: local Poincaré inequalities at every link give a gap for
   the top-level down-up walk, `Γ_m / ∑_{i≤m} Γ_i`.
+* `Techniques.LocalWalkBridge` — the link's level-one up-down walk *is* the lazy
+  local walk, on every row; hence `γ(P^∧∨_{τ,1}) ≥ γ/2 ↔ γ(Q_τ) ≥ γ`, which lets
+  the Random Walk Theorem take its hypothesis on `Q_τ` — the object the rest of
+  the monograph actually bounds.
 * `Techniques.MultiStep` — adjointness composes, hence multi-step up/down
   operators between any two levels, `lem:diff-var` in general, and
   `eqn:RW-improved-general` for the multi-level down-up walk.
@@ -202,6 +206,7 @@ import Arlib.MarkovChains.Techniques.UpDownDownUp
 import Arlib.MarkovChains.Techniques.FirstStep
 import Arlib.MarkovChains.Techniques.ImprovedRandomWalk
 import Arlib.MarkovChains.Techniques.MultiStep
+import Arlib.MarkovChains.Techniques.LocalWalkBridge
 import Arlib.MarkovChains.Techniques.Transport
 import Arlib.MarkovChains.Techniques.EntropyVariational
 import Arlib.MarkovChains.Techniques.PsdOrder
