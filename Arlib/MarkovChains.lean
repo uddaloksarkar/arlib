@@ -100,6 +100,11 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
   vector, with `quadForm (Cov μ) a = Var μ (fun σ => ∑ v, a (v, σ v))`, and
   spectral independence *defined* as the PSD ordering `Cov ⪯ η · diag(marg)` —
   the eigenvalue-free equivalent of `λ_max(Ψ) ≤ η`.
+* `Techniques.LocalSpectralIndependence` — the payoff: spectral independence
+  implies a Poincaré inequality for the local walk at any pinning, matching the
+  monograph's `γ_k ≥ 1 − η/(n−k−1)` with no slack.  The monograph proves this
+  with `λ_max(Ψ)` and a block-matrix argument; here it is an exact identity
+  `ℰ_Q(f) = m/(m−1)·Var_π(f) − quadForm (Cov μ) f̃ / (m(m−1))`.
 
 ### Chains
 
@@ -152,6 +157,7 @@ import Arlib.MarkovChains.Techniques.Transport
 import Arlib.MarkovChains.Techniques.EntropyVariational
 import Arlib.MarkovChains.Techniques.PsdOrder
 import Arlib.MarkovChains.Techniques.SpectralIndependence
+import Arlib.MarkovChains.Techniques.LocalSpectralIndependence
 import Arlib.MarkovChains.Chains.Metropolis
 import Arlib.MarkovChains.Chains.TwoState
 import Arlib.MarkovChains.Chains.IndependentSampler
