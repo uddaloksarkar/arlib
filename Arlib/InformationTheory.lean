@@ -10,6 +10,7 @@ import Arlib.InformationTheory.Fano
 import Arlib.InformationTheory.DataProcessing
 import Arlib.InformationTheory.Submodular
 import Arlib.InformationTheory.Variational
+import Arlib.InformationTheory.CondVariational
 import Arlib.InformationTheory.Uniform
 import Arlib.InformationTheory.ChainRule
 import Arlib.InformationTheory.Defs

@@ -32,6 +32,7 @@ import Arlib.Probability.Independence
 import Arlib.Probability.KWiseIndependent
 import Arlib.Probability.MomentMethod
 import Arlib.Probability.FourthMomentTail
+import Arlib.Probability.EvenMoment
 import Arlib.Probability.SequentialKernel
 import Arlib.Probability.PolyHash
 import Arlib.Probability.Median
