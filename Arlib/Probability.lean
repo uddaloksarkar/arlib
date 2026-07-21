@@ -24,6 +24,7 @@ import Arlib.Probability.FinProb
 import Arlib.Probability.CondExp
 import Arlib.Probability.Conditioning
 import Arlib.Probability.Markov
+import Arlib.Probability.UnionBound
 import Arlib.Probability.ProbSpace
 import Arlib.Probability.ProbSpaceValidation
 import Arlib.Probability.IntersectionTailBound
