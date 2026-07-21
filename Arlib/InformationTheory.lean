@@ -17,6 +17,7 @@ import Arlib.InformationTheory.Defs
 import Arlib.InformationTheory.Entropy
 import Arlib.InformationTheory.Gibbs
 import Arlib.InformationTheory.Relabel
+import Arlib.InformationTheory.VariationalExceptional
 
 /-!
 # `Arlib.InformationTheory`
