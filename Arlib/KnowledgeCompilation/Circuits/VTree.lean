@@ -147,6 +147,18 @@ lemma vars_eq_toFinset_leaves (T : VTree V) : T.vars = T.leaves.toFinset := by
   | leaf x => simp
   | node tl tr ihl ihr => simp [ihl, ihr]
 
+/-- **Every v-tree node carries at least one variable.**  A `VTree` has no
+unary constructor, so every subtree bottoms out in a leaf, and a leaf is
+labelled.
+
+Small, but load-bearing in `vars_cases_of_node`: it is what rules out the
+degenerate configurations of the laminar trichotomy, where a sibling would have
+to have an empty variable set. -/
+lemma vars_nonempty (T : VTree V) : T.vars.Nonempty := by
+  induction T with
+  | leaf x => exact ⟨x, by simp⟩
+  | node tl tr ihl _ => exact Finset.Nonempty.mono Finset.subset_union_left ihl
+
 /-- **Well-formedness of a v-tree**: at every internal node the two subtrees use
 disjoint sets of variables.
 
@@ -227,6 +239,106 @@ theorem IsSubtree.wellFormed [DecidableEq V] {s T : VTree V} (h : IsSubtree s T)
   | refl => exact hT
   | left _ ih => exact ih hT.1
   | right _ ih => exact ih hT.2.1
+
+/-! ## Laminarity
+
+The variable sets of the nodes of a well-formed v-tree form a *laminar family*:
+any two of them are nested or disjoint, never properly crossing.  Geometrically
+this is the statement that two subtrees of a tree are either one inside the
+other or hang off disjoint branches, and well-formedness is what turns "disjoint
+branches" into "disjoint variable sets".
+
+This is the fact that makes the rectangle lemma work at all
+(`LowerBounds/RectangleLemma.lean`): the cut variable set `X = var(s)` comes from
+a node `s` of the v-tree, so it cannot straddle the two children of any other
+node — and therefore at most one child of any `∧`-node of a respecting circuit
+can carry `X`-variables. -/
+
+/-- Nothing is a proper node of a leaf. -/
+@[simp] lemma isSubtree_leaf_iff {s : VTree V} {x : V} :
+    IsSubtree s (leaf x) ↔ s = leaf x := by
+  constructor
+  · intro h; cases h; rfl
+  · rintro rfl; exact .refl _
+
+/-- **The variable sets of a well-formed v-tree form a laminar family.**
+
+For any two nodes `a`, `b` of a well-formed `T`, either one variable set
+contains the other or the two are disjoint.  Proved by induction on `T`: if `a`
+and `b` descend into the same child, this is the inductive hypothesis; if they
+descend into different children, well-formedness of the node they part at gives
+disjointness; and if either is the root, containment is `IsSubtree.vars_subset`.
+
+Well-formedness is genuinely needed — without it the two children of a node may
+share variables, and then two nodes hanging off different branches can cross. -/
+theorem vars_laminar [DecidableEq V] :
+    ∀ {T : VTree V}, T.WellFormed → ∀ {a b : VTree V}, IsSubtree a T → IsSubtree b T →
+      a.vars ⊆ b.vars ∨ b.vars ⊆ a.vars ∨ Disjoint a.vars b.vars := by
+  intro T
+  induction T with
+  | leaf x =>
+    intro _ a b ha hb
+    rw [isSubtree_leaf_iff.mp ha, isSubtree_leaf_iff.mp hb]
+    exact Or.inl (Finset.Subset.refl _)
+  | node tl tr ihl ihr =>
+    intro hwf a b ha hb
+    cases ha with
+    | refl => exact Or.inr (Or.inl hb.vars_subset)
+    | left ha' =>
+      cases hb with
+      | refl => exact Or.inl (IsSubtree.left ha').vars_subset
+      | left hb' => exact ihl hwf.1 ha' hb'
+      | right hb' =>
+        exact Or.inr (Or.inr (Finset.disjoint_of_subset_left ha'.vars_subset
+          (Finset.disjoint_of_subset_right hb'.vars_subset hwf.2.2)))
+    | right ha' =>
+      cases hb with
+      | refl => exact Or.inl (IsSubtree.right ha').vars_subset
+      | left hb' =>
+        exact Or.inr (Or.inr (Finset.disjoint_of_subset_left ha'.vars_subset
+          (Finset.disjoint_of_subset_right hb'.vars_subset hwf.2.2.symm)))
+      | right hb' => exact ihr hwf.2.1 ha' hb'
+
+/-- **A node's variable set never straddles the children of another node.**
+
+Let `s` be any node of a well-formed v-tree `T`, and let `node tl tr` be any
+node of `T`.  Then either both children of that node sit inside `var(s)`, or one
+of them avoids `var(s)` entirely.
+
+The excluded configuration is "both children meet `var(s)` but neither is
+contained in it", and it is excluded because `var(s)` is itself a node's
+variable set: by laminarity `var(t_ℓ)` and `var(t_r)` are each nested in or
+disjoint from `var(s)`, and the mixed nestings force a sibling — or `s` itself —
+to have no variables, which `vars_nonempty` forbids.
+
+This is exactly the form consumed by `NNF.Respects.conjSplit`, and through it
+the whole rectangle lemma: *at most one child of an `∧`-node carries
+`X`-variables, unless both are entirely inside `X`.* -/
+theorem vars_cases_of_node [DecidableEq V] {T tl tr s : VTree V} (hT : T.WellFormed)
+    (ht : IsSubtree (node tl tr) T) (hs : IsSubtree s T) :
+    (tl.vars ⊆ s.vars ∧ tr.vars ⊆ s.vars) ∨
+      Disjoint tl.vars s.vars ∨ Disjoint tr.vars s.vars := by
+  have hdisj : Disjoint tl.vars tr.vars := (ht.wellFormed hT).2.2
+  have htl : IsSubtree tl T := (isSubtree_node_left tl tr).trans ht
+  have htr : IsSubtree tr T := (isSubtree_node_right tl tr).trans ht
+  -- A set that is contained in one of two disjoint sets and contains the other is empty.
+  have squeeze : ∀ {u v : VTree V}, Disjoint u.vars v.vars → u.vars ⊆ s.vars →
+      s.vars ⊆ v.vars → False := by
+    intro u v hd h1 h2
+    obtain ⟨x, hx⟩ := u.vars_nonempty
+    exact Finset.disjoint_left.mp hd hx (h2 (h1 hx))
+  rcases vars_laminar hT htl hs with h1 | h1 | h1
+  · rcases vars_laminar hT htr hs with h2 | h2 | h2
+    · exact Or.inl ⟨h1, h2⟩
+    · exact (squeeze hdisj h1 h2).elim
+    · exact Or.inr (Or.inr h2)
+  · rcases vars_laminar hT htr hs with h2 | h2 | h2
+    · exact (squeeze hdisj.symm h2 h1).elim
+    · -- `var(s)` sits inside both children, hence is empty — impossible.
+      obtain ⟨x, hx⟩ := s.vars_nonempty
+      exact (Finset.disjoint_left.mp hdisj (h1 hx) (h2 hx)).elim
+    · exact Or.inr (Or.inr h2)
+  · exact Or.inr (Or.inl h1)
 
 end VTree
 

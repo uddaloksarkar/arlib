@@ -96,7 +96,7 @@ Three directories, mirroring the shape of the argument.
 | Module | Contents | Status |
 | --- | --- | --- |
 | `BalancedCut` | the v-tree separator, and the balanced partition it induces | **done** — first half of §4 |
-| `RectangleLemma` | d-SDNNF of size `s` ⟹ `Par₁(f) ≤ s`; SDNNF of size `s` ⟹ `Cov₁(f) ≤ s` | the crown jewel — see §4 |
+| `RectangleLemma` | d-SDNNF of size `s` ⟹ `Par₁(f) ≤ s`; SDNNF of size `s` ⟹ `Cov₁(f) ≤ s` | **done** — discharges I2 |
 | `Copies` | Step 1: `copyTerm`, `collapse`, `OneHot`, soundness + one-hot completeness, and `copyTerm_eq_of_sat` (the crux of unambiguity) — **done**; assembling `ψ^∨` as a `DNF` and counting its terms still to do | partial |
 | `AffinePerms` | the Wegman–Carter family `x ↦ ax+b`, bijectivity, `|𝒫| = (q−1)q`, and exact pairwise independence | **done** — discharges I3 |
 | `Imported` | I1 and I1′ as `structure`s carrying explicit bounds | **done** |
@@ -119,9 +119,8 @@ paper. It will be a `structure FixedPartitionHard` bundling the data and the two
 properties, and every downstream theorem takes it as a parameter. **Not to be proved
 here** — it is a substantial paper in its own right.
 
-**I2 — the rectangle lemma** (`lem: rectangle`, line 299). Attributed to
-Pipatsrisawat–Darwiche and Bova et al. Unlike I1 this is *within reach* and is the single
-highest-value target in the area; see §4.
+**I2 — the rectangle lemma** (`lem: rectangle`, line 299). **No longer an import: proved**,
+in `LowerBounds/RectangleLemma.lean`. See §4.
 
 **I3 — Wegman–Carter pairwise independence** (`lem: indperm`, line 423). **No longer an
 import: proved**, in `LowerBounds/AffinePerms.lean`. In the end it did not need
@@ -142,43 +141,49 @@ is used, and record the other as false rather than silently omitting it.
 
 ---
 
-## 4. The crown jewel: the rectangle lemma
+## 4. The rectangle lemma — proved
 
-`lem: rectangle` (line 299) is where circuit size meets communication complexity, and it
-is the reason a lower bound on rectangle covers is a lower bound on circuits at all:
+`lem: rectangle` (line 299) is where circuit size meets communication complexity, and it is
+the reason a lower bound on rectangle covers is a lower bound on circuits at all. The paper
+imports it. **We prove it**, in `LowerBounds/RectangleLemma.lean`:
 
-> If `f` admits a d-SDNNF of size `s` then `Par₁(f) ≤ s`; if `f` admits an SDNNF of size
-> `s` then `Cov₁(f) ≤ s`.
+```
+T.WellFormed → C.Respects T → C.Deterministic → C.vars ⊆ T.vars →
+  2 ≤ T.vars.card → C.Computes f → bestPar T.vars f true ≤ C.size
+```
 
-The paper imports it. We should prove it, for three reasons. It is the only step that
-touches both halves of the area, so it is what keeps `Circuits/` and `Communication/`
-honest against each other. It is the step whose hypotheses are easiest to get subtly
-wrong — in particular *which* balanced partition the v-tree yields, and that is exactly
-where the `Fin size` DAG encoding earns its cost. And unlike I1 it is a self-contained
-combinatorial argument: pick a v-tree node whose variable set is a constant fraction of
-the whole, cut the circuit there, and read off one rectangle per `∧`-node above the cut,
-with determinism upgrading the cover to a partition.
+together with the cover half, `bestCov_le_size_of_respects`, which does not need
+`Deterministic`.
 
-Everything else in `LowerBounds/` can be developed against its statement before it is
-proved, so it need not block progress — but it should not stay a hypothesis
-indefinitely. Treat it as the area's main open obligation.
+The route: cut the v-tree at a balanced node (`BalancedCut`, §above) to fix `X`; observe
+that at every `∧`-node **at most one child carries `X`-variables** unless both lie inside
+`X` (`Respects.conjSplit`, from laminarity of v-tree variable sets, `VTree.vars_laminar`);
+conclude the `X`-dependence of the circuit is a *path*, not a branching structure; descend
+it to an `X`-witness node (`descend`); and read off one rectangle per node. Determinism
+enters exactly once, to make the descent stable across assignments agreeing on a side —
+which is what upgrades the cover to a partition, `Cov₁` to `Par₁`.
 
-**Status: the first half is done.** The two halves are independent, and they split cleanly:
+### Corrections to what this section used to claim
 
-1. *Produce the balanced partition.* `LowerBounds/BalancedCut.lean` — **proved**. Every
-   v-tree on `≥ 2` variables has a node carrying between a third and two thirds of them
-   (`exists_balanced_subtree`, by descent into the heavier child), and cutting there gives
-   a balanced `VarPartition` (`exists_balanced_cut`). This also discharges the existence
-   gap recorded when `Communication/Measures` was written, and it is reusable by anything
-   needing "a balanced partition compatible with the v-tree".
-2. *Produce the rectangles.* Still open, and this is where the remaining difficulty is. It
-   needs the certificate machinery — for a **deterministic** circuit each satisfying
-   assignment has a *unique* proof tree, which is what upgrades a rectangle *cover* to a
-   rectangle *partition* and hence `Cov₁` to `Par₁`. Nothing in the area builds proof trees
-   yet; that is the next substantial piece of infrastructure, and it should be designed
-   node-indexed like everything else (§1.2).
+Recorded because they were wrong for months of planning and someone will otherwise
+re-derive them:
 
----
+- **Proof trees / certificates were predicted to be "the next substantial piece of
+  infrastructure". They were not needed at all.** Path stability of the descent delivers the
+  same uniqueness directly, and nothing in the file builds a certificate. The prediction
+  cost nothing here only because it was tested.
+- **Indexing the rectangles by the nodes `v` with `var(v) ⊆ X` undercounts.** If `C` mentions
+  no `X`-variable — entirely possible, since `X` comes from the v-tree and not from the
+  circuit — no such node need exist, yet `f⁻¹(1)` still needs covering. The fix is to index
+  by *all* of `Fin C.size`, with a left predicate that is vacuously true at nodes the
+  descent cannot stop at. This also gives the bound `|C|` on the nose.
+- **The descent must test its stopping rule before the `∧`-rule.** Otherwise it walks past a
+  node lying entirely inside `X` into a child, and the sibling — also inside `X` — is no
+  longer `Y`-only, which makes the lifting lemma false. This is the one genuinely delicate
+  point in the proof.
+- **`X ≠ ∅` is not needed** for the structural lemma, contrary to the original sketch: when
+  `X = ∅` the disjunct `Disjoint _ X` holds outright. Had it been carried, every
+  fixed-partition corollary would have inherited a balancedness hypothesis it does not need.
 
 ## 5. Asymptotics
 

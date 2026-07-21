@@ -277,23 +277,23 @@ Definition `def: PSSD`, where the intended reading is the product `pᵢ × sᵢ`
 
 # PART B — THE BRIDGE
 
-**T1. The rectangle lemma. [IMPORTED — I2]** (`lem: rectangle`, line 299)
+**T1. The rectangle lemma. [PROVED — no longer imported]** (`lem: rectangle`, line 299)
 *If `f : {0,1}^n → {0,1}` admits a d-SDNNF of size `s`, then `Par₁(f) ≤ s`. If `f` admits
 an SDNNF of size `s`, then `Cov₁(f) ≤ s`.*
 *Deps:* D12, D19, D21. Attributed to Pipatsrisawat–Darwiche and Bova et al.
-**This is the single highest-value target in the area** — it is the only statement joining
-`Circuits/` to `Communication/`, and it is self-contained. See `ROADMAP.md` §4.
+**In Lean** as `bestPar_le_size_of_respects` and `bestCov_le_size_of_respects` (the latter
+without `Deterministic`), via `VTree.vars_laminar`, `NNF.Respects.conjSplit`, `NNF.descend`,
+`NNF.rect`, `NNF.covers_rect`, `NNF.partitions_rect`. See `ROADMAP.md` §4.
 
-It splits into two independent halves.
-*Half 1 — the balanced partition.* **Done**, in `LowerBounds/BalancedCut.lean`. A v-tree on
-`≥ 2` variables has a node carrying between a third and two thirds of them
-(`VTree.exists_balanced_subtree`); cutting there gives a balanced `VarPartition`
-(`VTree.exists_balanced_cut`). The `2 ≤ |Z|` hypothesis is necessary, not an artefact: no
-partition of a one-element set is balanced, since one block is empty.
-*Half 2 — the rectangles.* Open. Needs proof trees: for a **deterministic** circuit each
-satisfying assignment has a unique certificate, and that uniqueness is exactly what turns a
-rectangle *cover* into a rectangle *partition*, i.e. `Cov₁` into `Par₁`. No proof-tree
-machinery exists yet; build it node-indexed, per `ROADMAP.md` §1.2.
+> **A hypothesis is missing from the paper's statement, and is carried explicitly here:
+> `var(C) ⊆ var(T)`.** `Respects` constrains only `∧`-nodes, so the bare circuit `x` respects
+> *every* v-tree — including v-trees that do not mention `x`. Such an `x` then lies in
+> neither block of the induced partition and no rectangle can see it. The paper avoids this
+> silently by taking the v-tree to be over `var(C)`; we state it. `2 ≤ |var(T)|` is likewise
+> needed, since a singleton has no balanced partition.
+
+*Note:* certificates/proof trees turn out **not** to be needed for this — see `ROADMAP.md`
+§4, "Corrections".
 
 *Lean note, learned while writing half 1:* `VTree.WellFormed` is a recursive `def` into
 `Prop` with no `Decidable` instance, so `by decide` will not discharge it even on a

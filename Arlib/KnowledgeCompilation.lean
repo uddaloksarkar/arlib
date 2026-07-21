@@ -77,6 +77,10 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
   v-tree on at least two variables has a node carrying between a third and two
   thirds of them, so cutting there induces a *balanced* partition.  This is what
   supplies the partition that a best-partition measure is minimised over.
+* `LowerBounds.RectangleLemma` — the bridge, and the reason a communication
+  lower bound is a circuit lower bound: a structured d-DNNF of size `s` yields a
+  rectangular *partition* of `f⁻¹(1)` into `s` pieces, so `Par₁(f) ≤ |C|`.  This
+  **discharges** import I2.
 * `LowerBounds.AffinePerms` — the Wegman–Carter family `x ↦ ax+b` over a finite
   field, and its pairwise independence.  This **discharges** import I3: the paper
   cites it, we prove it.
@@ -95,5 +99,6 @@ import Arlib.KnowledgeCompilation.Communication.Rectangle
 import Arlib.KnowledgeCompilation.Communication.Measures
 import Arlib.KnowledgeCompilation.LowerBounds.Copies
 import Arlib.KnowledgeCompilation.LowerBounds.BalancedCut
+import Arlib.KnowledgeCompilation.LowerBounds.RectangleLemma
 import Arlib.KnowledgeCompilation.LowerBounds.AffinePerms
 import Arlib.KnowledgeCompilation.LowerBounds.Imported
