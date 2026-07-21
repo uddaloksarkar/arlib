@@ -1,0 +1,377 @@
+# Formalization Inventory — *Structured d-DNNF Is Not Closed Under Negation*
+### (Harry Vinall-Smeeth, IJCAI 2024; `source/kc/arXiv.tex`, 701 lines)
+
+All line numbers refer to `source/kc/arXiv.tex` in this repo. Every statement below is
+written out in plain text with quantifiers and hypotheses spelled out, so a Lean agent
+should not need to reopen the paper except to check a proof detail.
+
+**Standing conventions used throughout this document.**
+- `V` is the ambient type of variables; an *assignment* is a total function `α : V → Bool`.
+  This plays the role of the paper's `dom(C)` taken as large as possible.
+- Everything is finite. Variable sets are `Finset V`; no measure theory is needed anywhere
+  except inside the probabilistic Claim `perm`, and there only over a finite family.
+- `f⁻¹(b)` is written as the set of assignments on which the function takes value `b`.
+- Sizes are **DAG vertex counts**, never tree sizes. See `ROADMAP.md` §1.1.
+- The paper writes `Õ`/`Ω̃` for bounds suppressing polylogarithmic factors. Its proofs
+  produce explicit bounds; record those, and see `ROADMAP.md` §5.
+- **Imported**, below, means the paper uses the result without proving it. Four such
+  results exist (I1–I4 in `ROADMAP.md` §3); each is flagged at its entry.
+
+**Existing Lean (do not redo).**
+`Arlib/KnowledgeCompilation/Circuits/NNF.lean`: `Gate`, `Gate.children`, `NNF`
+(with `size`, `gate`, `child_lt`, `root`), `conj_lt`, `disj_lt`, `valAt` (+ the four
+unfolding lemmas), `eval`, `Sat`, `Equiv`, `Computes`, `varsAt` (+ four unfolding
+lemmas), `vars`, `valAt_congr`, `eval_congr`, `Decomposable`, `Deterministic`, `IsDNNF`,
+`IsdDNNF`, `valAt_conj_split`, `valAt_disj_unique`.
+
+Reusable from elsewhere in Arlib: `Arlib.Probability.ProbSpace.chebyshev`,
+`Arlib.Probability.PolyHash` (degree-`<k` polynomial hash family over a finite field),
+`Arlib.Probability.KWiseIndependent`.
+
+---
+
+# PART A — DEFINITIONS
+
+## A.1 Formulas and Boolean functions (§2, from line 127)
+
+**D1. DNF, term, `k`-DNF, unambiguity.** (line 128)
+A DNF is a disjunction of conjunctions of literals; each disjunct is a *term*. A DNF `ψ`
+is a **`k`-DNF** if every term has at most `k` literals, and **unambiguous** if every
+assignment `α : var(ψ) → {0,1}` satisfies *at most one* term.
+*Lean note:* a term is best a `Finset V × Finset V` (positive and negative literals, with
+the two disjoint) or a `Finset (V × Bool)`; a DNF is a `Finset`/`List` of terms.
+Unambiguity is `∀ α, (terms.filter (satisfies α)).card ≤ 1`. The `List` version is
+preferable: the constructions in Part C *produce* terms with multiplicity and the
+unambiguity proof is what rules duplicates out.
+
+**D2. `sat`.** (line 128) `sat(ψ)` is the set of satisfying assignments; for a Boolean
+function, `sat(f) := f⁻¹(1)`. **In Lean** as `NNF.Sat`.
+
+**D3. The four transformations.** (`def: trans`, line 130)
+For `f, g : {0,1}^X → {0,1}` and `x ∈ X`:
+negation `sat(¬f) = f⁻¹(0)`; existential quantification `sat(∃x f) = π_Y(sat(f))` where
+`Y = X \ {x}`; disjunction `sat(f ∨ g) = sat(f) ∪ sat(g)`; conjunction
+`sat(f ∧ g) = sat(f) ∩ sat(g)`.
+*Lean note:* with total assignments `V → Bool`, `∃x f` is `fun α => ∃ b, f (update α x b)`.
+This is the definition the corollary at line 501 actually consumes.
+
+## A.2 NNF and its fragments (§2, from line 140)
+
+**D4. NNF circuit.** (`def: NNF`, line 141) A DAG with a unique source, every internal
+node a fan-in-two `∧`- or `∨`-node, every leaf labelled `0`, `1`, `x` or `¬x`.
+**In Lean** as `NNF`.
+
+**D5. Size.** (line 144) `|C|` is the number of vertices. **In Lean** as `NNF.size`.
+*Critical:* vertex count of the shared DAG. See `ROADMAP.md` §1.1.
+
+**D6. `⟨C⟩`, `var(C)`, `dom(C)`, `f_C`, equivalence, "admits".** (line 144)
+`⟨C⟩` is the formula obtained by expanding `C` out; `var(C)` the variables occurring;
+`dom(C) ⊇ var(C)` an associated variable set, equal to `var(C)` unless stated otherwise;
+`f_C : {0,1}^{dom(C)} → {0,1}` the computed function. `f` *admits* a `C`-representation of
+size `s` if some `C ∈ 𝖢` of size `s` is equivalent to `f`.
+**In Lean** as `NNF.vars`, `NNF.eval`, `NNF.Computes`, `NNF.Equiv`. `dom` is implicit in
+the choice of total assignments; `⟨C⟩` is not needed and is not formalized.
+
+**D7. Decomposability.** (line 146) For every `∧`-node `g`,
+`var(gₗ) ∩ var(gᵣ) = ∅`. **In Lean** as `NNF.Decomposable`.
+
+**D8. Determinism.** (line 146) For every `∨`-node `g`,
+`sat(C(gₗ)) ∩ sat(C(gᵣ)) = ∅`, both read over `dom(C)`.
+**In Lean** as `NNF.Deterministic`.
+
+**D9. DNNF, d-DNNF.** (line 146) Decomposable NNF; deterministic DNNF.
+**In Lean** as `NNF.IsDNNF`, `NNF.IsdDNNF`.
+*Recorded gap G1:* our predicates quantify over all node indices rather than reachable
+ones. See `ROADMAP.md` §6.
+
+**D10. v-tree.** (`def: vtree`, line 150) A **full**, rooted, binary tree whose leaves are
+in bijection with the variables `X`.
+*Deps:* none. *Lean note:* `inductive VTree V | leaf : V → VTree V | node : VTree V → VTree V → VTree V`,
+plus the injectivity of the leaf labelling as a side condition (a `VTree` with repeated
+leaves is not a v-tree). "Full" is automatic for this inductive: every internal node has
+exactly two children. Define `VTree.vars : VTree V → Finset V` and require
+`vars` of the two children to be disjoint, which is the same condition as leaf-injectivity
+and is the form actually used.
+
+**D11. Respecting a v-tree.** (line 154) A DNNF `C` *respects* `T` if for every `∧`-node
+`g` of `C` there is a node `t` of `T` with `var(gₗ) ⊆ var(t_ℓ)` and `var(gᵣ) ⊆ var(t_ᵣ)`.
+*Deps:* D7, D10. *Lean note:* `∀ ⦃i j k⦄, C.gate i = .conj j k → ∃ t ∈ T.nodes,
+C.varsAt j ⊆ t.left.vars ∧ C.varsAt k ⊆ t.right.vars`. Note the node `t` may depend on the
+`∧`-node `g` — a common misreading is to require a single `t` for all of `C`.
+
+**D12. Structured (d-)DNNF; d-SDNNF.** (`def: structure`, line 156) A (d-)DNNF is
+*structured* if it respects **some** v-tree.
+*Deps:* D9, D11. *Lean note:* the existential over v-trees is genuine; the lower bounds
+must hold for every choice, so in a lower-bound proof this is *hypothesis* data to
+destructure, and in an upper-bound proof it is data to supply.
+
+**D13. `X`-decomposition.** (`def: decomp`, line 244) For `f : {0,1}^Z → {0,1}` and
+disjoint `X, Y ⊆ Z`, if `f = ⋁_{i=1}^n p_i(X) ∧ s_i(Y)`, then
+`{(p₁,s₁), …, (pₙ,sₙ)}` is an `X`-decomposition when `⋁ᵢ pᵢ ≡ 1`, `pᵢ ∧ pⱼ ≡ 0` for
+`i ≠ j`, and `pᵢ ≢ 0` for all `i`.
+*Lean note:* the `pᵢ` form a partition of the `X`-cube into nonempty pieces; that is the
+content, and stating it that way avoids the indexed-family bookkeeping.
+
+**D14. SDD.** (`def: SDD`, line 254) Recursively: an SDD respecting a v-tree `T` with root
+`t` is either a single node labelled `0`, `1`, `x` or `¬x`; or has source an `∨`-node `g`
+such that (1) `⟨C⟩ = ⋁ᵢ pᵢ(X) ∧ sᵢ(Y)` for an `X`-decomposition of `f_C`, (2)
+`X ⊆ var(gₗ)` and `Y ⊆ var(gᵣ)`, and (3) each sub-circuit computing a `pᵢ` (resp. `sᵢ`) is
+an SDD respecting `t_ℓ` (resp. `t_ᵣ`).
+*Deps:* D10, D13. *Lean note:* per `ROADMAP.md` §1.2, formalize as a predicate
+`IsSDDAt C i t` on a circuit node and a v-tree node, defined by recursion on `t` — **not**
+by rebuilding subcircuits. The fan-in-2 restriction makes the `⋁ᵢ` a right-nested chain of
+`∨`-nodes; the paper flags this as cosmetic (footnote at line 268), but it is exactly the
+part that makes a Lean transcription of this definition fiddly. Budget for it.
+
+**D15. Succinctness `≤`, `<`.** (line 273) `𝖢₁ ≤ 𝖢₂` if there is a polynomial `p` such
+that every `C ∈ 𝖢₂` has an equivalent `C' ∈ 𝖢₁` with `|C'| ≤ p(|C|)`; `𝖢₁ < 𝖢₂` if also
+`𝖢₂ ≰ 𝖢₁`.
+*Lean note:* the polynomial is best `∃ c d, ∀ C ∈ 𝖢₂, ∃ C' ∈ 𝖢₁, Equiv C C' ∧ |C'| ≤ c * |C|^d`.
+Needed only to *state* `cor: ACsep`; the substantive results are the explicit size bounds.
+
+## A.3 Communication complexity (§3, from line 285)
+
+**D16. Balanced partition.** (line 287) A partition `Π = (X, Y)` of `Z` is *balanced* if
+`|Z|/3 ≤ min(|X|, |Y|)`.
+*Lean note:* this is the paper's own relaxed notion, weaker than the usual `|Z|/3 ≤ |X| ≤ 2|Z|/3`
+— and the relaxation is precisely why Claim `perm` cannot simply be cited (line 460, gap
+G2). Use `3 * min X.card Y.card ≥ Z.card` to stay in `ℕ`.
+
+**D17. Π-rectangle.** (line 288) With `Π = (X,Y)`, a set `A × B` with `A` a set of
+assignments to `X` and `B` a set of assignments to `Y`.
+*Lean note:* concretely a pair of predicates on the two halves; membership of a full
+assignment `α` is `A (α|_X) ∧ B (α|_Y)`. Keeping rectangles as *predicates* rather than
+`Finset`s avoids requiring `Fintype V` everywhere.
+
+**D18. Cover; rectangular partition.** (lines 289, 292)
+Π-rectangles `R₁, …, R_k` *cover* `S` if `⋃ᵢ Rᵢ = S`; they *partition* `S` if additionally
+`Rᵢ ∩ Rⱼ = ∅` for `i ≠ j`.
+
+**D19. `Cov_b^Π(f)`, `Par_b^Π(f)`.** (lines 290, 295) The minimum number of Π-rectangles
+covering (resp. partitioning) `f⁻¹(b)`.
+*Lean note:* as with mixing time in `Arlib.MarkovChains`, encode as a `Prop`-valued
+predicate "there is a cover of size `k`" plus `Nat.find`/`sInf`, so that upper bounds are
+"exhibit a cover" rather than "compute a minimum".
+
+**D20. `NCC_b^Π(f) := log₂ Cov_b^Π(f)`; `UCC_b^Π(f) := log₂ Par_b^Π(f)`.**
+(lines 290, 669) Equal to the minimum bits of a non-deterministic (resp. unambiguous)
+two-party protocol establishing `f = b`.
+*Lean note:* **do not take logarithms.** Every use is of the form
+`Cov₀(f) = 2^{NCC₀(f)}` (line 344), so working with `Cov`/`Par` throughout keeps
+everything in `ℕ` and avoids real-valued logs entirely. The protocol characterisation is
+cited to Kushilevitz–Nisan and is never used as anything but intuition; do not formalize
+protocols.
+
+**D21. Best-partition measures.** (line 292) `Cov_b(f) := min_Π Cov_b^Π(f)` and
+`Par_b(f) := min_Π Par_b^Π(f)`, the minimum over **balanced** partitions.
+*Deps:* D16, D19. *Lean note:* this minimum-over-partitions is the whole difficulty of the
+paper. In a lower bound it means: *for every* balanced `Π`, the count is large.
+
+## A.4 Arithmetic circuits (§5, from line 509)
+
+**D22. AC.** (`def: AC`, line 511) As NNF but with fan-in-two `+` and `×` internal nodes;
+leaves labelled `0`, `1`, `x` or `¬x`. On input `x`, a positive variable contributes
+`x(v)` and a negative one `1 - x(v)`; `f_C : {0,1}^{dom(C)} → ℝ`.
+*Lean note:* the shared structure with `NNF` is real. Consider generalizing `Gate` over a
+semiring and an interpretation of the two internal labels, so `NNF` and `AC` are two
+instantiations — but only do so once `Circuits/` is otherwise complete; premature
+generalization here will make every `NNF` proof harder to read for no gain.
+
+**D23. Positive AC (`AC_p`), monotone AC (`AC_m`).** (line 519) Positive = outputs a
+non-negative polynomial; monotone = *syntactically* every constant is non-negative.
+Monotone ⊆ positive, and the containment is strict.
+
+**D24. `supp(C)`.** (line 532) The set of inputs on which `f_C` is non-zero.
+
+**D25. The relabelling `φ`.** (line 521) `φ(C)` has the same underlying graph as `C`;
+leaves labelled by a variable, a negated variable, or `0` are unchanged, every other leaf
+becomes `1`; `+` becomes `∨` and `×` becomes `∧`.
+*Key property (line 601):* `supp(C) = sat(φ(C))`. This is the only reason `φ` exists, and
+it should be the lemma proved about it.
+
+**D26. dSD-`AC_m`.** (line 532) Deterministic, structured, decomposable monotone AC — the
+AC analogue of d-SDNNF, obtained by replacing `∧` by `×`, `∨` by `+` and `sat` by `supp`
+in D7, D8, D12.
+
+**D27. `X` p-decomposition.** (`def: p-decomp`, line 606) For `f : {0,1}^X → ℝ⁺` with
+`f = Σᵢ αᵢ × (pᵢ(X) + sᵢ(Y))`, each `αᵢ > 0` and `Σᵢ αᵢ = 1`: a p-decomposition when
+`Σᵢ pᵢ ≡ 1`, `pᵢ × pⱼ ≡ 0` for `i ≠ j`, and `pᵢ ≢ 0`.
+*Note:* the displayed formula in the paper reads `αᵢ × (pᵢ + sᵢ)`; compare D13 and
+Definition `def: PSSD`, where the intended reading is the product `pᵢ × sᵢ`. Treat the
+`+` as a typo for `×` and flag it if the formalization ever depends on it.
+
+**D28. PSDD.** (`def: PSSD`, line 616) D14 with `+`, `×` and p-decomposition replacing
+`∨`, `∧` and `X`-decomposition.
+
+---
+
+# PART B — THE BRIDGE
+
+**T1. The rectangle lemma. [IMPORTED — I2]** (`lem: rectangle`, line 299)
+*If `f : {0,1}^n → {0,1}` admits a d-SDNNF of size `s`, then `Par₁(f) ≤ s`. If `f` admits
+an SDNNF of size `s`, then `Cov₁(f) ≤ s`.*
+*Deps:* D12, D19, D21. Attributed to Pipatsrisawat–Darwiche and Bova et al.
+**This is the single highest-value target in the area** — it is the only statement joining
+`Circuits/` to `Communication/`, and it is self-contained. See `ROADMAP.md` §4 for the
+proof sketch and for why it should not remain a hypothesis.
+
+---
+
+# PART C — THE MAIN ARGUMENT (§4)
+
+**T2. Fixed-partition hardness. [IMPORTED — I1]** (`thm: fixed_part`, line 311)
+*For every `k ∈ ℕ` there exist `m = k^{O(1)}`, a Boolean function `g : {0,1}^m → {0,1}`,
+and a balanced partition `Π` of the inputs of `g`, such that (1) `g` is equivalent to an
+unambiguous `k`-DNF `ψ` with `2^{Õ(k)}` terms, and (2) `NCC₀^Π(g) = Ω̃(k²)`.*
+From Göös et al., building on GLMWZ and Balodis et al. **Not to be proved here.** Bundle
+as a `structure` and thread it through; it carries all the quantitative content.
+
+**T3. Fixed partition to best partition.** (`thm: fixed_to_best`, line 325)
+*Let `ψ` be an unambiguous `n`-variable `k`-DNF with `ℓ` terms. Then there is an
+unambiguous `O(n²)`-variable `O(kn)`-DNF `ψ'` with `O(ℓ n^{k+4})` terms such that for
+`δ ∈ {0,1}` and any balanced partition `Π` of the variables of `ψ`,
+`NCC_δ(ψ') ≥ NCC_δ^Π(ψ)`.*
+*Deps:* T4, T5, T7, C1. **Proved in the paper** (line 445) and the main formalization
+target of Part C. Note the direction: the *best-partition* complexity of `ψ'` dominates the
+*fixed-partition* complexity of `ψ` — that is what makes the lifting useful.
+*Lean note:* state the term count explicitly (`ROADMAP.md` §5), and state the conclusion
+with `Cov` rather than `NCC` (D20).
+
+**T4. Step 1 — making copies.** (unnamed lemma, line 391; proof lines 395–416)
+*If `ψ` is an unambiguous `n`-variable `k`-DNF with `ℓ` terms, then `ψ^∨` is an
+`O(n²)`-variable unambiguous `O(kn)`-DNF with `O(ℓ n^k)` terms.*
+Construction (line 379): replace every occurrence of `xᵢ` by `⋁_{j∈[m]} y_{i,j}` with
+`m = cn`; expand by distributivity to a DNF `φ`; then for each positive literal `y_{i,j}`
+in a term, add conjuncts `¬y_{i,j'}` for all `j' ≠ j`. Terms of `ψ^∨` obtained from `C` are
+*derived from* `C`.
+**Fully proved in the paper, and entirely self-contained** — no communication complexity,
+no probability. The proof: given `α` satisfying a term `C` of `ψ^∨`, define
+`β(xᵢ) = 1 ⟺ α(⋁_j y_{i,j}) = 1`; `β` satisfies the unique term `D` of `ψ` that `C` derives
+from, every term derived from `D` has the displayed shape
+`⋀_{i∈I_p} y_{i,jᵢ} ∧ ⋀_{j≠jᵢ} ¬y_{i,j} ∧ ⋀_{i∈I_n} ⋀_j ¬y_{i,j}`, and that shape forces
+`C = C'`.
+*This is the best entry point for real proof work in the area* — see `ROADMAP.md` §7.
+
+**T5. The Wegman–Carter family. [IMPORTED — I3]** (`lem: indperm`, line 423)
+*Let `𝔽` be the field of order `n' = 2^t` and `𝒫 = {x ↦ ax + b : a, b ∈ 𝔽, a ≠ 0}`. Then
+every element of `𝒫` is a permutation, `|𝒫| = n'(n'-1)`, and for all `a ≠ b` and `c ≠ d`,
+`Pr_{σ ∈ 𝒫}[σ(a) = c ∧ σ(b) = d] = 1/|𝒫|`.*
+Provable, and largely present already: see `ROADMAP.md` §3, I3. Note the two constraints
+`a ≠ 0` and `c ≠ d`, which distinguish this from the plain degree-`<2` polynomial family
+in `Arlib.Probability.PolyHash`.
+
+**T6. Step 2 — adding permutations; `ψ'` is well defined.** (`lem: well_def`, line 439;
+construction at line 432)
+For a term `C = ⋀_{i∈I} aᵢ` of `ψ^∨` and `σ ∈ 𝒫`, set
+`perm_σ(C) := ⋀_{i=1}^{2t} (zᵢ = rep(σ)ᵢ) ∧ ⋀_{i∈I} a_{σ(i)}`, and let `ψ'` be the
+disjunction of all `perm_σ(C)`. *Then if `ψ` is an `n`-variable unambiguous `k`-DNF with
+`ℓ` terms, `ψ'` is an `O(n²)`-variable unambiguous `O(ℓ n^{k+4})`-term `O(kn)`-DNF.*
+*Deps:* T4, T5. Unambiguity is inherited: the `z`-block pins down `σ`, so distinct `σ`
+give disjoint terms, and within one `σ` unambiguity is T4.
+*Assumption:* `n' = 2^t` is a power of two (line 421); see gap G3.
+
+**C1. Claim `perm`. [PROOF NOT IN THE PAPER — gap G2]** (`claim: perm`, line 448)
+*There is a permutation `σ ∈ 𝒫` such that for every `i ∈ [n]` and every `k ∈ {0,1}`, some
+`y_{i,j}` is mapped by `σ` into the block `Π_k`.*
+The paper proves this by citing Knop, Theorem 4.2, remarking only that the relaxed notion
+of balancedness (D16) goes through (line 460). Tools named: Chebyshev's inequality and T5.
+**Formalizing this means reconstructing the argument, not transcribing it.** It is the
+hardest genuinely-provable step in the paper; see `ROADMAP.md` §6, G2.
+
+**T7. Proof of `thm: fixed_to_best`.** (line 445)
+Given C1 with witness `σ`, write `v_{r(i,k)}` for a copy `y_{i,j}` that `σ` sends into
+`Π_k`. A protocol for `ψ` under `Π` runs the protocol for `ψ'` under `Γ` on the input where
+the `zᵢ` encode `σ`, `v_{r(i,k)} := aᵢ` when `xᵢ ∈ Γ_k`, and every other variable of `V` is
+set to `0`. The `¬ψ` case is identical.
+*Lean note:* since we work with `Cov`/`Par` rather than protocols (D20), formalize this as
+a map on *rectangles*: a Γ-rectangle cover of `ψ'⁻¹(δ)` pulls back along the substitution
+above to a Π-rectangle cover of `ψ⁻¹(δ)` of the same size. That is the actual content, and
+it avoids formalizing protocols altogether.
+
+**T8. Main theorem — negation.** (`thm: main`, line 113; proof line 334)
+*For every `n ∈ ℕ` there is a Boolean function `f` with an equivalent structured d-DNNF of
+size `n`, such that any structured DNNF equivalent to `¬f` has size `n^{Ω̃(log n)}`.*
+*Deps:* T1, T2, T3. Proof: take `g, ψ` from T2 and set `f ≡ ψ'`. Every term of `ψ'` is a
+conjunction of `O(km)` literals, so admits a d-DNNF of size `O(km)` respecting any fixed
+v-tree `T`; disjoining them gives a d-DNNF for `ψ'` respecting `T` of size
+`2^{Õ(k)} =: n`, deterministic because `ψ'` is unambiguous. For the lower bound,
+`NCC₀(f) ≥ NCC₀^Π(g) = Ω̃(k²)`, so `Cov₀(f) = 2^{Ω̃(k²)}`, and T1 applied to `¬f` gives the
+bound `2^{Ω̃(k²)} = n^{Ω̃(log n)}`.
+*Lean note:* the upper-bound half is fully constructive and does not depend on T2's
+hardness clause — it is worth building the "unambiguous DNF ⟹ d-SDNNF of size `O(terms ×
+width)`" lemma as a standalone result in `Circuits/DNF`, since it is reused verbatim in
+T10 and is a good self-contained exercise.
+
+**T9. Separation from SDD.** (`thm: sep`, line 107; proof line 465)
+*For every `n ∈ ℕ` there is a function `f` with an equivalent structured d-DNNF of size
+`n` such that any SDD equivalent to `f` has size `n^{Ω̃(log n)}`.*
+*Deps:* T8, plus the imported fact that SDD supports polynomial-time complementation
+(Darwiche). Proof: complement an SDD for `f` to get one for `¬f` of polynomial size; SDD ⊆
+d-SDNNF, so T8 applies.
+*Lean note:* record SDD-complementation as a further hypothesis; it is a fifth imported
+result, used only here.
+
+## C.1 Disjunction and existential quantification (§4.3, appendix §A)
+
+**T10. Fixed-partition hardness for unions. [IMPORTED — I1']** (`thm: fixed_or`, line 671)
+*For every `k` there are `n = k^{O(1)}`, functions `f, g : {0,1}^n → {0,1}` and a balanced
+`Π` such that `f, g` have equivalent unambiguous `k`-DNFs with `2^{Õ(k)}` terms and
+`UCC₁^Π(f ∪ g) = Ω̃(k²)`.* From Göös et al., Theorem 2. Same status as T2.
+
+**T11. Disjunction.** (`thm: union`, line 471; proof line 682)
+*For every `n` there are Boolean functions `f, g` on a common domain such that (1) some
+v-tree `T` is respected by d-DNNFs of size `n` for both `f` and `g`, and (2) any d-SDNNF
+equivalent to `f ∨ g` has size `n^{Ω̃(log n)}`.*
+*Deps:* T1, T3, T10. Note that `f` and `g` must respect a **common** `T` — that is what
+makes the statement about the disjunction operation rather than about two unrelated
+circuits.
+
+**T12. Existential quantification.** (`thm: ex`, line 493; proof line 501)
+*For every `n` there are `X`, `f : {0,1}^X → {0,1}` and `x ∈ X` such that `f` admits a
+d-SDNNF of size `n` and any d-SDNNF equivalent to `∃x f` has size `n^{Ω̃(log n)}`.*
+*Deps:* T11, D3. Proof: with `f, g, T` from T11, build `C` with
+`⟨C⟩ = (x ∧ ⟨C_f⟩) ∨ (¬x ∧ ⟨C_g⟩)`; the source `∨` is deterministic because the two sides
+disagree on `x`; extend `T` to `T'` by a fresh root with children `x` and the old root.
+Then `∃x f_C ≡ f ∨ g`.
+**This proof is short, complete, and entirely formalizable given T11** — it is a good
+target once `Circuits/VTree` exists, and it exercises the v-tree machinery properly.
+
+---
+
+# PART D — ARITHMETIC CIRCUITS (§5)
+
+**T13. de Colnet–Mengel. [IMPORTED — I4]** (`lem: AC`, line 527)
+*For sets `𝖢₁, 𝖢₂` of `AC_m`: `𝖢₁ ≤ 𝖢₂` implies `φ(𝖢₁) ≤ φ(𝖢₂)`.*
+*Deps:* D15, D25. **Read the paper's footnote at line 119**: the cited source states this
+as an iff, but only one direction holds. Formalize the stated direction; record the other
+as false rather than omitting it silently.
+
+**T14. dSD-`AC_m` `<` PSDD.** (`cor: ACsep`, line 632; proof line 636)
+*Deps:* T9, T13, D26, D28. Proof: `φ(dSD-AC_m) = d-SDNNF`; `φ(PSDD) ≥ SDD` (propagating
+away parameter constants from `φ(C)` yields an equivalent, smaller SDD); chain with T9.
+*Lean note:* the `φ(PSDD) ≥ SDD` step is a constant-propagation construction, not a
+one-liner — it is the only real content in this proof.
+
+**T15. Addition.** (`cor: add`, line 642; proof line 646)
+*For every `n` there are positive polynomials `f, g` each admitting a dSD-`AC_m` of size
+`n` such that any dSD-`AC_p` equivalent to `f + g` has size `n^{Ω̃(log n)}`.*
+*Deps:* T11, T13, plus de Colnet–Mengel Lemma 10 (flipping the sign of every negative
+constant in a positive AC yields an equivalent monotone AC) — a **sixth imported result**,
+used only here.
+
+---
+
+# PART E — WHAT IS NOT FORMALIZED, AND WHY
+
+For the record, so that nobody re-derives these decisions:
+
+1. **Protocols.** `NCC` and `UCC` are *defined* in the paper via non-deterministic and
+   unambiguous two-party protocols and then immediately identified with `log₂ Cov` and
+   `log₂ Par`. Only the rectangle side is ever used. Formalizing protocols would add a
+   substantial layer with no consumer. See D20.
+2. **Logarithms.** Everything is stated with `Cov`/`Par` in `ℕ`. See D20.
+3. **`⟨C⟩`, the expansion of a circuit to a formula.** Used only for exposition; every
+   statement about it is a statement about `f_C`. See D6.
+4. **The three genuinely external theorems** T2/T10 (Göös et al.), T5 in its
+   published form (Wegman–Carter — but see I3, it is within reach), T13 and the SDD- and
+   AC-complementation facts. These are hypotheses, never axioms; see `ROADMAP.md` §1.3.
