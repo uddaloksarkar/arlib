@@ -84,6 +84,12 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
   lower bound is a circuit lower bound: a structured d-DNNF of size `s` yields a
   rectangular *partition* of `f⁻¹(1)` into `s` pieces, so `Par₁(f) ≤ |C|`.  This
   **discharges** import I2.
+* `LowerBounds.Lifting` — Step 2 of the construction and `thm: fixed_to_best`:
+  for *every* balanced partition of `var(ψ')` there is a substitution under which
+  `ψ'` computes `ψ`, so a best-partition bound for `ψ'` inherits the
+  fixed-partition bound for `ψ`.
+* `LowerBounds.Separation` — `thm: main` and `thm: sep`, assembled, with fully
+  explicit bounds and conditional only on the imported hardness.
 * `LowerBounds.ClaimPerm` — the probabilistic heart of the lifting, which the
   paper proves only by citation: some affine permutation places, for every
   original variable and every side of the partition, at least one copy on that
@@ -113,6 +119,8 @@ import Arlib.KnowledgeCompilation.LowerBounds.Copies
 import Arlib.KnowledgeCompilation.LowerBounds.BalancedCut
 import Arlib.KnowledgeCompilation.LowerBounds.RectangleLemma
 import Arlib.KnowledgeCompilation.LowerBounds.ClaimPerm
+import Arlib.KnowledgeCompilation.LowerBounds.Lifting
+import Arlib.KnowledgeCompilation.LowerBounds.Separation
 import Arlib.KnowledgeCompilation.LowerBounds.Pullback
 import Arlib.KnowledgeCompilation.LowerBounds.AffinePerms
 import Arlib.KnowledgeCompilation.LowerBounds.Imported

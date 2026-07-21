@@ -321,7 +321,8 @@ unambiguous `O(n²)`-variable `O(kn)`-DNF `ψ'` with `O(ℓ n^{k+4})` terms such
 `δ ∈ {0,1}` and any balanced partition `Π` of the variables of `ψ`,
 `NCC_δ(ψ') ≥ NCC_δ^Π(ψ)`.*
 *Deps:* T4, T5, T7, C1. **Proved in the paper** (line 445) and the main formalization
-target of Part C. Note the direction: the *best-partition* complexity of `ψ'` dominates the
+target of Part C. **In Lean** as `Lifting.exists_partitionMap_permDNF` and its corollaries;
+see T7. Note the direction: the *best-partition* complexity of `ψ'` dominates the
 *fixed-partition* complexity of `ψ` — that is what makes the lifting useful.
 *Lean note:* state the term count explicitly (`ROADMAP.md` §5), and state the conclusion
 with `Cov` rather than `NCC` (D20).
@@ -344,9 +345,11 @@ from, every term derived from `D` has the displayed shape
 (completeness, one-hot only), `choice_eq_on_posPart` and `copyTerm_eq_of_sat` (the crux of
 unambiguity), and at DNF level `copyDNF`, `numTerms_copyDNF_le`, `sat_of_sat_copyDNF`,
 `copyDNF_eq_of_sat`.
-*Remaining:* unambiguity is proved in **pairwise** form; the counting form `DNF.Unambiguous`
-additionally needs the choice-function enumeration to be irredundant. That is a property of
-the enumeration, not of the construction.
+*Remaining: nothing.* Unambiguity was proved there in **pairwise** form only, the counting form
+`DNF.Unambiguous` additionally needing the choice-function enumeration to be irredundant — a
+property of the enumeration, not of the construction. `LowerBounds/Lifting.lean` supplies such
+an enumeration (`canonChoices`: the functions that are `0` outside `posPart t`, listed once
+each, `m^{|posPart t|}` of them) and upgrades the statement: `Lifting.unambiguous_copiesDNF`.
 
 > **Trap — `ψ^∨` is *not* equivalent to `ψ[xᵢ := ⋁ⱼ y_{i,j}]`.** It is very natural to
 > assume the re-disambiguation step is semantics-preserving, and it is not. The
@@ -389,9 +392,14 @@ disjunction of all `perm_σ(C)`. *Then if `ψ` is an `n`-variable unambiguous `k
 `ℓ` terms, `ψ'` is an `O(n²)`-variable unambiguous `O(ℓ n^{k+4})`-term `O(kn)`-DNF.*
 *Deps:* T4, T5. Unambiguity is inherited: the `z`-block pins down `σ`, so distinct `σ`
 give disjoint terms, and within one `σ` unambiguity is T4.
-*Not yet in Lean* — Step 1 (T4) is done, Step 2 is the remaining half of the construction.
-T5 is available (`AffinePerms`), so the permutation side is unblocked.
-*Assumption:* `n' = 2^t` is a power of two (line 421); see gap G3.
+**In Lean**, in `LowerBounds/Lifting.lean`: `zBlock`, `permTerm`, `permDNF` (`ψ'`), with
+`unambiguous_permDNF`, `numTerms_permDNF` (`= |𝒫|·|ψ^∨|`, exactly) and its bounded form
+`numTerms_permDNF_le` (`≤ |𝒫|·ℓ·m^k`), and `isKDNF_permDNF` (width `≤ |Zι| + k·m`).
+*Variables:* `ψ'` lives over the **sum type** `F ⊕ Zι` — the permuted copy-variables,
+identified with the field, on the left; the `z`-block on the right. `rep : 𝒫 → (Zι → Bool)` is a
+parameter with injectivity on `𝒫` its only requirement, `exists_rep_injective` showing one
+exists when `|F|² ≤ 2^{|Zι|}`.
+*Assumption:* **none** — the `n' = 2^t` of line 421 is not needed; see gap G3, now moot.
 
 **C1. Claim `perm`. [PROVED — the paper proves it only by citation]** (`claim: perm`, line 448)
 *There is a permutation `σ ∈ 𝒫` such that for every `i ∈ [n]` and every `k ∈ {0,1}`, some
@@ -419,10 +427,22 @@ Given C1 with witness `σ`, write `v_{r(i,k)}` for a copy `y_{i,j}` that `σ` se
 `Π_k`. A protocol for `ψ` under `Π` runs the protocol for `ψ'` under `Γ` on the input where
 the `zᵢ` encode `σ`, `v_{r(i,k)} := aᵢ` when `xᵢ ∈ Γ_k`, and every other variable of `V` is
 set to `0`. The `¬ψ` case is identical.
-*Lean note:* since we work with `Cov`/`Par` rather than protocols (D20), formalize this as
+*Lean note:* since we work with `Cov`/`Par` rather than protocols (D20), this is formalized as
 a map on *rectangles*: a Γ-rectangle cover of `ψ'⁻¹(δ)` pulls back along the substitution
 above to a Π-rectangle cover of `ψ⁻¹(δ)` of the same size. That is the actual content, and
 it avoids formalizing protocols altogether.
+**In Lean** as `Lifting.exists_partitionMap_permDNF`: for every balanced `Γ` there is a
+`PartitionMap Π Γ` under which `ψ'` computes `ψ`. Every measure statement is then a one-liner
+(`hasCoverOfSize_of_hasCoverOfSize_permDNF`, `hasPartitionOfSize_…`, `fixedCov_le_fixedCov_…`),
+and the paper's "the case for `¬ψ` is identical" is literally the same lemma at `b = false`.
+Three things the paper's sketch does not say, all of them visible in the Lean statement:
+> * The substitution's third clause — *every other variable of `V` is set to zero* — is what
+>   makes the simulated input **one-hot**, and one-hotness is exactly the hypothesis Step 1's
+>   completeness needs (see the trap under T4). It is not padding.
+> * `Π` need not be balanced. Only `Γ` is, and only through C1.
+> * Balancedness of `Γ` is on `V ∪ Z`, so it gives `|F| ≤ 3|Γ_k ∩ V| + 2|Z|`, not `≤ 3|Γ_k ∩ V|`.
+>   Closing the gap to C1's `|F| ≤ 4|Γ_k ∩ V|` needs `8·|Z| ≤ |F|`, which is an explicit
+>   hypothesis of the theorem (and holds for the paper's `|Z| = 2t`, `|F| = 2^t`, `t ≥ 7`).
 
 **T8. Main theorem — negation.** (`thm: main`, line 113; proof line 334)
 *For every `n ∈ ℕ` there is a Boolean function `f` with an equivalent structured d-DNNF of
@@ -433,6 +453,16 @@ v-tree `T`; disjoining them gives a d-DNNF for `ψ'` respecting `T` of size
 `2^{Õ(k)} =: n`, deterministic because `ψ'` is unambiguous. For the lower bound,
 `NCC₀(f) ≥ NCC₀^Π(g) = Ω̃(k²)`, so `Cov₀(f) = 2^{Ω̃(k²)}`, and T1 applied to `¬f` gives the
 bound `2^{Ω̃(k²)} = n^{Ω̃(log n)}`.
+**In Lean** as `Separation.thm_main`, with both bounds explicit and no `Õ`/`Ω̃`: a d-SDNNF for
+`ψ'` of size `≤ |𝒫|·(termBound·m^k)·(2(|Zι| + k·m) + 2) + 1` respecting any prescribed v-tree,
+and `coverBound ≤ |C|` for every structured DNNF computing `¬ψ'`. The lower half is
+`Separation.coverBound_le_size_of_computes_not`; the best-partition statement it factors
+through is `Separation.coverBound_le_bestCov_permDNF`. The last step of the paper's argument —
+turning those two numbers into `n^{Ω̃(log n)}` — is *not* done; it needs a concrete family of
+fields of order `2^t` (`ROADMAP.md` §6, G6).
+*One hypothesis that is not in the paper:* the lower bound quantifies over v-trees `T` with
+`var(T) = var(ψ')`. The paper's `def: vtree` builds this in, but here it must be said; see
+gap G5.
 **The upper-bound half is proved**, in `Circuits/DNFtoCircuit.lean`:
 `exists_isdSDNNF_of_unambiguous_kDNF` gives a d-SDNNF respecting any given v-tree of size
 `≤ ℓ·(2k+2) + 1` for an unambiguous `k`-DNF with `ℓ` terms. It does not depend on T2's
@@ -460,8 +490,11 @@ That is impossible — it needs `VTree`, which `Circuits/DNF` does not import.
 *Deps:* T8, plus the imported fact that SDD supports polynomial-time complementation
 (Darwiche). Proof: complement an SDD for `f` to get one for `¬f` of polynomial size; SDD ⊆
 d-SDNNF, so T8 applies.
-*Lean note:* record SDD-complementation as a further hypothesis; it is a fifth imported
-result, used only here.
+**In Lean** as `Separation.thm_sep`, with SDD-complementation recorded as the fifth imported
+result `Imported.SDDComplementation` (`ROADMAP.md` §3, I5) — its polynomial explicit as
+`c·|C|^d`, its v-tree preserved, its output free of unreachable nodes (gap G1). The conclusion
+is stated as `coverBound ≤ c·|C|^d` rather than as a bound on `|C|`, since extracting `|C|`
+would mean a `d`-th root in `ℕ` and a rounding convention chosen for no reason.
 
 ## C.1 Disjunction and existential quantification (§4.3, appendix §A)
 

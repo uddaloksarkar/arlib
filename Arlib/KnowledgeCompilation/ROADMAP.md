@@ -98,20 +98,23 @@ Three directories, mirroring the shape of the argument.
 | --- | --- | --- |
 | `BalancedCut` | the v-tree separator, and the balanced partition it induces | **done** — first half of §4 |
 | `RectangleLemma` | d-SDNNF of size `s` ⟹ `Par₁(f) ≤ s`; SDNNF of size `s` ⟹ `Cov₁(f) ≤ s` | **done** — discharges I2 |
-| `Copies` | Step 1: `copyTerm`, `collapse`, `OneHot`, soundness + one-hot completeness, and `copyTerm_eq_of_sat` (the crux of unambiguity) — **done**; assembling `ψ^∨` as a `DNF` and counting its terms still to do | partial |
+| `Copies` | Step 1: `copyTerm`, `collapse`, `OneHot`, soundness + one-hot completeness, `copyTerm_eq_of_sat` (the crux of unambiguity), `copyDNF` and its term count | **done** — the *counting* form of unambiguity needs the enumeration of choice functions, which is in `Lifting` |
 | `AffinePerms` | the Wegman–Carter family `x ↦ ax+b`, bijectivity, `|𝒫| = (q−1)q`, and exact pairwise independence | **done** — discharges I3 |
 | `Imported` | I1 and I1′ as `structure`s carrying explicit bounds | **done** |
 | `ClaimPerm` | the second-moment argument producing a good permutation | **done** — closes G2 |
 | `Pullback` | protocol simulation as a rectangle pullback along a substitution | **done** |
-| `Lifting` | Step 2 (adding permutations) and the assembly of `thm: fixed_to_best` | needs `ClaimPerm` |
-| `Separation` | `thm: main`, `thm: sep`, `thm: union`, `thm: ex` | conditional on I1, I4 |
+| `Lifting` | the canonical choice-function enumeration and the counting unambiguity of `ψ^∨`; Step 2 (`zBlock`, `permTerm`, `permDNF`) with its term count, width and unambiguity; and `thm: fixed_to_best` as a `PartitionMap` | **done** |
+| `Separation` | `thm: main` and `thm: sep`, with both bounds explicit | **done** — `thm: main` conditional on I1, `thm: sep` on I1 and I5; `thm: union`, `thm: ex` still to do |
 
 ---
 
 ## 3. Imported results
 
-Four results are used but not proved by the paper. Each becomes an explicit hypothesis — except
-I3, which turned out to be within reach and is now **proved** (see below), leaving three.
+Five results are used but not proved by the paper. Two of them, I2 and I3, turned out to be
+within reach and are now **proved** here (see below and §4), so they are no longer imports. The
+remaining three — I1, I4, I5 — each become an explicit hypothesis. I5 was not on the original
+list of four: it surfaced only when `thm: sep` was actually assembled, and it is used nowhere
+else.
 
 **I1 — Göös–Jain–Watson-style fixed-partition hardness** (`thm: fixed_part`, line 311; and
 `thm: fixed_or`, line 671). *For every `k` there is `m = k^O(1)`, a function
@@ -135,6 +138,15 @@ realises a given pair) rather than as a probability. That is sharper, it avoids 
 a probability space the file does not otherwise need, and it is the form a second-moment
 argument consumes. The two hypotheses do different jobs and both are needed: `a ≠ b` makes
 the division legal, `c ≠ d` is what keeps the answer inside `𝒫` rather than a constant map.
+
+**I5 — SDD is closed under complementation in polynomial time** (Darwiche; used at line 465,
+inside the two-sentence proof of `thm: sep`). *From an SDD for `f` respecting `T` one can build
+an SDD for `¬f` respecting `T` of size polynomial in the original.* **In Lean** as
+`Imported.SDDComplementation`, with the polynomial made explicit as `c·|C|^d` per §5. Two
+things are pinned down that the paper leaves implicit and that a consumer needs: the v-tree is
+*preserved* (complementation negates terminals and leaves the structure alone), and the output
+circuit has no unreachable nodes — the latter only because `Respects`/`Deterministic` quantify
+over all node indices while `IsSDDAt` constrains only what is below the source, i.e. gap G1.
 
 **I4 — de Colnet–Mengel, Proposition 2** (`lem: AC`, line 527). Needed only for the
 arithmetic-circuit section. Note the paper's own footnote (line 119): the cited source
@@ -202,6 +214,19 @@ The one place asymptotics are unavoidable is the final separation, `n^Ω̃(log n
 statement genuinely is about a family indexed by `k`. Keep that packaging in
 `LowerBounds/Separation.lean` and nowhere else.
 
+**What came out.** `Separation.thm_main` states both halves explicitly and neither mentions
+`O(·)`: with `H : FixedPartitionHard univ k termBound coverBound`, `m` copies, the field `F`
+and the `z`-index type `Zι`,
+
+* `ψ'` has at most `|𝒫|·(termBound·m^k)` terms of width at most `|Zι| + k·m`, hence a d-SDNNF
+  of size `|𝒫|·(termBound·m^k)·(2(|Zι| + k·m) + 2) + 1` respecting any prescribed v-tree, where
+  `|𝒫| = (|F| − 1)·|F|`;
+* every structured DNNF computing `¬ψ'` has size at least `coverBound`.
+
+The paper's `n^Ω̃(log n)` is the comparison of those two numbers under its choice of parameters,
+and that comparison is the *only* asymptotic step left in the area. It has not been carried
+out: doing it needs a family of fields `F` of order `2^t`, and nothing here builds one.
+
 ---
 
 ## 6. Recorded gaps
@@ -265,25 +290,51 @@ The reconstruction turned up four things worth recording.
 **G3 is also not needed** for this: the file works over an arbitrary finite field, so the
 `n' = 2^t` assumption never enters.
 
-**G3 — the `n' = 2^t` simplification.** The construction assumes the variable count is a
-power of two (line 421), with the general case handled by padding with dummy variables.
-Follow the paper and assume it; the padding is uninteresting but should eventually be
-discharged if the separation is to be stated for all `n`.
+**G3 — the `n' = 2^t` simplification. MOOT.** The construction assumes the variable count is a
+power of two (line 421), with the general case handled by padding with dummy variables. It
+never arose: `ClaimPerm` works over an arbitrary finite field, and `Lifting` takes the
+representation `rep : 𝒫 → (Zι → Bool)` as a parameter whose only requirement is injectivity on
+`𝒫`, so no relation between `|F|` and `2^{|Zι|}` is ever assumed. `Lifting.exists_rep_injective`
+shows such a `rep` exists as soon as `|F|² ≤ 2^{|Zι|}`, which for `|F| = 2^t` is the paper's own
+`|Zι| = 2t`. The variables of `ψ'` outside the image of the copies are exactly the paper's
+padding, and they cost nothing.
+
+**G5 — the v-tree of a lower-bound circuit must span every variable of `ψ'`.** The lower bounds
+in `Separation` carry the hypothesis `T.vars = univ`. The paper's `def: vtree` (line 150)
+builds this in — its v-trees are v-trees *for the variable set of the function* — so the
+hypothesis is faithful, but it is not vacuous here, where `Respects` relates a circuit to an
+arbitrary tree. It is load-bearing rather than cosmetic: the rectangle lemma hands back a
+balanced partition of `var(T)`, while Claim `perm`'s cardinality bounds are about all of `|F|`,
+so a v-tree omitting variables would need those bounds re-derived (and, for the dummy
+variables, an argument that they may be added back to the tree without changing the circuit).
+
+**G6 — no instantiation of the parameters is formalized.** `thm: main` takes `|F| ≥ 8|Zι|`,
+`|F|² ≤ 2^{|Zι|}` (through `rep`), an injection `ι × Fin m ↪ F` and `6|ι| < m`. These are
+simultaneously satisfiable — `|F| = 2^t`, `|Zι| = 2t`, `m = 6n + 1` and `t` large enough that
+`2^t ≥ max(16t, n(6n+1))`, so any `t ≥ 7` with `2^t ≥ n(6n+1)` — but the witness is not built,
+because it needs a concrete family of fields of order `2^t` (`GaloisField`) and the `Fintype`
+plumbing that goes with it. Until it is, the headline theorems are conditional statements whose
+hypotheses have not been exhibited in Lean.
 
 ---
 
-## 7. Where to start
+## 7. What is left
 
-In order, and each is a commit:
+The spine — `thm: main` and `thm: sep`, both halves, both bounds explicit — is closed. What
+remains, in the order it is worth doing:
 
-1. `Circuits/VTree` — v-trees and `Respects`. Small, and unblocks both `SDD` and the
-   rectangle lemma.
-2. `Communication/Rectangle` — rectangles, covers, partitions. Independent of everything
-   above; can be done in parallel.
-3. `Communication/Measures` — `Cov`, `Par`, and the fixed/best distinction.
-4. `LowerBounds/RectangleLemma` — see §4.
-5. `LowerBounds/Copies` — Step 1. Fully proved in the paper (lines 395–416) and entirely
-   self-contained, so it is the best place to go if the rectangle lemma stalls.
+1. **Instantiate the parameters** (G6). A family of fields of order `2^t` with `|Zι| = 2t`,
+   `m = 6n + 1`, and the arithmetic that turns the two explicit bounds of `thm_main` into the
+   paper's `n^{Ω̃(log n)}`. This is the only remaining asymptotic step in the area, and until
+   it is done the headline theorems are conditionals whose hypotheses have not been exhibited.
+2. **`thm: union` and `thm: ex`** (T11, T12). `Imported.UnionHard` and the `Par`-side pullback
+   (`Lifting.hasPartitionOfSize_of_hasPartitionOfSize_permDNF`) are both already in place, so
+   T11 is the same assembly as `thm: main` with `Par₁` in place of `Cov₀`; T12 is a short
+   circuit construction on top of it.
+3. **Gap G1** — restate `Decomposable`/`Deterministic`/`Respects` over reachable nodes. This
+   deletes a field of `Imported.SDDComplementation` and a hypothesis of `IsSDD.isdSDNNF`.
+4. **Gap G5** — remove the `var(T) = var(ψ')` hypothesis of the lower bounds, if it is worth it.
+5. `Circuits/Arithmetic` and Part D.
 
 When you add a language to `Circuits/`, add the containment lemma that places it in the
 hierarchy (SDD ⊆ d-SDNNF ⊆ d-DNNF ⊆ NNF). The containments are what make a lower bound for

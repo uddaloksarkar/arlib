@@ -38,12 +38,17 @@ once, at the very last step.
 
 ## What is *not* here
 
+De Colnet–Mengel (used only by the arithmetic-circuit section) is deliberately
+absent: it needs vocabulary — the relabelling `φ` — that does not exist yet.  It
+belongs here once it does.
+
 `SDD` closed under polynomial-time complementation (used only by `thm: sep`,
-`source/kc/arXiv.tex:465`) and de Colnet–Mengel (used only by the arithmetic
-circuit section) are deliberately absent: both need vocabulary — `IsSDD`, the
-relabelling `φ` — that does not exist yet.  They belong here once it does.
+`source/kc/arXiv.tex:465`) was in the same position and is now here, as
+`SDDComplementation`: `Circuits/SDD.lean` supplies `IsSDDAt`, the vocabulary it
+was waiting for.
 -/
 import Arlib.KnowledgeCompilation.Circuits.DNF
+import Arlib.KnowledgeCompilation.Circuits.SDD
 import Arlib.KnowledgeCompilation.Communication.Measures
 
 namespace Arlib.KnowledgeCompilation
@@ -134,6 +139,37 @@ theorem not_hasPartition (H : UnionHard Z k termBound partBound) {j : ℕ}
   not_hasPartition_of_lt_fixedPar (lt_of_lt_of_le hj H.hard)
 
 end UnionHard
+
+/-- **I5 — SDD is closed under complementation, in polynomial time** (Darwiche,
+via `source/kc/arXiv.tex:465`), used only by `thm: sep`.
+
+The paper's sentence is "we may complement this SDD to get an SDD for `¬f` of
+size polynomial in `|C|`".  Three things are made explicit here.
+
+*The polynomial.*  Following `ROADMAP.md` §5, "polynomial" is the pair of
+parameters `c, d` and the bound `|C'| ≤ c·|C|^d`.  A downstream theorem then
+relates the constants it is given to the constants it produces, with no
+asymptotic notation anywhere.
+
+*The v-tree is preserved.*  Complementation of an SDD negates its terminals and
+leaves its structure alone, so the output respects the *same* v-tree.  Stated
+this way the bundle is both closer to the truth and much easier to consume: the
+lower bound needs a v-tree for `C'`, and asking the import to produce one out of
+nowhere would be asking for more than it gives.
+
+*Reachability.*  `IsSDDAt` constrains only what lies below the source, while
+`Respects` and `Deterministic` quantify over every node index, so getting from
+one to the other needs `Reaches` — `ROADMAP.md` gap G1 showing through.  It is
+part of the output rather than a side condition on the consumer: any actual
+complementation procedure builds a circuit with no unreachable garbage in it.
+Discharging G1 deletes this field and changes nothing else. -/
+structure SDDComplementation (V : Type*) [DecidableEq V] (c d : ℕ) where
+  /-- From an SDD for `f` respecting `T`, an SDD for `¬f` respecting `T`, of
+  size at most `c·|C|^d`. -/
+  compl : ∀ (T : VTree V) (C : NNF V) (f : (V → Bool) → Bool), T.WellFormed →
+    C.IsSDDAt C.root T → C.Computes f →
+    ∃ C' : NNF V, C'.IsSDDAt C'.root T ∧ (∀ i, C'.Reaches C'.root i) ∧
+      C'.Computes (fun α => !(f α)) ∧ C'.size ≤ c * C.size ^ d
 
 end Imported
 end Arlib.KnowledgeCompilation
