@@ -81,7 +81,8 @@ Three directories, mirroring the shape of the argument.
 | `NNF` | DAG encoding, `valAt`, `eval`, `varsAt`, `valAt_congr`, `Decomposable`, `Deterministic`, `IsDNNF`, `IsdDNNF` | **done** |
 | `VTree` | v-trees, `WellFormed` (⟺ no repeated leaf), `IsSubtree`, `Respects`, `IsSDNNF`, `IsdSDNNF`, `Respects.decomposable` | **done** |
 | `SDD` | `XDecomposition`, `IsChain`, `IsSDDAt`, `Reaches`, SDD ⊆ d-SDNNF | **done** (see G1) |
-| `DNF` | terms, width, `IsKDNF`, `Unambiguous` — **done**; the DNF-to-d-SDNNF upper bound still to do, now unblocked by `VTree` | partial |
+| `DNF` | terms, width, `IsKDNF`, `Unambiguous` | **done** |
+| `DNFtoCircuit` | the DNF-to-d-SDNNF construction, `size ≤ ℓ·(2k+2) + 1` | **done** |
 | `Arithmetic` | AC, monotone/positive AC, `supp`, the relabelling `φ`, p-decomposition, PSDD | last |
 
 ### `Communication/` — the tool
@@ -248,7 +249,14 @@ familiar two-sided one. Whatever Knop's proof assumes must therefore be *stricte
 likely an exact split `|X| = |Y|`. Establish which before starting, because the difficulty
 being worked around is not the one the inventory originally described.
 
-**G4 — no concrete circuit instantiates the definitions.** `Decomposable`, `Deterministic`,
+**G4 — no concrete circuit instantiates the definitions. PARTLY CLOSED.** `Circuits/DNFtoCircuit`
+now instantiates `Respects`, `Deterministic` and `IsdSDNNF` for an infinite family, and its
+witnessing v-tree node genuinely varies per `∧`-node — so the `∃t ∀g` misreading of
+`Respects` would *not* support it. The vacuity worry is therefore gone. What remains of G4
+is a single machine-checked instance, which still cannot go through `valAt`/`varsAt` by
+`decide` for the reason below.
+
+**G4 (original text).** `Decomposable`, `Deterministic`,
 `Respects` and `IsdSDNNF` are so far only ever *pushed around* by general lemmas; nothing
 checks them against an object whose answer is known independently. That is exactly how an
 encoding error survives — a `∀ g, ∃ t` misread as `∃ t, ∀ g` would support every general

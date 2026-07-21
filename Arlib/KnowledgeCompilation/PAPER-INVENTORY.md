@@ -420,10 +420,26 @@ v-tree `T`; disjoining them gives a d-DNNF for `ψ'` respecting `T` of size
 `2^{Õ(k)} =: n`, deterministic because `ψ'` is unambiguous. For the lower bound,
 `NCC₀(f) ≥ NCC₀^Π(g) = Ω̃(k²)`, so `Cov₀(f) = 2^{Ω̃(k²)}`, and T1 applied to `¬f` gives the
 bound `2^{Ω̃(k²)} = n^{Ω̃(log n)}`.
-*Lean note:* the upper-bound half is fully constructive and does not depend on T2's
-hardness clause — it is worth building the "unambiguous DNF ⟹ d-SDNNF of size `O(terms ×
-width)`" lemma as a standalone result in `Circuits/DNF`, since it is reused verbatim in
-T10 and is a good self-contained exercise.
+**The upper-bound half is proved**, in `Circuits/DNFtoCircuit.lean`:
+`exists_isdSDNNF_of_unambiguous_kDNF` gives a d-SDNNF respecting any given v-tree of size
+`≤ ℓ·(2k+2) + 1` for an unambiguous `k`-DNF with `ℓ` terms. It does not depend on T2's
+hardness clause, and is reused verbatim by T10.
+*Corrections to the paper's one-line argument at line 340:*
+> (a) "every term is a conjunction of literals, so it admits a d-DNNF respecting `T`" glosses
+> over the only real difficulty — **the nesting order of the `∧`-chain must follow `T`**.
+> For the term `{x, y}` and `T = node (leaf x) (leaf y)`, the circuit `∧(y, x)` respects
+> nothing, while `∧(x, y)` respects `T`. The construction therefore recurses on the *v-tree*,
+> not on the term.
+> (b) The paper's `O(km)` per term is a bound in the number of **variables**; getting a bound
+> in the **width** needs pruning of v-tree branches the term does not mention, which the
+> paper never mentions and which is roughly half the proof.
+> (c) **Inconsistent terms are a real case.** `{(x,true),(x,false)}` is allowed by D1, and the
+> obvious circuit `∧(x, ¬x)` is *not decomposable* — both children have variable set `{x}`.
+> The construction emits `const false` instead. The paper implicitly assumes consistency.
+> (d) The hypothesis needed is `∀ t ∈ ψ, var(t) ⊆ var(T)`, not `var(T) = var(ψ)`; the
+> containment form is more general and is what the proof uses.
+*Lean note (superseded):* an earlier note here suggested putting this in `Circuits/DNF`.
+That is impossible — it needs `VTree`, which `Circuits/DNF` does not import.
 
 **T9. Separation from SDD.** (`thm: sep`, line 107; proof line 465)
 *For every `n ∈ ℕ` there is a function `f` with an equivalent structured d-DNNF of size
