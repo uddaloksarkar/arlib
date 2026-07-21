@@ -80,6 +80,11 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
 * `Techniques.LocalToGlobal` — the guarded link distribution, and the exact
   decomposition `Var_{π_n}(f) = Σ_{k<n} ℰ_{downUp_k}(f^{(k+1)})` obtained by
   telescoping that identity down the levels.
+* `Techniques.LinkRestriction` — the closed form `f^{(k)}(τ) = ∑_{σ⊇τ} w σ f σ /
+  ∑_{σ⊇τ} w σ` for the level projections, and hence their compatibility with
+  restriction to a link.  Note `LocalWalk.linkWeight` is the *star* of a face,
+  not the link: `linkShift` here is the link proper, and the two agree at level
+  one, which is all `LocalWalk.linkDist` ever uses.
 * `Techniques.Transport` — μ-almost-everywhere agreement of chains, and
   transport of the whole `L²` theory along an injective embedding of state
   spaces.
@@ -153,6 +158,7 @@ import Arlib.MarkovChains.Techniques.Coupling
 import Arlib.MarkovChains.Techniques.MixingTime
 import Arlib.MarkovChains.Techniques.LevelVariance
 import Arlib.MarkovChains.Techniques.LocalToGlobal
+import Arlib.MarkovChains.Techniques.LinkRestriction
 import Arlib.MarkovChains.Techniques.Transport
 import Arlib.MarkovChains.Techniques.EntropyVariational
 import Arlib.MarkovChains.Techniques.PsdOrder

@@ -56,7 +56,7 @@ across several projects but are not in Mathlib under an obvious name.
 
 ### `Arlib.MarkovChains` — finite Markov chains
 
-35 modules, ~14.3k LOC, split by a load-bearing design principle: `Techniques/` holds
+36 modules, ~15.0k LOC, split by a load-bearing design principle: `Techniques/` holds
 machinery valid for *any* finite chain, `Chains/` holds the analysis of *specific* chains,
 and every general definition is instantiated against a concrete chain that keeps it honest.
 Following the Chen–Štefankovič–Vigoda monograph on spectral independence (`source/main.tex`).
@@ -86,6 +86,7 @@ here by an elementary variational, discriminant, or adjointness argument.
 | `Techniques.Coupling` | Couplings, the coupling inequality, and the maximal coupling — so TV distance *is* the minimum disagreement probability. |
 | `Techniques.LevelVariance` | The law of total variance for a bare kernel — no hypotheses — and hence the local-to-global step `Var_{π_{k+1}}(g) = Var_{π_k}(Ug) + ℰ_{downUp}(g)` as an *identity*. |
 | `Techniques.LocalToGlobal` | Telescoping that identity down the levels: `Var_{π_n}(f) = Σ_{k<n} ℰ_{downUp_k}(f^{(k+1)})`, exactly — `π_0` is a point mass, so there is no leading term. Includes the guarded link distribution the sum needs. |
+| `Techniques.LinkRestriction` | A closed form for the level projections — `f^{(k)}(τ)` is the conditional expectation given `σ ⊇ τ` — and their compatibility with restriction to a link. Separates the *star* of a face (what `LocalWalk.linkWeight` builds) from the link proper; they agree at level one, audited against `linkDist`. |
 | `Techniques.Transport` | μ-almost-everywhere agreement of chains, and transport of the whole `L²` theory along an injective embedding of state spaces. Rows of weight zero are invisible; the range carries all the mass. |
 | `Techniques.EntropyVariational` | Young's inequality for entropy, the Gibbs variational principle, `Ent ≤ Var/E`, and hence `KL ≤ χ²`. |
 | `Techniques.PsdOrder` | Quadratic forms of a plain `ι → ι → ℝ` and the PSD ordering `PsdLe`. No `Matrix`, no spectrum, no eigenvalues. |
