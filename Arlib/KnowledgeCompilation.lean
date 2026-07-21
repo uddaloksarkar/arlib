@@ -46,6 +46,11 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
 * `Circuits.NNF` — the DAG encoding, node values `valAt`, the computed function
   `eval`, syntactic variables `varsAt`, the locality lemma `valAt_congr`, and
   the predicates `Decomposable`, `Deterministic`, `IsDNNF`, `IsdDNNF`.
+* `Circuits.DNF` — terms as finite sets of literals, width, DNF formulas as
+  lists of terms, `IsKDNF`, and `Unambiguous` in its counting form.  This is the
+  shape in which every imported hardness result arrives, and the object the
+  copy-and-permute construction transforms.
 -/
 
 import Arlib.KnowledgeCompilation.Circuits.NNF
+import Arlib.KnowledgeCompilation.Circuits.DNF
