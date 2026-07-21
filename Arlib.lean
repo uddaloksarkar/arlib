@@ -29,3 +29,5 @@ aggregation of area roots — put content in the area modules, not here.
 import Arlib.Prelude
 import Arlib.Probability
 import Arlib.Combinatorics
+import Arlib.GameTheory
+import Arlib.InformationTheory

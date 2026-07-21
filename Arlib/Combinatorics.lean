@@ -17,6 +17,7 @@ This is the area root; it re-exports the modules below.  Import it to get the
 whole set, or import a single module for just one piece.
 -/
 
+import Arlib.Combinatorics.Atoms
 import Arlib.Combinatorics.Finset
 import Arlib.Combinatorics.BigOperators
 import Arlib.Combinatorics.ListFold
