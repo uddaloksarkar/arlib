@@ -292,8 +292,10 @@ anything phrased in terms of it. This is the opposite of the situation on the ci
 *For every `k ∈ ℕ` there exist `m = k^{O(1)}`, a Boolean function `g : {0,1}^m → {0,1}`,
 and a balanced partition `Π` of the inputs of `g`, such that (1) `g` is equivalent to an
 unambiguous `k`-DNF `ψ` with `2^{Õ(k)}` terms, and (2) `NCC₀^Π(g) = Ω̃(k²)`.*
-From Göös et al., building on GLMWZ and Balodis et al. **Not to be proved here.** Bundle
-as a `structure` and thread it through; it carries all the quantitative content.
+From Göös et al., building on GLMWZ and Balodis et al. **Not to be proved here.**
+**In Lean** as `Imported.FixedPartitionHard`, a `structure` carrying explicit `termBound`
+and `coverBound` parameters rather than `Õ`/`Ω̃`; clause (2) is stated on `Cov₀^Π` directly
+(D20). `FixedPartitionHard.not_hasCover` is the consumable form.
 
 **T3. Fixed partition to best partition.** (`thm: fixed_to_best`, line 325)
 *Let `ψ` be an unambiguous `n`-variable `k`-DNF with `ℓ` terms. Then there is an
@@ -319,7 +321,14 @@ no probability. The proof: given `α` satisfying a term `C` of `ψ^∨`, define
 from, every term derived from `D` has the displayed shape
 `⋀_{i∈I_p} y_{i,jᵢ} ∧ ⋀_{j≠jᵢ} ¬y_{i,j} ∧ ⋀_{i∈I_n} ⋀_j ¬y_{i,j}`, and that shape forces
 `C = C'`.
-*This is the best entry point for real proof work in the area* — see `ROADMAP.md` §7.
+**In Lean**, in `LowerBounds/Copies.lean`: `copyTerm` (the derived term), `collapse`,
+`OneHot`, `sat_of_sat_copyTerm` (soundness, unconditional), `exists_copyTerm_sat`
+(completeness, one-hot only), `choice_eq_on_posPart` and `copyTerm_eq_of_sat` (the crux of
+unambiguity), and at DNF level `copyDNF`, `numTerms_copyDNF_le`, `sat_of_sat_copyDNF`,
+`copyDNF_eq_of_sat`.
+*Remaining:* unambiguity is proved in **pairwise** form; the counting form `DNF.Unambiguous`
+additionally needs the choice-function enumeration to be irredundant. That is a property of
+the enumeration, not of the construction.
 
 > **Trap — `ψ^∨` is *not* equivalent to `ψ[xᵢ := ⋁ⱼ y_{i,j}]`.** It is very natural to
 > assume the re-disambiguation step is semantics-preserving, and it is not. The
@@ -340,13 +349,19 @@ from, every term derived from `D` has the displayed shape
 > 452–457 sets **every other variable in `V` to zero** — that clause is not padding, it is
 > what puts the simulated input into the region where `ψ^∨` and `ψ` agree.
 
-**T5. The Wegman–Carter family. [IMPORTED — I3]** (`lem: indperm`, line 423)
+**T5. The Wegman–Carter family. [PROVED — no longer imported]** (`lem: indperm`, line 423)
 *Let `𝔽` be the field of order `n' = 2^t` and `𝒫 = {x ↦ ax + b : a, b ∈ 𝔽, a ≠ 0}`. Then
 every element of `𝒫` is a permutation, `|𝒫| = n'(n'-1)`, and for all `a ≠ b` and `c ≠ d`,
 `Pr_{σ ∈ 𝒫}[σ(a) = c ∧ σ(b) = d] = 1/|𝒫|`.*
-Provable, and largely present already: see `ROADMAP.md` §3, I3. Note the two constraints
-`a ≠ 0` and `c ≠ d`, which distinguish this from the plain degree-`<2` polynomial family
-in `Arlib.Probability.PolyHash`.
+**In Lean** as `AffinePerms.existsUnique_affine` (exactly one such `σ`) and
+`AffinePerms.card_filter_maps_eq_one` (its counting form), with `bijective_toFun` and
+`card_maps` for the first two clauses. Proved over an arbitrary finite field, not only
+`𝔽_{2ᵗ}`.
+In the end `Probability.PolyHash` was not needed: the content is just that
+`α·(a−b) = c−d` determines `α`. Stated as an exact **count** rather than a probability —
+sharper, no probability space required, and the form a second-moment argument consumes.
+The two constraints do different jobs: `a ≠ b` makes the division legal, `c ≠ d` keeps the
+answer inside `𝒫` instead of a constant map.
 
 **T6. Step 2 — adding permutations; `ψ'` is well defined.** (`lem: well_def`, line 439;
 construction at line 432)
@@ -356,6 +371,8 @@ disjunction of all `perm_σ(C)`. *Then if `ψ` is an `n`-variable unambiguous `k
 `ℓ` terms, `ψ'` is an `O(n²)`-variable unambiguous `O(ℓ n^{k+4})`-term `O(kn)`-DNF.*
 *Deps:* T4, T5. Unambiguity is inherited: the `z`-block pins down `σ`, so distinct `σ`
 give disjoint terms, and within one `σ` unambiguity is T4.
+*Not yet in Lean* — Step 1 (T4) is done, Step 2 is the remaining half of the construction.
+T5 is available (`AffinePerms`), so the permutation side is unblocked.
 *Assumption:* `n' = 2^t` is a power of two (line 421); see gap G3.
 
 **C1. Claim `perm`. [PROOF NOT IN THE PAPER — gap G2]** (`claim: perm`, line 448)
@@ -404,7 +421,8 @@ result, used only here.
 **T10. Fixed-partition hardness for unions. [IMPORTED — I1']** (`thm: fixed_or`, line 671)
 *For every `k` there are `n = k^{O(1)}`, functions `f, g : {0,1}^n → {0,1}` and a balanced
 `Π` such that `f, g` have equivalent unambiguous `k`-DNFs with `2^{Õ(k)}` terms and
-`UCC₁^Π(f ∪ g) = Ω̃(k²)`.* From Göös et al., Theorem 2. Same status as T2.
+`UCC₁^Π(f ∪ g) = Ω̃(k²)`.* From Göös et al., Theorem 2. Same status as T2. **In Lean** as `Imported.UnionHard`, with
+clause (2) on `Par₁^Π` directly, and `UnionHard.not_hasPartition` the consumable form.
 
 **T11. Disjunction.** (`thm: union`, line 471; proof line 682)
 *For every `n` there are Boolean functions `f, g` on a common domain such that (1) some
