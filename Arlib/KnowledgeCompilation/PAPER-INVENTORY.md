@@ -29,6 +29,19 @@ should not need to reopen the paper except to check a proof detail.
 `NNF.Respects`, `NNF.Respects.decomposable`, `NNF.IsSDNNF`, `NNF.IsdSDNNF` and their
 projections.
 
+`Communication/Rectangle.lean`: `VarPartition` (+ `Balanced`, `balanced_iff_left`, `cross`),
+`Rectangle` (with the locality fields), `Rectangle.mem_cross` (the closure property that
+every lower-bound argument consumes), `Covers`, `Partitions`, and padding via
+`extendFamily`.
+
+`Communication/Measures.lean`: `fiber`, `DependsOn`, `HasCoverOfSize`, `HasPartitionOfSize`,
+`fixedCov`, `fixedPar`, `bestCov`, `bestPar`, `forall_not_hasCover_of_lt_bestCov`,
+`fixedCov_le_fixedPar`, `bestCov_le_bestPar`, `hasPartitionOfSize_two_pow`.
+
+`LowerBounds/Copies.lean`: `collapse`, `OneHot`, `posPart`, `negPart`, `copyTerm`,
+`sat_of_sat_copyTerm` (soundness, unconditional), `exists_copyTerm_sat` (completeness, on
+the one-hot region), `sat_copyTerm_iff`.
+
 `Circuits/DNF.lean`: `Lit`, `Term.Sat`, `Term.vars`, `Term.width`, `Term.Consistent`,
 `Term.sat_union`, `Term.sat_congr`, `Term.not_sat_of_not_consistent`, `DNF`, `DNF.Sat`,
 `DNF.eval`, `DNF.satTerms`, `DNF.numTerms`, `DNF.IsKDNF`, `DNF.Unambiguous`,
@@ -156,9 +169,17 @@ Needed only to *state* `cor: ACsep`; the substantive results are the explicit si
 
 **D16. Balanced partition.** (line 287) A partition `Π = (X, Y)` of `Z` is *balanced* if
 `|Z|/3 ≤ min(|X|, |Y|)`.
-*Lean note:* this is the paper's own relaxed notion, weaker than the usual `|Z|/3 ≤ |X| ≤ 2|Z|/3`
-— and the relaxation is precisely why Claim `perm` cannot simply be cited (line 460, gap
-G2). Use `3 * min X.card Y.card ≥ Z.card` to stay in `ℕ`.
+**In Lean** as `VarPartition.Balanced`, stated as `Z.card ≤ 3 * min X.card Y.card` to stay
+in `ℕ`.
+*Correction (an earlier version of this entry was wrong).* This is **not** weaker than the
+familiar `|Z|/3 ≤ |X| ≤ 2|Z|/3`. For a genuine partition `|X| + |Y| = |Z|`, so
+`|Z| ≤ 3|Y| = 3(|Z| − |X|) ⟺ 3|X| ≤ 2|Z|`, and the two conditions are *equivalent* — proved
+as `VarPartition.balanced_iff_left`. So whichever relaxation makes Claim `perm`
+non-citable from Knop (line 460, gap G2) is relative to something **stricter** than the
+two-sided bound, almost certainly an exact split `|X| = |Y|`, which is the usual convention
+in the best-partition literature the construction is lifted from. This matters: a
+formalization of Claim `perm` that assumes the wrong baseline will chase the wrong
+difficulty.
 
 **D17. Π-rectangle.** (line 288) With `Π = (X,Y)`, a set `A × B` with `A` a set of
 assignments to `X` and `B` a set of assignments to `Y`.
@@ -187,8 +208,16 @@ protocols.
 
 **D21. Best-partition measures.** (line 292) `Cov_b(f) := min_Π Cov_b^Π(f)` and
 `Par_b(f) := min_Π Par_b^Π(f)`, the minimum over **balanced** partitions.
-*Deps:* D16, D19. *Lean note:* this minimum-over-partitions is the whole difficulty of the
-paper. In a lower bound it means: *for every* balanced `Π`, the count is large.
+(The paper writes `Cov_b(f) := min_Π Cov_b(f)` at line 292 — a typo for `Cov_b^Π(f)`.)
+*Deps:* D16, D19. **In Lean** as `bestCov`, `bestPar`.
+This minimum-over-partitions is the whole difficulty of the paper. In a lower bound it
+means: *for every* balanced `Π`, the count is large — available directly as
+`forall_not_hasCover_of_lt_bestCov`.
+*Lean note:* `bestCov` is an `sInf` over **pairs** `(Π, k)`, not a literal `min_Π (sInf …)`.
+Under the literal reading a single balanced `Π` admitting no finite cover would contribute
+the `sInf`-junk value `0` and collapse the whole measure to `0`. The two readings agree
+whenever every balanced `Π` is coverable, which `hasPartitionOfSize_two_pow` supplies for
+every function the paper considers.
 
 ## A.4 Arithmetic circuits (§5, from line 509)
 

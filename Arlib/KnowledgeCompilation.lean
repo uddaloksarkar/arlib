@@ -54,8 +54,27 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
   lists of terms, `IsKDNF`, and `Unambiguous` in its counting form.  This is the
   shape in which every imported hardness result arrives, and the object the
   copy-and-permute construction transforms.
+
+### Communication
+
+* `Communication.Rectangle` — `VarPartition` and balancedness, Π-rectangles as
+  pairs of predicates each local to its side of the partition, and the closure
+  property `mem_cross` that every rectangle argument runs on.
+* `Communication.Measures` — `fixedCov`/`fixedPar` and their best-partition
+  counterparts, together with the per-partition unfolded form in which a lower
+  bound is actually consumed.
+
+### LowerBounds
+
+* `LowerBounds.Copies` — Step 1 of the lifting: the derived terms `copyTerm`,
+  the collapse of an assignment on copies, and the fact that the construction is
+  faithful exactly on the *one-hot* region — soundness unconditionally, its
+  converse only there.
 -/
 
 import Arlib.KnowledgeCompilation.Circuits.NNF
 import Arlib.KnowledgeCompilation.Circuits.VTree
 import Arlib.KnowledgeCompilation.Circuits.DNF
+import Arlib.KnowledgeCompilation.Communication.Rectangle
+import Arlib.KnowledgeCompilation.Communication.Measures
+import Arlib.KnowledgeCompilation.LowerBounds.Copies

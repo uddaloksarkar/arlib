@@ -88,15 +88,15 @@ Three directories, mirroring the shape of the argument.
 
 | Module | Contents | Status |
 | --- | --- | --- |
-| `Rectangle` | variable partitions, balancedness (`|Z|/3 ≤ min(|X|,|Y|)`), Π-rectangles, covers, rectangular partitions | next |
-| `Measures` | `Cov_b^Π`, `Par_b^Π`, fixed vs. best partition (`Cov_b`, `Par_b`), `NCC`, `UCC` | after `Rectangle` |
+| `Rectangle` | `VarPartition`, `Balanced`, Π-rectangles as locality-constrained predicate pairs, `mem_cross`, covers, rectangular partitions | **done** |
+| `Measures` | `fixedCov`/`fixedPar`, `bestCov`/`bestPar`, the unfolded per-partition lower-bound form, the trivial `2^{|Z|}` upper bound | **done** |
 
 ### `LowerBounds/` — the bridge and the argument
 
 | Module | Contents | Status |
 | --- | --- | --- |
 | `RectangleLemma` | d-SDNNF of size `s` ⟹ `Par₁(f) ≤ s`; SDNNF of size `s` ⟹ `Cov₁(f) ≤ s` | the crown jewel — see §4 |
-| `Copies` | Step 1: replace `xᵢ` by `⋁ⱼ yᵢⱼ`, re-disambiguate; unambiguity and the term count | self-contained |
+| `Copies` | Step 1: `copyTerm`, `collapse`, `OneHot`, soundness + one-hot completeness — **done**; unambiguity of `ψ^∨` and the term count still to do | partial |
 | `AffinePerms` | the Wegman–Carter family `x ↦ ax+b` over `𝔽_{2ᵗ}`, and its pairwise independence | reuse `Probability.PolyHash` |
 | `ClaimPerm` | the probabilistic argument producing a good permutation (Chebyshev) | see §3, gap G2 |
 | `Lifting` | Step 2 and `thm: fixed_to_best`: the protocol simulation | |
@@ -195,6 +195,13 @@ pairwise independence (I3) and Chebyshev (`ProbSpace.chebyshev`) to show that so
 `σ ∈ 𝒫` sends, for every `i` and every side `k` of the partition, at least one copy
 `y_{i,j}` to that side. Budget for this accordingly; it is the hardest genuinely-provable
 step in the paper.
+
+*Amended.* The claim that the paper's balancedness is a relaxation needs care. For a
+genuine partition, `|Z| ≤ 3·min(|X|,|Y|)` is **equivalent** to `|Z|/3 ≤ |X| ≤ 2|Z|/3`
+(proved as `VarPartition.balanced_iff_left`), so the paper's notion is not weaker than the
+familiar two-sided one. Whatever Knop's proof assumes must therefore be *stricter* — most
+likely an exact split `|X| = |Y|`. Establish which before starting, because the difficulty
+being worked around is not the one the inventory originally described.
 
 **G4 — no concrete circuit instantiates the definitions.** `Decomposable`, `Deterministic`,
 `Respects` and `IsdSDNNF` are so far only ever *pushed around* by general lemmas; nothing
