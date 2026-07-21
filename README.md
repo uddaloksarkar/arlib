@@ -56,7 +56,7 @@ across several projects but are not in Mathlib under an obvious name.
 
 ### `Arlib.MarkovChains` — finite Markov chains
 
-54 modules, ~26.1k LOC, split by a load-bearing design principle: `Techniques/` holds
+55 modules, ~26.8k LOC, split by a load-bearing design principle: `Techniques/` holds
 machinery valid for *any* finite chain, `Chains/` holds the analysis of *specific* chains,
 and every general definition is instantiated against a concrete chain that keeps it honest.
 Following the Chen–Štefankovič–Vigoda monograph on spectral independence (`source/main.tex`).
@@ -99,6 +99,7 @@ here by an elementary variational, discriminant, or adjointness argument.
 | `Techniques.EntropyVariational` | Young's inequality for entropy, the Gibbs variational principle, `Ent ≤ Var/E`, and hence `KL ≤ χ²`. |
 | `Techniques.PsdOrder` | Quadratic forms of a plain `ι → ι → ℝ` and the PSD ordering `PsdLe`. No `Matrix`, no spectrum, no eigenvalues. |
 | `Techniques.SpectralIndependence` | The covariance form with `quadForm (Cov μ) a = Var μ (fun σ => ∑ v, a (v, σ v))`, so PSD-ness of `Cov` is a corollary of `Var_nonneg`; spectral independence **defined** as the ordering `Cov ⪯ η·diag(marg)` — the eigenvalue-free equivalent of `λ_max(Ψ) ≤ η`. |
+| `Techniques.SpectralIndependenceConverse` | `SpectralIndependence μ η ↔ SpectralGapAtLeast (pinDist) (Q_η) ((m−η)/(m−1))` — an exact equivalence, since both directions are one identity read in opposite senses. One pinning's gap gives that pinning's independence: a site with a sure spin contributes a zero row to the covariance form, so the pinned coordinates are already invisible. |
 | `Techniques.LocalSpectralIndependence` | Spectral independence ⟹ a Poincaré inequality for the local walk at any pinning, via the exact identity `ℰ_Q(f) = m/(m−1)·Var_π(f) − quadForm(Cov μ) f̃/(m(m−1))`. The monograph's `lem:QandPsi`, proved there with `λ_max(Ψ)` and a block-matrix argument; here with neither. |
 | `Chains.Metropolis` | Metropolis–Hastings: manufacturing a chain reversible with respect to a prescribed target. |
 | `Chains.TwoState` | The two-state chain computed exactly — gap, contraction factor and Dirichlet form as identities — then plugged back into the general predicates, and used to audit the Cheeger bound. |
