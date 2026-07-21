@@ -65,6 +65,7 @@ protocol characterisation is cited to Kushilevitz–Nisan and used only as
 intuition, so formalizing protocols would add a layer with no consumer.
 Everything below stays in `ℕ`.
 -/
+import Arlib.KnowledgeCompilation.Basic
 import Arlib.KnowledgeCompilation.Communication.Rectangle
 import Mathlib.Data.Nat.Lattice
 import Mathlib.Data.Fintype.BigOperators
@@ -82,15 +83,10 @@ omit [DecidableEq V] in
 @[simp] lemma mem_fiber {f : (V → Bool) → Bool} {b : Bool} {α : V → Bool} :
     fiber f b α ↔ f α = b := Iff.rfl
 
-/-- `f` depends only on the variables of `Z`: assignments agreeing on `Z` get
-the same value.
-
-This is the same "depends only on these variables" idiom as `NNF.valAt_congr`
-in `Circuits/NNF.lean` and `Rectangle.left_congr`, one level up: it is what
-makes `f` a function of finitely many variables without assuming `Fintype V`.
-The paper's `f : {0,1}^Z → {0,1}` is a function satisfying this. -/
-def DependsOn (f : (V → Bool) → Bool) (Z : Finset V) : Prop :=
-  ∀ α β : V → Bool, (∀ x ∈ Z, α x = β x) → f α = f β
+-- `DependsOn f Z` — "assignments agreeing on `Z` give `f` the same value" — now
+-- lives in `Arlib.KnowledgeCompilation.Basic`.  `Circuits/` needs the very same
+-- notion for the paper's `p(X)` in an `X`-decomposition, and having defined it
+-- twice produced a genuine name clash between the two halves of the area.
 
 /-! ## Covers of a prescribed size -/
 

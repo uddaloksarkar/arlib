@@ -145,19 +145,37 @@ that.
 disjoint `X, Y ⊆ Z`, if `f = ⋁_{i=1}^n p_i(X) ∧ s_i(Y)`, then
 `{(p₁,s₁), …, (pₙ,sₙ)}` is an `X`-decomposition when `⋁ᵢ pᵢ ≡ 1`, `pᵢ ∧ pⱼ ≡ 0` for
 `i ≠ j`, and `pᵢ ≢ 0` for all `i`.
-*Lean note:* the `pᵢ` form a partition of the `X`-cube into nonempty pieces; that is the
-content, and stating it that way avoids the indexed-family bookkeeping.
+**In Lean** as `XDecomposition`, with `⋁ᵢ pᵢ ≡ 1` and `pᵢ ∧ pⱼ ≡ 0` collapsed into the
+single field `∀ α, ∃! i, p i α = true` — literally "the `pᵢ` partition the `X`-cube" — plus
+nonemptiness. `exists_p` and `p_exclusive` recover the paper's two literal clauses, so the
+repackaging is checked rather than asserted.
+*Correction to an earlier note here:* the `∃!` removes the `i ≠ j` bookkeeping but **not**
+the index type — the `pᵢ` are paired with the `sᵢ`, and `(V → Bool) → Bool` has no
+`DecidableEq`, so a `Finset` is not available.
 
 **D14. SDD.** (`def: SDD`, line 254) Recursively: an SDD respecting a v-tree `T` with root
 `t` is either a single node labelled `0`, `1`, `x` or `¬x`; or has source an `∨`-node `g`
 such that (1) `⟨C⟩ = ⋁ᵢ pᵢ(X) ∧ sᵢ(Y)` for an `X`-decomposition of `f_C`, (2)
 `X ⊆ var(gₗ)` and `Y ⊆ var(gᵣ)`, and (3) each sub-circuit computing a `pᵢ` (resp. `sᵢ`) is
 an SDD respecting `t_ℓ` (resp. `t_ᵣ`).
-*Deps:* D10, D13. *Lean note:* per `ROADMAP.md` §1.2, formalize as a predicate
-`IsSDDAt C i t` on a circuit node and a v-tree node, defined by recursion on `t` — **not**
-by rebuilding subcircuits. The fan-in-2 restriction makes the `⋁ᵢ` a right-nested chain of
-`∨`-nodes; the paper flags this as cosmetic (footnote at line 268), but it is exactly the
-part that makes a Lean transcription of this definition fiddly. Budget for it.
+*Deps:* D10, D13. **In Lean** as `NNF.IsSDDAt` (structural recursion on `t`) and
+`NNF.IsSDD`, with `NNF.IsChain` handling the fan-in-2 chain.
+
+> **Clause (2) is broken as written, and is not formalized.** It reads
+> `X ⊆ var(gₗ)`, `Y ⊆ var(gᵣ)` with `g` the source `∨`-node. Under fan-in 2 that does not
+> typecheck: `gₗ` is the element `∧`-node `p₁ ∧ s₁` and `gᵣ` is the rest of the chain, and
+> both straddle `X` and `Y`. Reading `g` as an element `∧`-node makes it typecheck but
+> **false** — it would force every `pᵢ` to mention *every* variable of `X`, which already
+> fails for `X = {x₁, x₂}`, `p₁ = x₁`, `p₂ = ¬x₁`: those two partition the `X`-cube, so they
+> are a legitimate `X`-decomposition, yet `var(p₁) = {x₁} ⊉ X`.
+> Nothing is lost: clause (2) is subsumed by clause (3), which gives `var(pᵢ) ⊆ var(t_ℓ)` —
+> the *opposite* inclusion, and the one `NNF.Respects` actually consumes.
+> `NNF.IsSDDAt.varsAt_subset` is proved in its place.
+
+*The footnote at line 268 is wrong that fan-in 2 is cosmetic*, at least for formalization:
+the `IsChain` apparatus exists solely to service it and is the single largest cost in the
+module. A compensation: clause (1) becomes a *theorem* (`IsChain.valAt_iff`) rather than a
+condition, so `IsSDDAt` carries only the decomposition side conditions.
 
 **D15. Succinctness `≤`, `<`.** (line 273) `𝖢₁ ≤ 𝖢₂` if there is a polynomial `p` such
 that every `C ∈ 𝖢₂` has an equivalent `C' ∈ 𝖢₁` with `|C'| ≤ p(|C|)`; `𝖢₁ < 𝖢₂` if also

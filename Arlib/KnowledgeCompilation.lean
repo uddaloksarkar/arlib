@@ -50,6 +50,9 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
   the subtree relation, `NNF.Respects`, and the structured classes `IsSDNNF`
   and `IsdSDNNF`.  Includes `Respects.decomposable`: respecting a well-formed
   v-tree already forces decomposability.
+* `Circuits.SDD` — `XDecomposition`, the fan-in-2 chain relation `IsChain`, the
+  SDD predicate `IsSDDAt` by recursion on the v-tree, reachability, and the
+  containment SDD ⊆ d-SDNNF.
 * `Circuits.DNF` — terms as finite sets of literals, width, DNF formulas as
   lists of terms, `IsKDNF`, and `Unambiguous` in its counting form.  This is the
   shape in which every imported hardness result arrives, and the object the
@@ -83,8 +86,10 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
   the statement.
 -/
 
+import Arlib.KnowledgeCompilation.Basic
 import Arlib.KnowledgeCompilation.Circuits.NNF
 import Arlib.KnowledgeCompilation.Circuits.VTree
+import Arlib.KnowledgeCompilation.Circuits.SDD
 import Arlib.KnowledgeCompilation.Circuits.DNF
 import Arlib.KnowledgeCompilation.Communication.Rectangle
 import Arlib.KnowledgeCompilation.Communication.Measures

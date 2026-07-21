@@ -80,7 +80,7 @@ Three directories, mirroring the shape of the argument.
 | --- | --- | --- |
 | `NNF` | DAG encoding, `valAt`, `eval`, `varsAt`, `valAt_congr`, `Decomposable`, `Deterministic`, `IsDNNF`, `IsdDNNF` | **done** |
 | `VTree` | v-trees, `WellFormed` (⟺ no repeated leaf), `IsSubtree`, `Respects`, `IsSDNNF`, `IsdSDNNF`, `Respects.decomposable` | **done** |
-| `SDD` | `X`-decomposition, `IsSDDAt`, SDD ⊆ d-SDNNF | next |
+| `SDD` | `XDecomposition`, `IsChain`, `IsSDDAt`, `Reaches`, SDD ⊆ d-SDNNF | **done** (see G1) |
 | `DNF` | terms, width, `IsKDNF`, `Unambiguous` — **done**; the DNF-to-d-SDNNF upper bound still to do, now unblocked by `VTree` | partial |
 | `Arithmetic` | AC, monotone/positive AC, `supp`, the relabelling `φ`, p-decomposition, PSDD | last |
 
@@ -201,13 +201,30 @@ statement genuinely is about a family indexed by `k`. Keep that packaging in
 
 Deferred obligations. Each is a real hole; none is currently load-bearing.
 
-**G1 — pruning to reachable nodes.** `Decomposable` and `Deterministic` in `Circuits/NNF`
-quantify over all node indices, whereas the paper imposes them only on nodes reachable
-from the source. Our classes are therefore *contained* in the paper's, which weakens any
-lower bound stated over them. The fix is a lemma: from a circuit satisfying the conditions
-on reachable nodes, build one satisfying them everywhere with `size` no larger. This
-requires a reachability predicate and a renumbering, and is pure bookkeeping. Nothing
-proved so far depends on it, but the final separation theorems will.
+**G1 — pruning to reachable nodes. NOW LOAD-BEARING.** `Decomposable`, `Deterministic` and
+`Respects` quantify over all node indices, whereas the paper imposes them only on nodes
+reachable from the source.
+
+This has stopped being hypothetical. `NNF.IsSDD.isdSDNNF` (SDD ⊆ d-SDNNF) currently carries
+an extra hypothesis `∀ i, C.Reaches C.root i`, and **the unconditional statement is false as
+formalized**: a circuit that is an SDD at its root but carries an unreachable
+nondeterministic `∨`-node satisfies `IsSDD` and not `Deterministic`. This is not a proof
+failure — `IsSDDAt.deterministicFrom` and `IsSDDAt.respectsFrom` are unconditional and give
+both conditions at every reachable node, which is the paper's actual claim.
+
+There are two ways out, and **the second is now clearly better**:
+
+1. *Prune.* From a circuit satisfying the conditions on reachable nodes, build one
+   satisfying them everywhere with `size` no larger. Needs a renumbering of `Fin size`;
+   self-contained but genuinely fiddly.
+2. *Restate.* Redefine `Decomposable`/`Deterministic`/`Respects` to quantify over reachable
+   nodes only, matching the paper exactly. `Circuits/SDD` has already built the vocabulary
+   this needs — `NNF.Reaches`, `DeterministicFrom`, `RespectsFrom` — so most of the work is
+   done. It makes the containment unconditional and removes the gap outright rather than
+   working around it.
+
+Option 2 is a refactor of `Circuits/NNF` and `Circuits/VTree` and should be done in one
+pass, not piecemeal.
 
 **G2 — Claim `perm` has no proof in the paper.** Claim `perm` (line 448) is the technical
 heart of the lifting, and the paper proves it by citing Knop, Theorem 4.2, noting only
