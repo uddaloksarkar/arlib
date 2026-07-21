@@ -20,7 +20,8 @@ contracts by `c²` per step; and Cauchy–Schwarz converts χ² into total varia
 The only genuinely new work is the arithmetic that turns `c^t` into a condition
 on `t`.
 
-* `FinDist.dirac` — the point mass, and `FinKernel.push_dirac`, the bridge
+* `FinDist.dirac` and `FinKernel.push_dirac` (both in `Techniques.Chain`) — the
+  point mass, and the bridge
   `K.push δ_x = K.row x` between the `push`-phrased χ² machinery and the
   `row`-phrased `MixesWithin`.
 * `chiSq_dirac` — `D_{χ²}(δ_x ‖ μ) = 1/μ(x) - 1`: the worst-case initial
@@ -49,32 +50,6 @@ open scoped BigOperators
 open Finset
 
 variable {Ω : Type*} [Fintype Ω] [DecidableEq Ω]
-
-/-! ## Point masses
-
-A chain started at a deterministic state `x` has law `δ_x P^t`, and
-`MixesWithin` is phrased with `FinKernel.row`.  `push_dirac` identifies the two
-readings, which is what lets the χ²-divergence estimates be applied to a
-worst-case start. -/
-
-/-- The **point mass** at `x`: the distribution putting all its mass on `x`. -/
-def FinDist.dirac (x : Ω) : FinDist Ω where
-  p y := if y = x then 1 else 0
-  p_nonneg y := by dsimp only; split <;> norm_num
-  p_sum := by simp
-
-@[simp] theorem FinDist.dirac_apply (x y : Ω) :
-    FinDist.dirac x y = if y = x then (1 : ℝ) else 0 := rfl
-
-/-- **Starting at `x` is pushing forward the point mass at `x`.**  Both sides put
-mass `K x y` on `y`, so this identifies the `push`-phrased χ² machinery with the
-`row`-phrased definition of `MixesWithin`. -/
-theorem FinKernel.push_dirac {β : Type*} [Fintype β] (K : FinKernel Ω β) (x : Ω) :
-    K.push (FinDist.dirac x) = K.row x := by
-  refine FinDist.ext fun y => ?_
-  rw [FinKernel.push_apply, FinKernel.row_apply]
-  rw [Finset.sum_eq_single x (fun z _ hz => by simp [hz]) (fun h => absurd (mem_univ x) h)]
-  simp
 
 /-- **The χ²-divergence of a point mass.**  `D_{χ²}(δ_x ‖ μ) = 1/μ(x) - 1`.
 

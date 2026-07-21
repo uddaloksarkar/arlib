@@ -157,15 +157,19 @@ theorem abs_ip_act_self_le {μ : FinDist Ω} {P : FinChain Ω} (h : Stationary �
 
 /-! ## Symmetry and bilinearity -/
 
+/-- `⟪f, P g⟫_μ = ∑_x ∑_y μ(x)·P(x,y)·f(x)·g(y)`: the inner product against the
+action of a kernel, written so that the detailed-balance cell `μ(x)·P(x,y)`
+occurs as a subterm. -/
+theorem ip_act_eq_sum_sum (μ : FinDist Ω) (P : FinChain Ω) (f g : Ω → ℝ) :
+    ip μ f (P.act g) = ∑ x, ∑ y, μ x * P x y * (f x * g y) := by
+  refine Finset.sum_congr rfl fun x _ => ?_
+  simp only [FinKernel.act, Finset.mul_sum]
+  exact Finset.sum_congr rfl fun y _ => by ring
+
 /-- **Reversibility is exactly self-adjointness**: `⟪f, P g⟫_μ = ⟪g, P f⟫_μ`. -/
 theorem ip_act_comm {μ : FinDist Ω} {P : FinChain Ω} (h : Reversible μ P) (f g : Ω → ℝ) :
     ip μ f (P.act g) = ip μ g (P.act f) := by
-  have expand : ∀ f g : Ω → ℝ, ip μ f (P.act g) = ∑ x, ∑ y, μ x * P x y * f x * g y := by
-    intro f g
-    refine Finset.sum_congr rfl fun x _ => ?_
-    simp only [FinKernel.act, Finset.mul_sum]
-    exact Finset.sum_congr rfl fun y _ => by ring
-  rw [expand f g, expand g f, Finset.sum_comm]
+  rw [ip_act_eq_sum_sum μ P f g, ip_act_eq_sum_sum μ P g f, Finset.sum_comm]
   refine Finset.sum_congr rfl fun x _ => Finset.sum_congr rfl fun y _ => ?_
   rw [h x y]; ring
 

@@ -34,10 +34,18 @@ makes `Finset.sum_comm` — rather than a dependent reindexing — the workhorse
 the double-counting arguments.  For the same reason `mu` is defined by an
 indicator sum over *all* of `Finset E` and not by a filtered sum.
 
-* `mu`, `mu_nonneg`, `mu_mono`, `mu_top` — the derived weights.
+* `nonempty_of_weight` — a weighted complex of positive dimension has a nonempty
+  ground set, so the `[Nonempty E]` instance the guarded constructions
+  downstream need is free.
+* `mu`, `mu_nonneg`, `mu_mono`, `mu_top`, `mu_empty` — the derived weights.
 * `sum_ite_mu_card` — **counting lemma A**: the total derived weight of level
   `k` is `n.choose k`.  This is what makes `pi` a probability distribution.
-* `pi` — the level distribution `π_k`.
+* `sum_ite_subset_card`, `sum_ite_superset_card`, `sum_ite_card_one` — the
+  companion indicator-sum counts: subfaces of a face, superfaces of a face, and
+  the identification of level `1` with the ground set along `e ↦ {e}`.
+* `pi` — the level distribution `π_k`; `pi_zero_apply`, `Ex_pi_zero` and
+  **`Var_pi_zero`** identify the bottom level as a point mass with no variance,
+  the base case of the level decomposition in `Techniques.LocalToGlobal`.
 * `down` — the down operator `D_k`.
 * `sum_insert_mu`, `sum_ite_mu_level_succ` — **counting lemma B**: the derived
   weights of the faces one level above `τ` sum to `(n - k) · mu w τ`.  This is
@@ -62,7 +70,34 @@ namespace Arlib.MarkovChains
 open scoped BigOperators
 open Finset
 
-variable {E : Type*} [Fintype E] [DecidableEq E]
+variable {E : Type*} [Fintype E]
+
+/-! ## The ground set is nonempty
+
+A weighted complex of positive dimension cannot live on an empty ground set: the
+only face would be `∅`, whose cardinality is `0 ≠ n`, so the total weight would
+be `0` rather than `1`.  This is what makes the `[Nonempty E]` hypothesis of the
+guarded constructions downstream free of charge. -/
+
+/-- **A weighted complex of positive dimension has a nonempty ground set.**
+
+Recorded because `LocalWalk.linkDistOf` needs a junk value in `FinDist E`, which
+does not exist when `E` is empty; this lemma says the hypothesis is never a
+genuine restriction. -/
+theorem nonempty_of_weight {w : Finset E → ℝ} {n : ℕ}
+    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
+    (hsum : ∑ σ : Finset E, w σ = 1) (hn : 0 < n) : Nonempty E := by
+  by_contra hE
+  have hzero : ∀ σ : Finset E, w σ = 0 := by
+    intro σ
+    refine hsupp σ ?_
+    have hσ : σ = ∅ := Finset.eq_empty_of_forall_not_mem fun e _ => hE ⟨e⟩
+    rw [hσ, Finset.card_empty]
+    omega
+  rw [Finset.sum_congr rfl fun σ _ => hzero σ, Finset.sum_const_zero] at hsum
+  exact zero_ne_one hsum
+
+variable [DecidableEq E]
 
 /-! ## The derived weights
 
@@ -112,6 +147,10 @@ theorem mu_top {w : Finset E → ℝ} {n : ℕ} (hsupp : ∀ σ : Finset E, σ.c
   · intro h
     exact absurd (Finset.mem_univ τ) h
 
+/-- The derived weight of the empty face is the total weight. -/
+theorem mu_empty (w : Finset E → ℝ) : mu w ∅ = ∑ σ : Finset E, w σ := by
+  simp [mu_apply]
+
 /-! ## Counting lemma A: the mass of a level -/
 
 /-- The faces of `σ` of cardinality `k`, counted by an indicator sum: there are
@@ -126,6 +165,68 @@ theorem sum_ite_subset_card (k : ℕ) (σ : Finset E) (c : ℝ) :
     Finset.sum_congr rfl fun τ _ => h τ
   rw [e, Finset.sum_ite_mem, Finset.univ_inter, Finset.sum_const, Finset.card_powersetCard,
     nsmul_eq_mul]
+
+/-- **Counting the faces above a face.**  For `τ` of cardinality at most `n`,
+the number of `n`-element sets containing `τ` is `(N - |τ|).choose (n - |τ|)`,
+where `N = |E|`: an `n`-set containing `τ` is `τ` together with an
+`(n - |τ|)`-subset of the complement of `τ`.
+
+Stated as an indicator sum, exactly like `sum_ite_subset_card` (of which this is
+the dual, counting supersets rather than subsets), so that it composes with the
+indicator-sum idiom of this module. -/
+theorem sum_ite_superset_card (n : ℕ) {τ : Finset E} (hτ : τ.card ≤ n) (c : ℝ) :
+    ∑ σ : Finset E, (if τ ⊆ σ ∧ σ.card = n then c else 0)
+      = (((Fintype.card E - τ.card).choose (n - τ.card) : ℕ) : ℝ) * c := by
+  rw [← Finset.sum_filter]
+  have hset : (Finset.univ.filter fun σ : Finset E => τ ⊆ σ ∧ σ.card = n)
+      = (Finset.powersetCard (n - τ.card) τᶜ).image (fun ρ => ρ ∪ τ) := by
+    ext σ
+    simp only [Finset.mem_filter, Finset.mem_univ, true_and, Finset.mem_image,
+      Finset.mem_powersetCard]
+    constructor
+    · rintro ⟨hsub, hcard⟩
+      refine ⟨σ \ τ, ⟨fun x hx => Finset.mem_compl.mpr (Finset.mem_sdiff.mp hx).2, ?_⟩, ?_⟩
+      · rw [Finset.card_sdiff hsub, hcard]
+      · exact Finset.sdiff_union_of_subset hsub
+    · rintro ⟨ρ, ⟨hρc, hρcard⟩, rfl⟩
+      have hdisj : Disjoint ρ τ := by
+        rw [Finset.disjoint_left]
+        exact fun x hx => Finset.mem_compl.mp (hρc hx)
+      refine ⟨Finset.subset_union_right, ?_⟩
+      rw [Finset.card_union_of_disjoint hdisj, hρcard]
+      omega
+  have hinj : ∀ ρ ∈ Finset.powersetCard (n - τ.card) τᶜ,
+      ∀ ρ' ∈ Finset.powersetCard (n - τ.card) τᶜ, ρ ∪ τ = ρ' ∪ τ → ρ = ρ' := by
+    intro ρ hρ ρ' hρ' h
+    have hd : ∀ π : Finset E, π ∈ Finset.powersetCard (n - τ.card) τᶜ → Disjoint π τ := by
+      intro π hπ
+      rw [Finset.disjoint_left]
+      exact fun x hx => Finset.mem_compl.mp ((Finset.mem_powersetCard.mp hπ).1 hx)
+    calc ρ = (ρ ∪ τ) \ τ := (Finset.union_sdiff_cancel_right (hd ρ hρ)).symm
+      _ = (ρ' ∪ τ) \ τ := by rw [h]
+      _ = ρ' := Finset.union_sdiff_cancel_right (hd ρ' hρ')
+  rw [hset, Finset.sum_image hinj, Finset.sum_const, Finset.card_powersetCard,
+    Finset.card_compl, nsmul_eq_mul]
+
+/-- A sum over the level-`1` faces of `Finset E` is a sum over `E`, along the
+bijection `e ↦ {e}`. -/
+theorem sum_ite_card_one (g : Finset E → ℝ) :
+    ∑ ρ : Finset E, (if ρ.card = 1 then g ρ else 0) = ∑ e : E, g {e} := by
+  rw [← Finset.sum_filter]
+  have hset : (Finset.univ.filter fun ρ : Finset E => ρ.card = 1)
+      = Finset.univ.image (fun e : E => ({e} : Finset E)) := by
+    ext ρ
+    constructor
+    · intro h
+      rw [Finset.mem_filter] at h
+      obtain ⟨e, he⟩ := Finset.card_eq_one.mp h.2
+      exact Finset.mem_image.mpr ⟨e, Finset.mem_univ e, he.symm⟩
+    · intro h
+      obtain ⟨e, _, rfl⟩ := Finset.mem_image.mp h
+      exact Finset.mem_filter.mpr ⟨Finset.mem_univ _, Finset.card_singleton e⟩
+  have hinj : ∀ a ∈ (Finset.univ : Finset E), ∀ b ∈ (Finset.univ : Finset E),
+      ({a} : Finset E) = {b} → a = b := fun a _ b _ hab => Finset.singleton_injective hab
+  rw [hset, Finset.sum_image hinj]
 
 /-- **Counting lemma A.** The derived weights of the level-`k` faces sum to
 `n.choose k`: each top face of size `n` is counted once for each of its
@@ -193,6 +294,55 @@ theorem pi_apply (w : Finset E → ℝ) (n k : ℕ)
     (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
     (hsum : ∑ σ : Finset E, w σ = 1) (hk : k ≤ n) (τ : Finset E) :
     pi w n k hw hsupp hsum hk τ = if τ.card = k then mu w τ / (n.choose k : ℝ) else 0 := rfl
+
+/-! ### The bottom level
+
+`π_0` is a point mass at the empty face, so it has no variance at all.  This is
+the base case that makes the level decomposition of
+`Techniques.LocalToGlobal` exact. -/
+
+/-- `π_0` is the point mass at the empty face. -/
+theorem pi_zero_apply (w : Finset E → ℝ) (n : ℕ)
+    (hw : ∀ σ : Finset E, 0 ≤ w σ)
+    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
+    (hsum : ∑ σ : Finset E, w σ = 1) (τ : Finset E) :
+    pi w n 0 hw hsupp hsum (Nat.zero_le n) τ = if τ = ∅ then 1 else 0 := by
+  rw [pi_apply, Nat.choose_zero_right]
+  by_cases h : τ = ∅
+  · subst h
+    rw [if_pos Finset.card_empty, if_pos rfl, mu_empty, hsum]
+    norm_num
+  · rw [if_neg h, if_neg fun hc => h (Finset.card_eq_zero.mp hc)]
+
+/-- Under `π_0` the expectation is evaluation at the empty face. -/
+theorem Ex_pi_zero (w : Finset E → ℝ) (n : ℕ)
+    (hw : ∀ σ : Finset E, 0 ≤ w σ)
+    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
+    (hsum : ∑ σ : Finset E, w σ = 1) (g : Finset E → ℝ) :
+    Ex (pi w n 0 hw hsupp hsum (Nat.zero_le n)) g = g ∅ := by
+  rw [Ex_apply, Finset.sum_eq_single (∅ : Finset E)]
+  · rw [pi_zero_apply, if_pos rfl, one_mul]
+  · intro σ _ hne
+    rw [pi_zero_apply, if_neg hne, zero_mul]
+  · intro h
+    exact absurd (Finset.mem_univ (∅ : Finset E)) h
+
+/-- **There is no variance at the bottom level.**  `π_0` is a point mass, so
+`Var_{π_0}(g) = 0` for every `g`.  This is the base case that turns the
+telescoping identity of `Techniques.LocalToGlobal` into an exact
+decomposition. -/
+theorem Var_pi_zero (w : Finset E → ℝ) (n : ℕ)
+    (hw : ∀ σ : Finset E, 0 ≤ w σ)
+    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
+    (hsum : ∑ σ : Finset E, w σ = 1) (g : Finset E → ℝ) :
+    Var (pi w n 0 hw hsupp hsum (Nat.zero_le n)) g = 0 := by
+  rw [Var_apply, Ex_pi_zero w n hw hsupp hsum g]
+  refine Finset.sum_eq_zero fun σ _ => ?_
+  by_cases h : σ = ∅
+  · subst h
+    rw [sub_self]
+    ring
+  · rw [pi_zero_apply, if_neg h, zero_mul]
 
 /-! ## The down operator -/
 

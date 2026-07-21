@@ -42,15 +42,17 @@ there (`Zloc_congr_of_agreeOff`).  The symmetry is then visible on the nose.
 * **`siteChain_nonnegDefinite`** — hence `⟪f, P f⟫ = ⟪P f, P f⟫ ≥ 0`.  This is
   the elementary route to positive semidefiniteness: a self-adjoint idempotent
   is PSD, no eigenvalue required.
-* `glauber` — the **Glauber dynamics**, the uniform average over sites.
+* `glauber` — the **Glauber dynamics**, `FinKernel.avg (siteChain w hw)`.
 * **`glauber_reversible`**, `glauber_stationary`, **`glauber_nonnegDefinite`** —
-  detailed balance, stationarity and PSD-ness are all preserved by the average.
+  detailed balance, stationarity and PSD-ness are all preserved by the average,
+  and each is one application of the corresponding `avg_*` lemma of
+  `Techniques/Mixture.lean`.
 
 Everything here is proved from first principles with no `sorry`; in particular
 no eigenvalue, and no spectral theorem, appears anywhere.
 -/
 import Arlib.MarkovChains.Chains.SpinSystem
-import Arlib.MarkovChains.Techniques.Dirichlet
+import Arlib.MarkovChains.Techniques.Mixture
 
 namespace Arlib.MarkovChains
 
@@ -227,9 +229,11 @@ theorem siteChain_nonnegDefinite (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w �
 
 /-! ## The Glauber dynamics
 
-Pick a site uniformly at random and perform the heat-bath update there.  A
-general "convex combination of kernels" constructor belongs in
-`Techniques/`; until it exists the average is written out here. -/
+Pick a site uniformly at random and perform the heat-bath update there.  That is
+literally `FinKernel.avg` of `Techniques/Mixture.lean` applied to the family of
+single-site updates, so the definition is one line and reversibility,
+stationarity and positive semidefiniteness are each inherited in one line
+more. -/
 
 section Glauber
 
@@ -237,18 +241,13 @@ variable [Nonempty V]
 
 /-- The **Glauber dynamics** of a spin system: the uniform average over sites of
 the single-site heat-bath updates.  This is the chain of the monograph's §1.3,
-also known as the Gibbs sampler. -/
-noncomputable def glauber (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) : FinChain (V → S) where
-  P σ τ := (1 / (Fintype.card V : ℝ)) * ∑ v, siteChain w hw v σ τ
-  P_nonneg σ τ := by
-    refine mul_nonneg (by positivity) (Finset.sum_nonneg fun v _ => ?_)
-    exact (siteChain w hw v).coe_nonneg σ τ
-  P_sum σ := by
-    have hcard : (Fintype.card V : ℝ) ≠ 0 := Nat.cast_ne_zero.mpr Fintype.card_ne_zero
-    rw [← Finset.mul_sum, Finset.sum_comm]
-    have hrow : ∀ v : V, ∑ τ, siteChain w hw v σ τ = 1 := fun v => (siteChain w hw v).sum_coe σ
-    rw [Finset.sum_congr rfl fun v _ => hrow v, Finset.sum_const, Finset.card_univ,
-      nsmul_eq_mul, mul_one, one_div, inv_mul_cancel₀ hcard]
+also known as the Gibbs sampler.
+
+Built as `FinKernel.avg (siteChain w hw)`, which needs no hypotheses at all and
+so carries none; every structural property below is then the corresponding
+`avg_*` lemma applied to `siteChain`. -/
+noncomputable def glauber (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) : FinChain (V → S) :=
+  FinKernel.avg (siteChain w hw)
 
 theorem glauber_apply (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) (σ τ : V → S) :
     glauber w hw σ τ = (1 / (Fintype.card V : ℝ)) * ∑ v, siteChain w hw v σ τ := rfl
@@ -257,46 +256,40 @@ theorem glauber_apply (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) (σ τ :
 distribution.**  Detailed balance is a linear condition, so it survives the
 average over sites; the content is `siteChain_reversible`. -/
 theorem glauber_reversible (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) (hZ : 0 < Z w) :
-    Reversible (gibbs w hw hZ) (glauber w hw) := by
-  have expand : ∀ ρ ρ' : V → S, gibbs w hw hZ ρ * glauber w hw ρ ρ'
-      = (1 / (Fintype.card V : ℝ)) * ∑ v, gibbs w hw hZ ρ * siteChain w hw v ρ ρ' := by
-    intro ρ ρ'
-    calc gibbs w hw hZ ρ * glauber w hw ρ ρ'
-        = (1 / (Fintype.card V : ℝ)) * (gibbs w hw hZ ρ * ∑ v, siteChain w hw v ρ ρ') := by
-          rw [glauber_apply]; ring
-      _ = (1 / (Fintype.card V : ℝ)) * ∑ v, gibbs w hw hZ ρ * siteChain w hw v ρ ρ' := by
-          rw [Finset.mul_sum]
-  intro σ τ
-  rw [expand σ τ, expand τ σ]
-  exact congrArg _ (Finset.sum_congr rfl fun v _ => siteChain_reversible w hw hZ v σ τ)
+    Reversible (gibbs w hw hZ) (glauber w hw) :=
+  avg_reversible fun v => siteChain_reversible w hw hZ v
 
 /-- **The Gibbs distribution is stationary for the Glauber dynamics.** -/
 theorem glauber_stationary (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) (hZ : 0 < Z w) :
     Stationary (gibbs w hw hZ) (glauber w hw) :=
   (glauber_reversible w hw hZ).stationary
 
-/-- The `L²(μ)` quadratic form of the Glauber dynamics is the average of those
-of the single-site updates. -/
+/-- The `L²(μ)` bilinear form of the Glauber dynamics is the average of those of
+the single-site updates.
+
+Stated for two arguments, not just for `(f, f)`: the entropy production is a
+Dirichlet form evaluated at `(f, log f)`, so `Chains/ProductEntropy.lean` needs
+the general shape.  The quadratic case is the specialisation `g = f`. -/
 theorem ip_act_glauber (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) (hZ : 0 < Z w)
-    (f : (V → S) → ℝ) :
-    ip (gibbs w hw hZ) f ((glauber w hw).act f)
-      = ∑ v, (1 / (Fintype.card V : ℝ)) * ip (gibbs w hw hZ) f ((siteChain w hw v).act f) := by
-  have hact : ∀ σ : V → S, (glauber w hw).act f σ
-      = ∑ v, (1 / (Fintype.card V : ℝ)) * (siteChain w hw v).act f σ := by
+    (f g : (V → S) → ℝ) :
+    ip (gibbs w hw hZ) f ((glauber w hw).act g)
+      = ∑ v, (1 / (Fintype.card V : ℝ)) * ip (gibbs w hw hZ) f ((siteChain w hw v).act g) := by
+  have hact : ∀ σ : V → S, (glauber w hw).act g σ
+      = ∑ v, (1 / (Fintype.card V : ℝ)) * (siteChain w hw v).act g σ := by
     intro σ
     simp only [FinKernel.act_apply, glauber_apply]
     have step : ∀ τ : V → S,
-        (1 / (Fintype.card V : ℝ)) * (∑ v, siteChain w hw v σ τ) * f τ
-          = ∑ v, (1 / (Fintype.card V : ℝ)) * (siteChain w hw v σ τ * f τ) := by
+        (1 / (Fintype.card V : ℝ)) * (∑ v, siteChain w hw v σ τ) * g τ
+          = ∑ v, (1 / (Fintype.card V : ℝ)) * (siteChain w hw v σ τ * g τ) := by
       intro τ
       rw [Finset.mul_sum, Finset.sum_mul]
       exact Finset.sum_congr rfl fun v _ => by ring
     rw [Finset.sum_congr rfl fun τ _ => step τ, Finset.sum_comm]
     exact Finset.sum_congr rfl fun v _ => by rw [Finset.mul_sum]
   simp only [ip_apply]
-  have step : ∀ σ : V → S, gibbs w hw hZ σ * f σ * ((glauber w hw).act f σ)
+  have step : ∀ σ : V → S, gibbs w hw hZ σ * f σ * ((glauber w hw).act g σ)
       = ∑ v, (1 / (Fintype.card V : ℝ)) *
-          (gibbs w hw hZ σ * f σ * ((siteChain w hw v).act f σ)) := by
+          (gibbs w hw hZ σ * f σ * ((siteChain w hw v).act g σ)) := by
     intro σ
     rw [hact σ, Finset.mul_sum]
     exact Finset.sum_congr rfl fun v _ => by ring
@@ -311,11 +304,8 @@ single-site heat-bath update is a self-adjoint idempotent
 turns the spectral gap into the *absolute* spectral gap, and hence what makes
 the gap control the decay of variance. -/
 theorem glauber_nonnegDefinite (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) (hZ : 0 < Z w) :
-    NonnegDefinite (gibbs w hw hZ) (glauber w hw) := by
-  intro f
-  rw [ip_act_glauber w hw hZ f]
-  refine Finset.sum_nonneg fun v _ => mul_nonneg (by positivity) ?_
-  exact siteChain_nonnegDefinite w hw hZ v f
+    NonnegDefinite (gibbs w hw hZ) (glauber w hw) :=
+  avg_nonnegDefinite fun v => siteChain_nonnegDefinite w hw hZ v
 
 end Glauber
 

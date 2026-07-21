@@ -25,7 +25,19 @@ The key identities, all elementary algebra over a finite sum:
 
 We also record that `ip μ` is a positive semidefinite symmetric bilinear form
 (`isBilin_ip`, `ip_comm`, `ip_self_nonneg`), so that `psd_cauchy_schwarz` from
-`Arlib.MarkovChains.Bilinear` applies to it directly.
+`Arlib.MarkovChains.Bilinear` applies to it directly, together with the
+lambda-form bilinearity lemmas (`ip_add_left`, `ip_smul_right`, …) that the
+computations downstream actually rewrite with.
+
+Two families of "support only" lemmas are here because *every* guarded-total
+construction in the development produces a junk value off the support of the
+averaging distribution: `Ex_congr_ae`, `Var_congr_ae` and `Ex_mono_of_ne_zero`
+say that expectations, variances and their monotonicity see only the support.
+
+Finally, `Ex_push_eq` and `ip_push_eq` transport `Ex` and `ip` along a
+*rectangular* kernel; they involve no stationarity and are the bookkeeping that
+makes the law of total variance (`Techniques.LevelVariance`) a three-line
+computation.
 
 Everything here is proved from first principles with no `sorry`.
 -/
@@ -74,6 +86,51 @@ theorem Ex_nonneg {μ : FinDist Ω} {f : Ω → ℝ} (hf : ∀ x, 0 ≤ f x) : 0
 theorem Ex_mono {μ : FinDist Ω} {f g : Ω → ℝ} (h : ∀ x, f x ≤ g x) : Ex μ f ≤ Ex μ g :=
   Finset.sum_le_sum fun x _ => mul_le_mul_of_nonneg_left (h x) (μ.coe_nonneg x)
 
+/-- **Monotonicity of an expectation, on the support only.**  If `F₁ x ≤ F₂ x`
+at every `x` carrying `μ`-mass, then `μ(F₁) ≤ μ(F₂)`.  Off the support both
+summands are `0`, whatever the two functions do there.
+
+This is the form every average over a *guarded-total* construction needs, where
+the junk value off the support makes the pointwise hypothesis of `Ex_mono`
+false. -/
+theorem Ex_mono_of_ne_zero (μ : FinDist Ω) {F₁ F₂ : Ω → ℝ}
+    (h : ∀ x, μ x ≠ 0 → F₁ x ≤ F₂ x) : Ex μ F₁ ≤ Ex μ F₂ := by
+  simp only [Ex_apply]
+  refine Finset.sum_le_sum fun x _ => ?_
+  by_cases hx : μ x = 0
+  · rw [hx, zero_mul, zero_mul]
+  · exact mul_le_mul_of_nonneg_left (h x hx) (μ.coe_nonneg x)
+
+/-- A pointwise positive function has positive `μ`-mean.  Needed to license the
+mean-normalisation in the attainment half of the Gibbs variational principle; it
+is not automatic from `f ≥ 0`. -/
+theorem Ex_pos_of_pos {μ : FinDist Ω} {f : Ω → ℝ} (hf : ∀ x, 0 < f x) : 0 < Ex μ f := by
+  rcases (Ex_nonneg fun x => (hf x).le).eq_or_lt with h0 | hpos
+  · exfalso
+    have hsum : ∑ x : Ω, μ x * f x = 0 := by rw [← Ex_apply]; exact h0.symm
+    have hz : ∀ x : Ω, μ x * f x = 0 := fun x =>
+      (Finset.sum_eq_zero_iff_of_nonneg fun y _ =>
+        mul_nonneg (μ.coe_nonneg y) (hf y).le).mp hsum x (Finset.mem_univ x)
+    have hzero : ∀ x : Ω, μ x = 0 := by
+      intro x
+      rcases mul_eq_zero.mp (hz x) with h | h
+      · exact h
+      · exact absurd h (hf x).ne'
+    have h1 : (1 : ℝ) = 0 := by
+      rw [← μ.sum_coe]
+      exact Finset.sum_eq_zero fun x _ => hzero x
+    exact one_ne_zero h1
+  · exact hpos
+
+/-- Expectation only sees the support of the distribution: two functions agreeing
+wherever `μ` is nonzero have the same `μ`-average. -/
+theorem Ex_congr_ae {μ : FinDist Ω} {f g : Ω → ℝ} (h : ∀ x, μ x ≠ 0 → f x = g x) :
+    Ex μ f = Ex μ g := by
+  refine Finset.sum_congr rfl fun x _ => ?_
+  by_cases hx : μ x = 0
+  · rw [hx, zero_mul, zero_mul]
+  · rw [h x hx]
+
 /-- Stationarity says exactly that the chain preserves expectations. -/
 theorem Ex_act_of_stationary {μ : FinDist Ω} {P : FinChain Ω} (h : Stationary μ P)
     (f : Ω → ℝ) : Ex μ (P.act f) = Ex μ f := by
@@ -110,8 +167,46 @@ theorem ip_eq_Ex_mul (μ : FinDist Ω) (f g : Ω → ℝ) :
     ip μ f (fun _ => 1) = Ex μ f :=
   Finset.sum_congr rfl fun x _ => by ring
 
+/-- The squared `L²(μ)` norm as an expectation of squares. -/
+theorem ip_self_eq_Ex_sq (μ : FinDist Ω) (f : Ω → ℝ) :
+    ip μ f f = Ex μ (fun x => (f x) ^ 2) :=
+  Finset.sum_congr rfl fun x _ => by ring
+
+/-- The squared `L²(μ)` norm of a constant. -/
+theorem ip_const (μ : FinDist Ω) (c : ℝ) :
+    ip μ (fun _ => c) (fun _ => c) = c ^ 2 := by
+  rw [ip_apply]
+  have h : ∀ x : Ω, μ x * c * c = μ x * c ^ 2 := fun x => by ring
+  rw [Finset.sum_congr rfl fun x _ => h x, μ.sum_coe_mul_const]
+
 /-- `ip μ` is a bilinear form, so `psd_cauchy_schwarz` applies to it. -/
 theorem isBilin_ip (μ : FinDist Ω) : IsBilin (ip μ) := isBilin_weighted _
+
+/-! ### Explicit bilinearity
+
+`isBilin_ip` states bilinearity in terms of `Pi` addition and scalar
+multiplication.  Most computations downstream are much smoother with the
+arguments written as explicit lambdas, so we record that form too. -/
+
+theorem ip_add_left (μ : FinDist Ω) (f g h : Ω → ℝ) :
+    ip μ (fun x => f x + g x) h = ip μ f h + ip μ g h := by
+  simp only [ip, ← Finset.sum_add_distrib]
+  exact Finset.sum_congr rfl fun x _ => by ring
+
+theorem ip_add_right (μ : FinDist Ω) (f g h : Ω → ℝ) :
+    ip μ f (fun x => g x + h x) = ip μ f g + ip μ f h := by
+  simp only [ip, ← Finset.sum_add_distrib]
+  exact Finset.sum_congr rfl fun x _ => by ring
+
+theorem ip_smul_left (μ : FinDist Ω) (c : ℝ) (f g : Ω → ℝ) :
+    ip μ (fun x => c * f x) g = c * ip μ f g := by
+  simp only [ip, Finset.mul_sum]
+  exact Finset.sum_congr rfl fun x _ => by ring
+
+theorem ip_smul_right (μ : FinDist Ω) (c : ℝ) (f g : Ω → ℝ) :
+    ip μ f (fun x => c * g x) = c * ip μ f g := by
+  simp only [ip, Finset.mul_sum]
+  exact Finset.sum_congr rfl fun x _ => by ring
 
 /-- **Cauchy–Schwarz in `L²(μ)`.** -/
 theorem ip_sq_le (μ : FinDist Ω) (f g : Ω → ℝ) :
@@ -149,6 +244,21 @@ theorem Var_sub_const (μ : FinDist Ω) (f : Ω → ℝ) (c : ℝ) :
     Var μ (fun x => f x - c) = Var μ f := by
   simp only [Var, Ex_sub_const]
   exact Finset.sum_congr rfl fun x _ => by ring_nf
+
+/-- Variance only sees the support of the distribution. -/
+theorem Var_congr_ae {μ : FinDist Ω} {f g : Ω → ℝ} (h : ∀ x, μ x ≠ 0 → f x = g x) :
+    Var μ f = Var μ g := by
+  have hE : Ex μ f = Ex μ g := Ex_congr_ae h
+  rw [Var, Var, hE]
+  exact Ex_congr_ae fun x hx => by rw [h x hx]
+
+/-- The variance of an affine function: `Var(c + d f) = d² Var(f)`. -/
+theorem Var_affine (μ : FinDist Ω) (c d : ℝ) (f : Ω → ℝ) :
+    Var μ (fun x => c + d * f x) = d ^ 2 * Var μ f := by
+  have hE : Ex μ (fun x => c + d * f x) = c + d * Ex μ f := by
+    rw [Ex_add μ (fun _ => c) (fun x => d * f x), Ex_const, Ex_smul]
+  rw [Var_apply, Var_apply, hE, Finset.mul_sum]
+  exact Finset.sum_congr rfl fun x _ => by ring
 
 /-- On a mean-zero function, variance is the squared `L²(μ)` norm. -/
 theorem Var_eq_ip_self_of_mean_zero {μ : FinDist Ω} {f : Ω → ℝ} (h : Ex μ f = 0) :
@@ -198,6 +308,37 @@ form used when comparing two distributions on the same space. -/
 theorem Var_le_ip_self (μ : FinDist Ω) (f : Ω → ℝ) : Var μ f ≤ ip μ f f := by
   rw [Var_eq_ip_sub_sq]
   nlinarith [sq_nonneg (Ex μ f)]
+
+/-! ## Pushforwards
+
+Two bookkeeping identities for a *rectangular* kernel `K : α → β`, both plain
+`Finset.sum_comm`.  They are what makes the law of total variance a three-line
+computation. -/
+
+section Push
+
+variable {α β : Type*} [Fintype α] [Fintype β]
+
+/-- **Expectation under a pushforward**: `(Kμ)(g) = μ(K g)`.  The kernel may be
+rectangular, so this is not `Ex_act_of_stationary`; no stationarity is involved. -/
+theorem Ex_push_eq (K : FinKernel α β) (μ : FinDist α) (g : β → ℝ) :
+    Ex (K.push μ) g = Ex μ (K.act g) := by
+  simp only [Ex_apply, FinKernel.push_apply, FinKernel.act_apply]
+  calc ∑ y, (∑ x, μ x * K x y) * g y
+      = ∑ y, ∑ x, μ x * K x y * g y :=
+        Finset.sum_congr rfl fun y _ => Finset.sum_mul _ _ _
+    _ = ∑ x, ∑ y, μ x * K x y * g y := Finset.sum_comm
+    _ = ∑ x, μ x * ∑ y, K x y * g y := by
+        refine Finset.sum_congr rfl fun x _ => ?_
+        rw [Finset.mul_sum]
+        exact Finset.sum_congr rfl fun y _ => by ring
+
+/-- The `L²` inner product under a pushforward. -/
+theorem ip_push_eq (K : FinKernel α β) (μ : FinDist α) (g h : β → ℝ) :
+    ip (K.push μ) g h = Ex μ (K.act (fun y => g y * h y)) := by
+  rw [ip_eq_Ex_mul, Ex_push_eq]
+
+end Push
 
 /-! ## χ²-divergence -/
 

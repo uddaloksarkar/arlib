@@ -18,6 +18,11 @@ throughout: everything is finite and everything stays in `ℝ`.
 * `FinKernel.act` — the action `(P f)(x) = ∑ y, P x y * f y` on functions,
   which is the form in which transition matrices are actually used below.
 * `FinKernel.push` — the action `(ν P)(y) = ∑ x, ν x * P x y` on distributions.
+* `FinKernel.row` — the `x`-th row of a kernel, i.e. the law of one step started
+  at `x`, packaged as a `FinDist`.
+* `FinDist.dirac` and `FinKernel.push_dirac` — the point mass, and the identity
+  `K.push δ_x = K.row x` that reconciles the two ways of saying "started at
+  `x`".
 * `Stationary`, `Reversible` — the two standing hypotheses of the theory.
 
 `Reversible.stationary` records that detailed balance implies stationarity.
@@ -69,6 +74,23 @@ theorem mem_support_iff (μ : FinDist Ω) {x : Ω} : x ∈ μ.support ↔ μ x �
 
 theorem pos_of_mem_support (μ : FinDist Ω) {x : Ω} (h : x ∈ μ.support) : 0 < μ x :=
   lt_of_le_of_ne (μ.coe_nonneg x) (Ne.symm ((μ.mem_support_iff).mp h))
+
+/-! ### The point mass -/
+
+section Dirac
+
+variable [DecidableEq Ω]
+
+/-- The **point mass** at `x`: the distribution putting all its mass on `x`. -/
+def dirac (x : Ω) : FinDist Ω where
+  p y := if y = x then 1 else 0
+  p_nonneg y := by dsimp only; split <;> norm_num
+  p_sum := by simp
+
+@[simp] theorem dirac_apply (x y : Ω) :
+    dirac x y = if y = x then (1 : ℝ) else 0 := rfl
+
+end Dirac
 
 end FinDist
 
@@ -146,6 +168,26 @@ def push [Fintype α] (K : FinKernel α β) (ν : FinDist α) : FinDist β where
 
 theorem push_apply [Fintype α] (K : FinKernel α β) (ν : FinDist α) (y : β) :
     K.push ν y = ∑ x, ν x * K x y := rfl
+
+/-- The `x`-th row of a kernel, as a distribution: the law of one step of `K`
+started at `x`. -/
+def row (K : FinKernel α β) (x : α) : FinDist β where
+  p y := K x y
+  p_nonneg y := K.coe_nonneg x y
+  p_sum := K.sum_coe x
+
+@[simp] theorem row_apply (K : FinKernel α β) (x : α) (y : β) : K.row x y = K x y := rfl
+
+/-- **Starting at `x` is pushing forward the point mass at `x`.**  Both sides put
+mass `K x y` on `y`, so this identifies the `push`-phrased χ² machinery of
+`Techniques.SpectralGap` with the `row`-phrased `MixesWithin` of
+`Techniques.TotalVariation`. -/
+theorem push_dirac {Ω : Type*} [Fintype Ω] [DecidableEq Ω] (K : FinKernel Ω β) (x : Ω) :
+    K.push (FinDist.dirac x) = K.row x := by
+  refine FinDist.ext fun y => ?_
+  rw [FinKernel.push_apply, FinKernel.row_apply]
+  rw [Finset.sum_eq_single x (fun z _ hz => by simp [hz]) (fun h => absurd (Finset.mem_univ x) h)]
+  simp
 
 /-- Composition of kernels: `(K ∘ₖ L)(x, z) = ∑ y, K x y * L y z`. -/
 def comp [Fintype γ] (K : FinKernel α β) (L : FinKernel β γ) : FinKernel α γ where

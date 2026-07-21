@@ -405,18 +405,19 @@ theorem siteMass_pinWeight_of_mem (w : (V → S) → ℝ) {Λ : Finset V} {η : 
     exact hA v hv
   · rw [if_neg h]
 
-/-- **The marginal at an already-pinned site is the point mass at `η v`.**
-Conditioning has already decided the spin there, so there is nothing left to
-resample.  This is the compatibility the local walk needs in order to ignore the
-pinned sites. -/
+/-- **The marginal at an already-pinned site is the point mass at `η v`**, on the
+nose: `siteMarginal … v = δ_{η v}` as distributions.  Conditioning has already
+decided the spin there, so there is nothing left to resample.  This is the
+compatibility the local walk needs in order to ignore the pinned sites. -/
 theorem siteMarginal_pinWeight_of_mem (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) {Λ : Finset V}
-    {η : V → S} (hZ : 0 < Z (pinWeight w Λ η)) {v : V} (hv : v ∈ Λ) (s : S) :
-    siteMarginal (pinWeight w Λ η) (pinWeight_nonneg hw Λ η) hZ v s
-      = if s = η v then 1 else 0 := by
+    {η : V → S} (hZ : 0 < Z (pinWeight w Λ η)) {v : V} (hv : v ∈ Λ) :
+    siteMarginal (pinWeight w Λ η) (pinWeight_nonneg hw Λ η) hZ v = FinDist.dirac (η v) := by
   have key : ∀ t : S, t ≠ η v →
       siteMarginal (pinWeight w Λ η) (pinWeight_nonneg hw Λ η) hZ v t = 0 := by
     intro t ht
     rw [siteMarginal_apply, siteMass_pinWeight_of_mem w hv ht, zero_div]
+  refine FinDist.ext fun s => ?_
+  rw [FinDist.dirac_apply]
   by_cases hs : s = η v
   · subst hs
     rw [if_pos rfl]
@@ -453,9 +454,9 @@ theorem siteMarginal_pinWeight_insert (w : (V → S) → ℝ) (hw : ∀ σ, 0 �
     siteMarginal (pinWeight w (insert v Λ) (update η v s))
         (pinWeight_nonneg hw (insert v Λ) (update η v s)) hZ v t
       = if t = s then 1 else 0 := by
-  have h := siteMarginal_pinWeight_of_mem w hw (Λ := insert v Λ) (η := update η v s) hZ
-    (Finset.mem_insert_self v Λ) t
-  rwa [update_self] at h
+  have h := congrFun (congrArg FinDist.p (siteMarginal_pinWeight_of_mem w hw
+    (Λ := insert v Λ) (η := update η v s) hZ (Finset.mem_insert_self v Λ))) t
+  rwa [FinDist.dirac_apply, update_self] at h
 
 end Marginal
 

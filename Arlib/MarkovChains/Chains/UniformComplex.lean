@@ -76,12 +76,6 @@ A `Chains/` module earns its place by being plugged back into `Techniques/`.
   (`uniform_Var_sub_dirichlet_memIndicator`):
   `Var - ℰ = k (N - k - 1)² / (N² (N - k))`.
 
-Four auxiliary results are proved here that belong elsewhere and are kept local
-only because this module may not edit its neighbours: `sum_ite_superset_card`
-(the superset dual of `Levels.sum_ite_subset_card`, which belongs beside it),
-and `Ex_congr_ae`, `Var_congr_ae`, `Var_affine`, which belong in
-`Techniques.Functional`.
-
 Everything here is proved from first principles with no `sorry`.
 -/
 import Arlib.MarkovChains.Techniques.LevelVariance
@@ -90,54 +84,6 @@ namespace Arlib.MarkovChains
 
 open scoped BigOperators
 open Finset
-
-section Counting
-
-variable {E : Type*} [Fintype E] [DecidableEq E]
-
-/-- **Counting the faces above a face.**  For `τ` of cardinality at most `n`,
-the number of `n`-element sets containing `τ` is `(N - |τ|).choose (n - |τ|)`,
-where `N = |E|`: an `n`-set containing `τ` is `τ` together with an
-`(n - |τ|)`-subset of the complement of `τ`.
-
-Stated as an indicator sum, exactly like `Levels.sum_ite_subset_card` (of which
-this is the dual, counting supersets rather than subsets), so that it composes
-with the indicator-sum idiom of `Techniques.Levels`. -/
-theorem sum_ite_superset_card (n : ℕ) {τ : Finset E} (hτ : τ.card ≤ n) (c : ℝ) :
-    ∑ σ : Finset E, (if τ ⊆ σ ∧ σ.card = n then c else 0)
-      = (((Fintype.card E - τ.card).choose (n - τ.card) : ℕ) : ℝ) * c := by
-  rw [← Finset.sum_filter]
-  have hset : (Finset.univ.filter fun σ : Finset E => τ ⊆ σ ∧ σ.card = n)
-      = (Finset.powersetCard (n - τ.card) τᶜ).image (fun ρ => ρ ∪ τ) := by
-    ext σ
-    simp only [Finset.mem_filter, Finset.mem_univ, true_and, Finset.mem_image,
-      Finset.mem_powersetCard]
-    constructor
-    · rintro ⟨hsub, hcard⟩
-      refine ⟨σ \ τ, ⟨fun x hx => Finset.mem_compl.mpr (Finset.mem_sdiff.mp hx).2, ?_⟩, ?_⟩
-      · rw [Finset.card_sdiff hsub, hcard]
-      · exact Finset.sdiff_union_of_subset hsub
-    · rintro ⟨ρ, ⟨hρc, hρcard⟩, rfl⟩
-      have hdisj : Disjoint ρ τ := by
-        rw [Finset.disjoint_left]
-        exact fun x hx => Finset.mem_compl.mp (hρc hx)
-      refine ⟨Finset.subset_union_right, ?_⟩
-      rw [Finset.card_union_of_disjoint hdisj, hρcard]
-      omega
-  have hinj : ∀ ρ ∈ Finset.powersetCard (n - τ.card) τᶜ,
-      ∀ ρ' ∈ Finset.powersetCard (n - τ.card) τᶜ, ρ ∪ τ = ρ' ∪ τ → ρ = ρ' := by
-    intro ρ hρ ρ' hρ' h
-    have hd : ∀ π : Finset E, π ∈ Finset.powersetCard (n - τ.card) τᶜ → Disjoint π τ := by
-      intro π hπ
-      rw [Finset.disjoint_left]
-      exact fun x hx => Finset.mem_compl.mp ((Finset.mem_powersetCard.mp hπ).1 hx)
-    calc ρ = (ρ ∪ τ) \ τ := (Finset.union_sdiff_cancel_right (hd ρ hρ)).symm
-      _ = (ρ' ∪ τ) \ τ := by rw [h]
-      _ = ρ' := Finset.union_sdiff_cancel_right (hd ρ' hρ')
-  rw [hset, Finset.sum_image hinj, Finset.sum_const, Finset.card_powersetCard,
-    Finset.card_compl, nsmul_eq_mul]
-
-end Counting
 
 /-! ## The uniform weight -/
 
@@ -589,40 +535,6 @@ theorem uniform_dirichlet_downUp_eq_Var_sub {n k : ℕ} (hn : n ≤ Fintype.card
 end
 
 end Weight
-
-/-! ## Two facts about `Var` used by the computation
-
-Neither is about the uniform complex; both are missing from
-`Techniques.Functional` and are proved here locally rather than by editing it. -/
-
-section VarAux
-
-variable {Ω : Type*} [Fintype Ω]
-
-/-- Expectation only sees the support of the distribution. -/
-theorem Ex_congr_ae {μ : FinDist Ω} {f g : Ω → ℝ} (h : ∀ x, μ x ≠ 0 → f x = g x) :
-    Ex μ f = Ex μ g := by
-  refine Finset.sum_congr rfl fun x _ => ?_
-  by_cases hx : μ x = 0
-  · rw [hx, zero_mul, zero_mul]
-  · rw [h x hx]
-
-/-- Variance only sees the support of the distribution. -/
-theorem Var_congr_ae {μ : FinDist Ω} {f g : Ω → ℝ} (h : ∀ x, μ x ≠ 0 → f x = g x) :
-    Var μ f = Var μ g := by
-  have hE : Ex μ f = Ex μ g := Ex_congr_ae h
-  rw [Var, Var, hE]
-  exact Ex_congr_ae fun x hx => by rw [h x hx]
-
-/-- The variance of an affine function: `Var(c + d f) = d² Var(f)`. -/
-theorem Var_affine (μ : FinDist Ω) (c d : ℝ) (f : Ω → ℝ) :
-    Var μ (fun x => c + d * f x) = d ^ 2 * Var μ f := by
-  have hE : Ex μ (fun x => c + d * f x) = c + d * Ex μ f := by
-    rw [Ex_add μ (fun _ => c) (fun x => d * f x), Ex_const, Ex_smul]
-  rw [Var_apply, Var_apply, hE, Finset.mul_sum]
-  exact Finset.sum_congr rfl fun x _ => by ring
-
-end VarAux
 
 /-! ## A test function, and the Dirichlet form in closed form
 

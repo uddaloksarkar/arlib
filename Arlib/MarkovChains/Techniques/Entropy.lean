@@ -29,11 +29,19 @@ This module builds the functional as the exact analogue of `Var`:
   analytic in this file is a consequence of these; they are in turn immediate
   from `Real.log_le_sub_one_of_pos` applied to `m / t`.  No convexity API, no
   Jensen machinery, no measure theory.
+* `mul_log_le_mul_log_add_sq_div` — the *other* evaluation of `log u ≤ u − 1`,
+  at `u = t/m` rather than `u = m/t`.  It is what
+  `EntropyVariational.Ent_le_Var_div` consumes.
 * `mul_log_sum_le_sum_mul_log` — **Jensen's inequality for `t ↦ t log t`** in
   the only form we need: for weights `p` summing to `1` and `a ≥ 0`,
   `(∑ p a) log (∑ p a) ≤ ∑ p (a log a)`.  Applied with `p = μ` it is
   `Ent_nonneg`; applied with `p` a *row of the transition kernel* it is the
   one-step contraction `Ent_act_le`.
+* **`mul_log_sub_log_sum_le`** — **the log-sum inequality**, the two-function
+  refinement of the previous item: `A log(A/B) ≤ ∑ pᵢ aᵢ log(aᵢ/bᵢ)`.  With
+  `mul_log_sub_log_act_le` and `Ex_mul_log_sub_log_act_le` it gives data
+  processing for the relative entropy of a *pair* of functions along a kernel,
+  which is what entropy tensorization runs on.
 * `Ent`, `Ent_apply`, `Ent_const`, **`Ent_nonneg`**, `Ent_smul`,
   `eq_Ex_of_Ent_eq_zero` — the functional and its basic calculus.
 * `ModLogSobolev μ P ρ` — the modified log-Sobolev inequality, deliberately the
@@ -50,6 +58,12 @@ This module builds the functional as the exact analogue of `Var`:
   the honest discrete-time statement; the geometric decay
   `Ent_μ(P f) ≤ (1 - ρ) Ent_μ(f)` is *not* proved here, and does not follow from
   `ModLogSobolev` as defined above (see `naiveModLogSobolev_le_zero`).
+* `localEnt μ P f` — the **mean conditional entropy** `μ[Ent_{P(σ,·)}(f)]`, the
+  entropy analogue of `GlauberTensorization.siteVar`, with
+  `localEnt_eq_Ent_sub_Ent` (it collapses to `Ent_μ(f) − Ent_μ(P f)`) and
+  **`localEnt_le_entropyProduction`**, valid for *any* reversible chain.
+  `Ent_sub_Ent_act_of_invariant` rewrites the same entropy drop as a divergence
+  whenever `log (P g)` is `P`-invariant.
 * `klDiv ν μ = Ent_μ(ν/μ)` — the Kullback–Leibler divergence, with
   `klDiv_nonneg` and the data-processing bound `klDiv_push_le`, mirroring
   `chiSq_nonneg` and `chiSq_push_le` in `Arlib.MarkovChains.Techniques.SpectralGap`.
@@ -120,6 +134,26 @@ theorem mul_log_lt_mul_log_add_sub {m t : ℝ} (hm : 0 < m) (ht : 0 ≤ t) (hne 
     rw [hcancel] at h2
     linarith
 
+/-- The pointwise inequality behind `EntropyVariational.Ent_le_Var_div`: for `m > 0` and `x ≥ 0`,
+
+  `x log x ≤ (log m) x + (x²/m − x)`.
+
+It is `log u ≤ u − 1` at `u = x/m`, multiplied by `x`. -/
+theorem mul_log_le_mul_log_add_sq_div {m x : ℝ} (hm : 0 < m) (hx : 0 ≤ x) :
+    x * Real.log x ≤ Real.log m * x + (m⁻¹ * (x * x) - x) := by
+  rcases hx.eq_or_lt with h0 | hpos
+  · rw [← h0]; simp
+  · have h := Real.log_le_sub_one_of_pos (show (0 : ℝ) < x / m by positivity)
+    have h2 := mul_le_mul_of_nonneg_left h hpos.le
+    rw [Real.log_div hpos.ne' hm.ne'] at h2
+    have e : x * (x / m - 1) = m⁻¹ * (x * x) - x := by
+      field_simp
+      ring
+    rw [e] at h2
+    have e2 : x * (Real.log x - Real.log m) = x * Real.log x - Real.log m * x := by ring
+    rw [e2] at h2
+    linarith
+
 /-! ## Jensen's inequality for `t ↦ t log t`
 
 The single convexity fact this development needs, in the weighted finite-sum
@@ -172,6 +206,130 @@ theorem mul_log_sum_le_sum_mul_log {p a : Ω → ℝ} (hp : ∀ y, 0 ≤ p y)
       _ ≤ ∑ y : Ω, (p y * (a y * Real.log (a y)) + (A * p y - p y * a y)) :=
           Finset.sum_le_sum fun y _ => key y
       _ = ∑ y : Ω, p y * (a y * Real.log (a y)) := hR
+
+/-! ## The log-sum inequality
+
+The ingredient the entropy tensorization of `Chains/ProductEntropy.lean` needs
+and the variance argument does not.  It is *not* a new inequality: it is
+`mul_log_le_mul_log_add_sub` — the `t log m ≤ t log t + (m − t)` above —
+evaluated at `t = a/b` and `m = (∑ p a)/(∑ p b)` and summed against the weights
+`p b`.
+
+The convention throughout is to write `log a − log b` rather than `log (a/b)`,
+which keeps the `Real.log_div` side conditions in one place. -/
+
+section LogSum
+
+variable {Ω : Type*} [Fintype Ω]
+
+/-- A strictly positive function has strictly positive average against a
+probability weight vector.  (`Ex_pos_of_pos` is the `FinDist` version; this one
+is needed for the rows of a kernel as well.) -/
+theorem sum_mul_pos {p a : Ω → ℝ} (hp : ∀ y, 0 ≤ p y) (hp1 : ∑ y, p y = 1)
+    (ha : ∀ y, 0 < a y) : 0 < ∑ y, p y * a y := by
+  obtain ⟨y₀, -, hy₀⟩ : ∃ y ∈ univ, p y ≠ 0 :=
+    Finset.exists_ne_zero_of_sum_ne_zero (by rw [hp1]; exact one_ne_zero)
+  have h0 : 0 < p y₀ * a y₀ := mul_pos (lt_of_le_of_ne (hp y₀) (Ne.symm hy₀)) (ha y₀)
+  exact lt_of_lt_of_le h0
+    (Finset.single_le_sum (f := fun y => p y * a y)
+      (fun y _ => mul_nonneg (hp y) (ha y).le) (mem_univ y₀))
+
+/-- **The log-sum inequality.**  For a probability weight vector `p` and
+strictly positive `a`, `b`,
+
+  `(∑ p a) · (log (∑ p a) − log (∑ p b)) ≤ ∑ p · a · (log a − log b)`.
+
+Equivalently `A log (A/B) ≤ ∑ pᵢ aᵢ log (aᵢ/bᵢ)`: the relative entropy of the
+aggregated pair is at most the aggregate of the pointwise relative entropies.
+This is the convexity fact that entropy tensorization needs and variance
+tensorization does not; taking `b ≡ 1` recovers `mul_log_sum_le_sum_mul_log`.
+
+The proof is the pointwise bound `mul_log_le_mul_log_add_sub` at `t = aᵢ/bᵢ`,
+`m = A/B`, multiplied by `pᵢ bᵢ ≥ 0`; the linear correction sums to
+`(A/B)·B − A = 0`. -/
+theorem mul_log_sub_log_sum_le {p a b : Ω → ℝ} (hp : ∀ y, 0 ≤ p y) (hp1 : ∑ y, p y = 1)
+    (ha : ∀ y, 0 < a y) (hb : ∀ y, 0 < b y) :
+    (∑ y, p y * a y) * (Real.log (∑ y, p y * a y) - Real.log (∑ y, p y * b y))
+      ≤ ∑ y, p y * (a y * (Real.log (a y) - Real.log (b y))) := by
+  set A := ∑ y, p y * a y with hA
+  set B := ∑ y, p y * b y with hB
+  have hApos : 0 < A := sum_mul_pos hp hp1 ha
+  have hBpos : 0 < B := sum_mul_pos hp hp1 hb
+  have key : ∀ y : Ω, p y * a y * (Real.log A - Real.log B)
+      ≤ p y * (a y * (Real.log (a y) - Real.log (b y)))
+        + ((A / B) * (p y * b y) - p y * a y) := by
+    intro y
+    have h := mul_log_le_mul_log_add_sub (div_pos hApos hBpos)
+      (div_nonneg (ha y).le (hb y).le)
+    have h2 := mul_le_mul_of_nonneg_left h (mul_nonneg (hp y) (hb y).le)
+    rw [Real.log_div hApos.ne' hBpos.ne', Real.log_div (ha y).ne' (hb y).ne'] at h2
+    have hbne : b y ≠ 0 := (hb y).ne'
+    have hcan : a y / b y * b y = a y := by field_simp
+    have e0 : p y * b y * (a y / b y) = p y * a y := by
+      calc p y * b y * (a y / b y) = p y * (a y / b y * b y) := by ring
+        _ = p y * a y := by rw [hcan]
+    have e1 : p y * b y * (a y / b y * (Real.log A - Real.log B))
+        = p y * a y * (Real.log A - Real.log B) := by
+      rw [show p y * b y * (a y / b y * (Real.log A - Real.log B))
+        = p y * b y * (a y / b y) * (Real.log A - Real.log B) by ring, e0]
+    have e2 : p y * b y * (a y / b y * (Real.log (a y) - Real.log (b y))
+          + (A / B - a y / b y))
+        = p y * a y * (Real.log (a y) - Real.log (b y))
+          + ((A / B) * (p y * b y) - p y * a y) := by
+      rw [show p y * b y * (a y / b y * (Real.log (a y) - Real.log (b y))
+            + (A / B - a y / b y))
+          = p y * b y * (a y / b y) * (Real.log (a y) - Real.log (b y))
+            + ((A / B) * (p y * b y) - p y * b y * (a y / b y)) by ring, e0]
+    rw [e1, e2] at h2
+    linarith
+  have hsum1 : ∑ y : Ω, p y * a y * (Real.log A - Real.log B)
+      = A * (Real.log A - Real.log B) := by
+    rw [← Finset.sum_mul, ← hA]
+  have hAB : (A / B) * B = A := by field_simp
+  have hsum2 : ∑ y : Ω, ((A / B) * (p y * b y) - p y * a y) = 0 := by
+    rw [Finset.sum_sub_distrib, ← Finset.mul_sum, ← hA, ← hB, hAB, sub_self]
+  calc A * (Real.log A - Real.log B)
+      = ∑ y : Ω, p y * a y * (Real.log A - Real.log B) := hsum1.symm
+    _ ≤ ∑ y : Ω, (p y * (a y * (Real.log (a y) - Real.log (b y)))
+          + ((A / B) * (p y * b y) - p y * a y)) := Finset.sum_le_sum fun y _ => key y
+    _ = ∑ y : Ω, p y * (a y * (Real.log (a y) - Real.log (b y))) := by
+        rw [Finset.sum_add_distrib, hsum2, add_zero]
+
+/-- The action of a kernel on a strictly positive function is strictly
+positive. -/
+theorem act_pos (P : FinChain Ω) {f : Ω → ℝ} (hf : ∀ y, 0 < f y) (x : Ω) : 0 < P.act f x :=
+  sum_mul_pos (P.coe_nonneg x) (P.sum_coe x) hf
+
+/-- **The log-sum inequality along a kernel row.**  For strictly positive `g`, `h`,
+
+  `(P g)(x) · (log (P g)(x) − log (P h)(x)) ≤ (P (g · (log g − log h)))(x)`.
+
+This is the pointwise data-processing inequality for relative entropy: averaging
+a pair of positive functions over a row of `P` can only decrease their
+divergence. -/
+theorem mul_log_sub_log_act_le (P : FinChain Ω) {g h : Ω → ℝ} (hg : ∀ y, 0 < g y)
+    (hh : ∀ y, 0 < h y) (x : Ω) :
+    P.act g x * (Real.log (P.act g x) - Real.log (P.act h x))
+      ≤ P.act (fun y => g y * (Real.log (g y) - Real.log (h y))) x :=
+  mul_log_sub_log_sum_le (P.coe_nonneg x) (P.sum_coe x) hg hh
+
+/-- **Data processing for the relative entropy of a pair of functions.**  If `μ`
+is stationary for `P` then
+
+  `μ[(P g) · (log (P g) − log (P h))] ≤ μ[g · (log g − log h)]`.
+
+Both sides are `1`-homogeneous under the simultaneous scaling `(g, h) ↦ (cg, ch)`.
+This is the inequality that replaces "`Q_Λ` is an `L²(μ)`-contraction" in the
+entropy version of the tensorization argument, and the only inequality used in
+the induction below. -/
+theorem Ex_mul_log_sub_log_act_le {μ : FinDist Ω} {P : FinChain Ω} (hst : Stationary μ P)
+    {g h : Ω → ℝ} (hg : ∀ y, 0 < g y) (hh : ∀ y, 0 < h y) :
+    Ex μ (fun x => P.act g x * (Real.log (P.act g x) - Real.log (P.act h x)))
+      ≤ Ex μ (fun y => g y * (Real.log (g y) - Real.log (h y))) :=
+  le_trans (Ex_mono fun x => mul_log_sub_log_act_le P hg hh x)
+    (le_of_eq (Ex_act_of_stationary hst _))
+
+end LogSum
 
 /-! ## The entropy functional -/
 
@@ -558,5 +716,161 @@ theorem ModLogSobolev.smul {μ : FinDist Ω} {P : FinChain Ω} {ρ : ℝ}
     (h : ModLogSobolev μ P ρ) {c : ℝ} (hc : 0 < c) {f : Ω → ℝ} (hf : ∀ x, 0 < f x) :
     ρ * Ent μ (fun x => c * f x) ≤ entropyProduction μ P (fun x => c * f x) :=
   h _ fun x => mul_pos hc (hf x)
+
+/-! ## The mean conditional entropy
+
+`localEnt μ P f` is the entropy analogue of `GlauberTensorization.siteVar`: draw
+`σ` from `μ`, take the entropy of `f` with respect to the *row* `P(σ, ·)`, and
+average.  Where the variance version can be defined as a Dirichlet form, we
+cannot — entropy is not a quadratic form — so the definition is the average of
+row entropies, and `localEnt_eq_Ent_sub_Ent` shows it collapses to the difference
+`Ent_μ(f) − Ent_μ(P f)` exactly as `siteVar` collapses to `⟪f,f⟫ − ⟪Pf, Pf⟫`. -/
+
+section LocalEntropy
+
+variable {Ω : Type*} [Fintype Ω]
+
+/-- The **mean conditional entropy** `μ[Ent_{P(σ,·)}(f)]`: the entropy of `f`
+under the row distribution of `P` at `σ`, averaged over `σ ∼ μ`.
+
+This is the exact analogue of `siteVar` in `Chains/GlauberTensorization.lean`,
+and the normalisation is the same one: no division by anything, and the average
+is against `μ` itself. -/
+noncomputable def localEnt (μ : FinDist Ω) (P : FinChain Ω) (f : Ω → ℝ) : ℝ :=
+  Ex μ (fun x => Ent (P.row x) f)
+
+theorem localEnt_apply (μ : FinDist Ω) (P : FinChain Ω) (f : Ω → ℝ) :
+    localEnt μ P f = Ex μ (fun x => Ent (P.row x) f) := rfl
+
+/-- Averaging against a row of a kernel is the action of the kernel. -/
+theorem Ex_row_eq_act (P : FinChain Ω) (f : Ω → ℝ) (x : Ω) : Ex (P.row x) f = P.act f x := rfl
+
+/-- The mean conditional entropy is nonnegative, being an average of
+entropies. -/
+theorem localEnt_nonneg (μ : FinDist Ω) (P : FinChain Ω) {f : Ω → ℝ} (hf : ∀ x, 0 ≤ f x) :
+    0 ≤ localEnt μ P f :=
+  Ex_nonneg fun x => Ent_nonneg (P.row x) hf
+
+/-- **The mean conditional entropy is linearly homogeneous**,
+`μ[Ent_P(c f)] = c · μ[Ent_P(f)]`, being an average of entropies (`Ent_smul`).
+
+This is the homogeneity audit that `naiveModLogSobolev_le_zero` demands, carried
+out on the right-hand side of the tensorization inequality: `Ent` is
+`1`-homogeneous and so is `∑_v μ[Ent_v(·)]`, so the two sides of
+`ApproxTensorizationEnt` scale together and the condition has content.  Contrast
+`dirichlet_smul_self`, which is quadratic. -/
+theorem localEnt_smul (μ : FinDist Ω) (P : FinChain Ω) {c : ℝ} (hc : 0 ≤ c) {f : Ω → ℝ}
+    (hf : ∀ x, 0 ≤ f x) : localEnt μ P (fun x => c * f x) = c * localEnt μ P f := by
+  rw [localEnt_apply, localEnt_apply, ← Ex_smul]
+  refine Finset.sum_congr rfl fun x _ => ?_
+  show μ x * Ent (P.row x) (fun y => c * f y) = μ x * (c * Ent (P.row x) f)
+  rw [Ent_smul (P.row x) hc hf]
+
+/-- **The mean conditional entropy collapses to an entropy difference**:
+
+  `μ[Ent_P(f)] = Ent_μ(f) − Ent_μ(P f)`.
+
+The `μ`-average of the row terms `P(f log f)` is `μ(f log f)` by stationarity,
+and the two `μ(f) log μ(f)` terms of the right-hand side cancel for the same
+reason.  Compare `siteVar_eq_ip_sub`. -/
+theorem localEnt_eq_Ent_sub_Ent {μ : FinDist Ω} {P : FinChain Ω} (hst : Stationary μ P)
+    (f : Ω → ℝ) : localEnt μ P f = Ent μ f - Ent μ (P.act f) := by
+  have hrow : (fun x => Ent (P.row x) f)
+      = fun x => P.act (fun y => f y * Real.log (f y)) x
+          - P.act f x * Real.log (P.act f x) := by
+    funext x
+    rw [Ent_apply, Ex_row_eq_act, Ex_row_eq_act]
+  rw [localEnt_apply, hrow, Ex_sub, Ex_act_of_stationary hst]
+  simp only [Ent_apply]
+  rw [Ex_act_of_stationary hst f]
+  ring
+
+/-- **The mean conditional entropy is at most the entropy production**:
+
+  `μ[Ent_P(f)] ≤ ℰ_P(f, log f)`
+
+for every reversible chain and every strictly positive `f`.  Both sides are
+`1`-homogeneous in `f`.
+
+This is the local half of a modified log-Sobolev inequality, and it is where the
+log-sum inequality earns its keep.  Self-adjointness turns
+`ℰ_P(f, log f) − μ[Ent_P(f)]` into `μ[(P f) · (log (P f) − log f)]`, which is the
+relative entropy of the pair `(P f, f)`; stationarity says the two have the same
+`μ`-mean, so the log-sum inequality bounds it below by `μ(f) · log 1 = 0`.
+
+Note what is *not* needed: no idempotence, no product structure, no
+positive-semidefiniteness — only detailed balance. -/
+theorem localEnt_le_entropyProduction {μ : FinDist Ω} {P : FinChain Ω} (hrev : Reversible μ P)
+    {f : Ω → ℝ} (hf : ∀ x, 0 < f x) : localEnt μ P f ≤ entropyProduction μ P f := by
+  have hst := hrev.stationary
+  have hPf : ∀ x, 0 < P.act f x := fun x => act_pos P hf x
+  -- The entropy production, with the second argument moved across by self-adjointness.
+  have hEP : entropyProduction μ P f
+      = Ex μ (fun x => f x * Real.log (f x))
+        - Ex μ (fun x => P.act f x * Real.log (f x)) := by
+    rw [entropyProduction_apply, dirichlet_apply, ip_eq_Ex_mul,
+      ip_act_comm hrev f (fun x => Real.log (f x))]
+    congr 1
+    exact Finset.sum_congr rfl fun x _ => by ring
+  -- The mean conditional entropy, unfolded the same way.
+  have hloc : localEnt μ P f
+      = Ex μ (fun x => f x * Real.log (f x))
+        - Ex μ (fun x => P.act f x * Real.log (P.act f x)) := by
+    rw [localEnt_eq_Ent_sub_Ent hst f]
+    simp only [Ent_apply]
+    rw [Ex_act_of_stationary hst f]
+    ring
+  -- The difference is a relative entropy between two functions of equal mean.
+  have hkey : 0 ≤ Ex μ (fun x => P.act f x * (Real.log (P.act f x) - Real.log (f x))) := by
+    have h := mul_log_sub_log_sum_le (p := fun x => μ x) (a := P.act f) (b := f)
+      μ.coe_nonneg μ.sum_coe hPf hf
+    have hmean : ∑ x, μ x * P.act f x = ∑ x, μ x * f x := Ex_act_of_stationary hst f
+    rw [hmean, sub_self, mul_zero] at h
+    exact h
+  have hsplit : Ex μ (fun x => P.act f x * (Real.log (P.act f x) - Real.log (f x)))
+      = Ex μ (fun x => P.act f x * Real.log (P.act f x))
+        - Ex μ (fun x => P.act f x * Real.log (f x)) := by
+    simp only [Ex_apply, ← Finset.sum_sub_distrib]
+    exact Finset.sum_congr rfl fun x _ => by ring
+  linarith
+
+/-- **The relative-entropy form of the entropy drop.**  If `P` is reversible and
+`log (P g)` is `P`-invariant then
+
+  `Ent_μ(g) − Ent_μ(P g) = μ[g · (log g − log (P g))]`.
+
+The invariance hypothesis is genuine and is not implied by idempotence: it says
+`P g` is constant along the rows of `P`, which for a resampling kernel holds
+because `P g` does not depend on the resampled coordinates at all
+(`act_prodProj_fix`).  Given it, self-adjointness moves the weight from `P g` to
+`g` in the term `μ[(P g) log (P g)]`, which is precisely what turns a difference
+of entropies into a divergence, and hence what makes the data-processing
+inequality applicable. -/
+theorem Ent_sub_Ent_act_of_invariant {μ : FinDist Ω} {P : FinChain Ω} (hrev : Reversible μ P)
+    {g : Ω → ℝ}
+    (hinv : P.act (fun x => Real.log (P.act g x)) = fun x => Real.log (P.act g x)) :
+    Ent μ g - Ent μ (P.act g)
+      = Ex μ (fun x => g x * (Real.log (g x) - Real.log (P.act g x))) := by
+  have hmean : Ex μ (P.act g) = Ex μ g := Ex_act_of_stationary hrev.stationary g
+  have h2 := ip_act_comm hrev g (fun x => Real.log (P.act g x))
+  rw [hinv] at h2
+  have hself : Ex μ (fun x => P.act g x * Real.log (P.act g x))
+      = Ex μ (fun x => g x * Real.log (P.act g x)) := by
+    calc Ex μ (fun x => P.act g x * Real.log (P.act g x))
+        = ip μ (fun x => Real.log (P.act g x)) (P.act g) :=
+          Finset.sum_congr rfl fun x _ => by ring
+      _ = ip μ g (fun x => Real.log (P.act g x)) := h2.symm
+      _ = Ex μ (fun x => g x * Real.log (P.act g x)) :=
+          Finset.sum_congr rfl fun x _ => by ring
+  have hRHS : Ex μ (fun x => g x * (Real.log (g x) - Real.log (P.act g x)))
+      = Ex μ (fun x => g x * Real.log (g x))
+        - Ex μ (fun x => g x * Real.log (P.act g x)) := by
+    simp only [Ex_apply, ← Finset.sum_sub_distrib]
+    exact Finset.sum_congr rfl fun x _ => by ring
+  simp only [Ent_apply]
+  rw [hmean, hRHS, ← hself]
+  ring
+
+end LocalEntropy
 
 end Arlib.MarkovChains

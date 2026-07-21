@@ -63,10 +63,6 @@ all.
 
 **Main declarations.**
 
-* `Ex_mono_of_ne_zero` — monotonicity of an expectation from a pointwise bound
-  that need only hold on the support.  The averaging step needs exactly this:
-  at a face of `π_k`-mass zero the guarded link objects are junk and the
-  per-face inequality is unavailable.
 * `two_mul_Var_pi_succ_le` — the per-level inequality in an arbitrary weighted
   complex: `2γ·Var_{π_k}(U_k g) ≤ Var_{π_{k+1}}(g)` from
   `γ(P^∨∧_k) ≥ γ/2`.  This is `missing-step` of the monograph, stated where it
@@ -98,31 +94,17 @@ namespace Arlib.MarkovChains
 open scoped BigOperators
 open Finset
 
-/-! ## Monotonicity of an expectation on the support
+/-! ## Averaging on the support only
 
 `Ex_mono` asks for a pointwise inequality everywhere.  Every guarded-total
-construction in this development (`LocalToGlobal.linkDistOf`,
-`FirstStep.linkShiftPiOf`, `FirstStep.linkLevelFun`) takes a junk value off the
-support of the averaging distribution, and there the pointwise inequality is
-simply false — at a face `τ` with `|τ| ≠ k` the level-`2` guard fails while the
-level-`1` guard may not, so the left-hand side of the per-face bound can be
-positive and the right-hand side zero.  Multiplying by the face weight is what
-kills that branch, so the averaging step must be done with the mass-aware form
-below and not with `Ex_mono`.
-
-This belongs beside `Ex_mono` in `Techniques.Functional`; it is stated here
-only because this module may not edit that one. -/
-
-/-- **Monotonicity of an expectation, on the support only.**  If `F₁ x ≤ F₂ x`
-at every `x` carrying `μ`-mass, then `μ(F₁) ≤ μ(F₂)`.  Off the support both
-summands are `0`, whatever the two functions do there. -/
-theorem Ex_mono_of_ne_zero {Ω : Type*} [Fintype Ω] (μ : FinDist Ω) {F₁ F₂ : Ω → ℝ}
-    (h : ∀ x, μ x ≠ 0 → F₁ x ≤ F₂ x) : Ex μ F₁ ≤ Ex μ F₂ := by
-  simp only [Ex_apply]
-  refine Finset.sum_le_sum fun x _ => ?_
-  by_cases hx : μ x = 0
-  · rw [hx, zero_mul, zero_mul]
-  · exact mul_le_mul_of_nonneg_left (h x hx) (μ.coe_nonneg x)
+construction in this development (`LocalWalk.linkDistOf`,
+`LinkRestriction.linkShiftPiOf`, `LinkRestriction.linkLevelFun`) takes a junk
+value off the support of the averaging distribution, and there the pointwise
+inequality is simply false — at a face `τ` with `|τ| ≠ k` the level-`2` guard
+fails while the level-`1` guard may not, so the left-hand side of the per-face
+bound can be positive and the right-hand side zero.  Multiplying by the face
+weight is what kills that branch, so every averaging step below is done with
+`Functional.Ex_mono_of_ne_zero`, the mass-aware form, and not with `Ex_mono`. -/
 
 variable {E : Type*} [Fintype E] [DecidableEq E]
 

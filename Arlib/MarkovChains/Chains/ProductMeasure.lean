@@ -85,19 +85,10 @@ namespace Arlib.MarkovChains
 open scoped BigOperators
 open Finset
 
-/-! ## Two elementary lemmas that belong elsewhere
+/-! ## Expanding a product of sums
 
-`ip_const` belongs in `Techniques/Functional.lean`; it is proved here to avoid a
-concurrent edit.  `sum_prod_eq_prod_sum` is `Fintype.prod_sum` read in the
-direction this module needs. -/
-
-/-- The squared `L²(μ)` norm of a constant.  (Belongs in
-`Techniques/Functional.lean`.) -/
-theorem ip_const {Ω : Type*} [Fintype Ω] (μ : FinDist Ω) (c : ℝ) :
-    ip μ (fun _ => c) (fun _ => c) = c ^ 2 := by
-  rw [ip_apply]
-  have h : ∀ x : Ω, μ x * c * c = μ x * c ^ 2 := fun x => by ring
-  rw [Finset.sum_congr rfl fun x _ => h x, μ.sum_coe_mul_const]
+`sum_prod_eq_prod_sum` is `Fintype.prod_sum` read in the direction this module
+needs. -/
 
 section ProdSum
 

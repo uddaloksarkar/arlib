@@ -55,7 +55,6 @@ arbitrary `f`, with no mean-zero hypothesis.
 
 * `numFree`, `freeRestrict` — the number `m = n − |Λ|` of free sites and the
   restriction of a vector on `V × S` to the free sites.
-* `ip_act_eq_sum_sum` — `⟪f, P g⟫_μ` as a double sum over transitions.
 * `spinComb_add_site`, **`quadForm_Cov_add_site`** — the exact invariance the
   centering step uses: adding a function of the *site* to `a` shifts the linear
   statistic by a constant and leaves `quadForm (Cov μ)` alone.
@@ -94,28 +93,6 @@ namespace Arlib.MarkovChains
 
 open scoped BigOperators
 open Finset
-
-/-! ## A double-sum form of `⟪f, P g⟫_μ`
-
-The Dirichlet form of the local walk is computed from the detailed-balance cell
-`π(x)·Q(x,y)`, which `Chains.PinnedGlauber.pinDist_mul_pinLocalWalk` already
-evaluates.  To use it we need `⟪f, Q f⟫_π` in the shape where that product
-appears as a factor. -/
-
-section Double
-
-variable {Ω : Type*} [Fintype Ω]
-
-/-- `⟪f, P g⟫_μ = ∑_x ∑_y μ(x)·P(x,y)·f(x)·g(y)`: the inner product against the
-action of a kernel, written so that the detailed-balance cell `μ(x)·P(x,y)`
-occurs as a subterm. -/
-theorem ip_act_eq_sum_sum (μ : FinDist Ω) (P : FinChain Ω) (f g : Ω → ℝ) :
-    ip μ f (P.act g) = ∑ x, ∑ y, μ x * P x y * (f x * g y) := by
-  refine Finset.sum_congr rfl fun x _ => ?_
-  simp only [FinKernel.act, Finset.mul_sum]
-  exact Finset.sum_congr rfl fun y _ => by ring
-
-end Double
 
 /-! ## Free sites
 

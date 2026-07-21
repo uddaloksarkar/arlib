@@ -13,8 +13,8 @@ of the chain after `t` steps is from the stationary distribution, measured in
 total variation.  This module supplies that measure and the elementary facts
 which turn an analytic bound into a mixing-time statement.
 
-* `FinKernel.row` — the `x`-th row of a kernel, i.e. the law of one step started
-  at `x`, packaged as a `FinDist`.
+* `FinKernel.row_comp` — the row of a composite kernel is the pushforward of the
+  row of its first factor.  (`FinKernel.row` itself is in `Techniques.Chain`.)
 * `Pr μ A` — the probability of an event `A : Finset Ω`.
 * `tvDist μ ν` — total variation distance `½ ∑ x, |μ x - ν x|`, with the basic
   metric facts (`tvDist_comm`, `tvDist_self`, `tvDist_triangle`,
@@ -45,20 +45,14 @@ open Finset
 
 variable {Ω : Type*} [Fintype Ω]
 
-/-! ## Rows of a kernel, and composition identities -/
+/-! ## Composition identities for kernels
+
+`FinKernel.row` itself lives in `Techniques.Chain`; what is recorded here are the
+identities relating rows, pushforwards and composition. -/
 
 namespace FinKernel
 
 variable {α β γ : Type*} [Fintype β]
-
-/-- The `x`-th row of a kernel, as a distribution: the law of one step of `K`
-started at `x`. -/
-def row (K : FinKernel α β) (x : α) : FinDist β where
-  p y := K x y
-  p_nonneg y := K.coe_nonneg x y
-  p_sum := K.sum_coe x
-
-@[simp] theorem row_apply (K : FinKernel α β) (x : α) (y : β) : K.row x y = K x y := rfl
 
 /-- Two kernels with the same matrix are equal. -/
 theorem ext' {K L : FinKernel α β} (h : ∀ x y, K x y = L x y) : K = L := by

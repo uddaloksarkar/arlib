@@ -45,6 +45,11 @@ projection theorem, and no measure theory.
   of the monograph's Corollary: `C`-approximate tensorization is the same thing
   as a spectral gap of `1/(Cn)` for the Glauber dynamics.  Both are pure
   arithmetic once `dirichlet_glauber` is in hand.
+* `siteEnt`, `ApproxTensorizationEnt` and
+  **`modLogSobolev_glauber_of_approxTensorizationEnt`** — the entropy analogues
+  of the three previous items, `Ent` for `Var` throughout.  There is no converse
+  on this side: `Entropy.localEnt_le_entropyProduction` is an inequality where
+  `dirichlet_siteChain` is an identity.
 * **`glauber_mixesWithin_of_approxTensorization`** — the end-to-end statement:
   local variance control gives a concrete mixing time for the lazy Gibbs
   sampler, `t ≳ 2Cn · ln(1/(2ε√m))`.
@@ -53,6 +58,7 @@ Everything here is proved from first principles with no `sorry`; in particular
 no eigenvalue, and no spectral theorem, appears anywhere.
 -/
 import Arlib.MarkovChains.Chains.Glauber
+import Arlib.MarkovChains.Techniques.Entropy
 import Arlib.MarkovChains.Techniques.MixingTime
 
 namespace Arlib.MarkovChains
@@ -245,8 +251,8 @@ variable [Nonempty V]
 conditional variances**: `ℰ_{P_GD}(f) = (1/n) ∑_v μ[Var_v(f)]`.
 
 Equivalently `∑_v μ[Var_v(f)] = n · ℰ_{P_GD}(f)`, which is the monograph's
-equation (3.4).  The proof is `ip_act_glauber` — the quadratic form of the
-average is the average of the quadratic forms — plus the observation that the
+equation (3.4).  The proof is `ip_act_glauber` at `(f, f)` — the bilinear form of
+the average is the average of the bilinear forms — plus the observation that the
 `n` copies of `⟪f, f⟫_μ` reassemble into one. -/
 theorem dirichlet_glauber (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) (hZ : 0 < Z w)
     (f : (V → S) → ℝ) :
@@ -267,7 +273,7 @@ theorem dirichlet_glauber (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) (hZ 
   have hB : ∑ v, (1 / (Fintype.card V : ℝ)) * siteVar w hw hZ v f
       = (1 / (Fintype.card V : ℝ)) * ∑ v, siteVar w hw hZ v f := by
     rw [Finset.mul_sum]
-  rw [dirichlet_apply, ip_act_glauber w hw hZ f,
+  rw [dirichlet_apply, ip_act_glauber w hw hZ f f,
     Finset.sum_congr rfl fun v _ => step v, Finset.sum_sub_distrib, hA, hB]
   ring
 
@@ -349,6 +355,157 @@ theorem approxTensorization_of_spectralGapAtLeast_glauber {w : (V → S) → ℝ
     _ = ∑ v, siteVar w hw hZ v f := by field_simp
 
 end Equivalence
+
+/-! ## Entropy tensorization for a spin system, and the Glauber dynamics
+
+The definitions mirror the variance ones above, one for one: `siteEnt` is
+`siteVar` with `Ent` in place of `Var`, and `ApproxTensorizationEnt` is
+`ApproxTensorization` with the same substitution.  The one theorem of this
+section, `modLogSobolev_glauber_of_approxTensorizationEnt`, is the entropy
+analogue of `spectralGapAtLeast_glauber_of_approxTensorization`; note that it
+does *not* have a converse here, because `localEnt_le_entropyProduction` is an
+inequality and not an identity. -/
+
+section SiteEntropy
+
+variable {V : Type*} [Fintype V] [DecidableEq V]
+variable {S : Type*} [Fintype S] [DecidableEq S]
+
+/-- The **mean conditional entropy at a site** `μ[Ent_v(f)]`: resample the spin
+at `v` from its conditional Gibbs law and take the entropy of `f` under that law,
+averaged over the configuration off `v`.
+
+The normalisation mirrors `siteVar` exactly, so the two are directly comparable:
+`siteVar` is `ℰ_{P_v}(f, f) = ⟪f,f⟫ − ⟪P_v f, P_v f⟫`, and `siteEnt` is
+`Ent_μ(f) − Ent_μ(P_v f)` (`siteEnt_eq_Ent_sub_Ent`). -/
+noncomputable def siteEnt (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) (hZ : 0 < Z w)
+    (v : V) (f : (V → S) → ℝ) : ℝ :=
+  localEnt (gibbs w hw hZ) (siteChain w hw v) f
+
+theorem siteEnt_apply (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) (hZ : 0 < Z w)
+    (v : V) (f : (V → S) → ℝ) :
+    siteEnt w hw hZ v f = localEnt (gibbs w hw hZ) (siteChain w hw v) f := rfl
+
+/-- The mean conditional entropy at a site is nonnegative. -/
+theorem siteEnt_nonneg (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) (hZ : 0 < Z w)
+    (v : V) {f : (V → S) → ℝ} (hf : ∀ σ, 0 ≤ f σ) : 0 ≤ siteEnt w hw hZ v f :=
+  localEnt_nonneg _ _ hf
+
+/-- `μ[Ent_v(f)] = Ent_μ(f) − Ent_μ(P_v f)`, the analogue of
+`siteVar_eq_ip_sub`. -/
+theorem siteEnt_eq_Ent_sub_Ent (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) (hZ : 0 < Z w)
+    (v : V) (f : (V → S) → ℝ) :
+    siteEnt w hw hZ v f
+      = Ent (gibbs w hw hZ) f - Ent (gibbs w hw hZ) ((siteChain w hw v).act f) :=
+  localEnt_eq_Ent_sub_Ent (siteChain_stationary w hw hZ v) f
+
+/-- The local entropy at a site is dominated by the local entropy production,
+`μ[Ent_v(f)] ≤ ℰ_{P_v}(f, log f)`. -/
+theorem siteEnt_le_entropyProduction (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) (hZ : 0 < Z w)
+    (v : V) {f : (V → S) → ℝ} (hf : ∀ σ, 0 < f σ) :
+    siteEnt w hw hZ v f ≤ entropyProduction (gibbs w hw hZ) (siteChain w hw v) f :=
+  localEnt_le_entropyProduction (siteChain_reversible w hw hZ v) hf
+
+section Glauber
+
+variable [Nonempty V]
+
+/-- The Dirichlet form of the Glauber dynamics is the average of the single-site
+Dirichlet forms, in both arguments:
+`ℰ_{P_GD}(f, g) = (1/n) ∑_v ℰ_{P_v}(f, g)`.  This is
+`GlauberTensorization.dirichlet_glauber` with the two arguments allowed to
+differ, which is what an entropy production `ℰ(f, log f)` needs. -/
+theorem dirichlet_glauber_two (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) (hZ : 0 < Z w)
+    (f g : (V → S) → ℝ) :
+    dirichlet (gibbs w hw hZ) (glauber w hw) f g
+      = (1 / (Fintype.card V : ℝ))
+        * ∑ v, dirichlet (gibbs w hw hZ) (siteChain w hw v) f g := by
+  have hc : (Fintype.card V : ℝ) ≠ 0 := Nat.cast_ne_zero.mpr Fintype.card_ne_zero
+  have step : ∀ v : V,
+      (1 / (Fintype.card V : ℝ)) * ip (gibbs w hw hZ) f ((siteChain w hw v).act g)
+        = (1 / (Fintype.card V : ℝ)) * ip (gibbs w hw hZ) f g
+          - (1 / (Fintype.card V : ℝ))
+              * dirichlet (gibbs w hw hZ) (siteChain w hw v) f g := by
+    intro v
+    rw [dirichlet_apply]
+    ring
+  have hA : ∑ _v : V, (1 / (Fintype.card V : ℝ)) * ip (gibbs w hw hZ) f g
+      = ip (gibbs w hw hZ) f g := by
+    rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul, ← mul_assoc, mul_one_div,
+      div_self hc, one_mul]
+  rw [dirichlet_apply, ip_act_glauber w hw hZ f g,
+    Finset.sum_congr rfl fun v _ => step v, Finset.sum_sub_distrib, hA, ← Finset.mul_sum]
+  ring
+
+/-- `∑_v ℰ_{P_v}(f, log f) = n · ℰ_{P_GD}(f, log f)`: the entropy production of
+the Glauber dynamics is the average of the local entropy productions. -/
+theorem sum_entropyProduction_siteChain (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) (hZ : 0 < Z w)
+    (f : (V → S) → ℝ) :
+    ∑ v, entropyProduction (gibbs w hw hZ) (siteChain w hw v) f
+      = (Fintype.card V : ℝ) * entropyProduction (gibbs w hw hZ) (glauber w hw) f := by
+  have hc : (Fintype.card V : ℝ) ≠ 0 := Nat.cast_ne_zero.mpr Fintype.card_ne_zero
+  simp only [entropyProduction_apply]
+  rw [dirichlet_glauber_two w hw hZ f (fun x => Real.log (f x)), ← mul_assoc, mul_one_div,
+    div_self hc, one_mul]
+
+/-- **The local entropies sum to at most `n` times the entropy production.**
+This is the step that converts tensorization of entropy into a modified
+log-Sobolev inequality; it is `siteEnt_le_entropyProduction` summed over the
+sites. -/
+theorem sum_siteEnt_le (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) (hZ : 0 < Z w)
+    {f : (V → S) → ℝ} (hf : ∀ σ, 0 < f σ) :
+    ∑ v, siteEnt w hw hZ v f
+      ≤ (Fintype.card V : ℝ) * entropyProduction (gibbs w hw hZ) (glauber w hw) f := by
+  rw [← sum_entropyProduction_siteChain w hw hZ f]
+  exact Finset.sum_le_sum fun v _ => siteEnt_le_entropyProduction w hw hZ v hf
+
+end Glauber
+
+/-- **`C`-approximate tensorization of entropy**: for every strictly positive `f`,
+
+  `Ent_μ(f) ≤ C ∑_v μ[Ent_v(f)]`.
+
+The exact analogue of `ApproxTensorization`, with `Ent` in place of `Var`.  Both
+sides are `1`-homogeneous in `f`, so — unlike an inequality pairing `Ent` with a
+quadratic Dirichlet form (`naiveModLogSobolev_le_zero`) — the condition is not
+vacuous.  As with the variance, `C ≥ 1` always, and `C = 1` is attained by a
+product measure (`approxTensorizationEnt_prodWeight`).
+
+The restriction to strictly positive `f` is the same one `ModLogSobolev` makes;
+for `f` with zeros the statement remains true by continuity but the logarithms in
+the proof do not. -/
+def ApproxTensorizationEnt (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) (hZ : 0 < Z w)
+    (C : ℝ) : Prop :=
+  ∀ f : (V → S) → ℝ, (∀ σ, 0 < f σ) →
+    Ent (gibbs w hw hZ) f ≤ C * ∑ v, siteEnt w hw hZ v f
+
+/-- **Approximate tensorization of entropy implies a modified log-Sobolev
+inequality.**  If the Gibbs distribution satisfies `C`-approximate tensorization
+of entropy with `C > 0`, then the Glauber dynamics satisfies `ModLogSobolev` with
+constant `1/(Cn)`.
+
+This is the entropy analogue of
+`spectralGapAtLeast_glauber_of_approxTensorization`, and the reason the
+tensorization statement is worth proving.  Note the right-hand side is the
+entropy production `ℰ(f, log f)`, not the Dirichlet form `ℰ(f, f)`: with the
+latter the conclusion would be vacuous by `naiveModLogSobolev_le_zero`.
+
+Unlike the variance case there is no converse: `localEnt_le_entropyProduction` is
+an inequality, so a modified log-Sobolev inequality does not obviously return
+tensorization. -/
+theorem modLogSobolev_glauber_of_approxTensorizationEnt [Nonempty V] {w : (V → S) → ℝ}
+    {hw : ∀ σ, 0 ≤ w σ} {hZ : 0 < Z w} {C : ℝ} (hC : 0 < C)
+    (hAT : ApproxTensorizationEnt w hw hZ C) :
+    ModLogSobolev (gibbs w hw hZ) (glauber w hw) (1 / (C * (Fintype.card V : ℝ))) := by
+  have hn : (0 : ℝ) < (Fintype.card V : ℝ) := Nat.cast_pos.mpr Fintype.card_pos
+  intro f hf
+  have h3 : Ent (gibbs w hw hZ) f
+      ≤ C * ((Fintype.card V : ℝ) * entropyProduction (gibbs w hw hZ) (glauber w hw) f) :=
+    le_trans (hAT f hf) (mul_le_mul_of_nonneg_left (sum_siteEnt_le w hw hZ hf) hC.le)
+  rw [div_mul_eq_mul_div, one_mul, div_le_iff₀ (by positivity)]
+  linarith
+
+end SiteEntropy
 
 /-! ## End to end: a mixing time from local variance control
 

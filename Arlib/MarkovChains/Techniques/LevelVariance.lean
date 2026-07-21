@@ -68,42 +68,6 @@ namespace Arlib.MarkovChains
 open scoped BigOperators
 open Finset
 
-/-! ## Pushforwards in the `L²` calculus
-
-Two bookkeeping identities for a *rectangular* kernel `K : α → β`, both plain
-`Finset.sum_comm`.  They are what makes the law of total variance a three-line
-computation. -/
-
-section Push
-
-variable {α β : Type*} [Fintype α] [Fintype β]
-
-/-- The squared `L²(μ)` norm as an expectation of squares. -/
-theorem ip_self_eq_Ex_sq {Ω : Type*} [Fintype Ω] (μ : FinDist Ω) (f : Ω → ℝ) :
-    ip μ f f = Ex μ (fun x => (f x) ^ 2) :=
-  Finset.sum_congr rfl fun x _ => by ring
-
-/-- **Expectation under a pushforward**: `(Kμ)(g) = μ(K g)`.  The kernel may be
-rectangular, so this is not `Ex_act_of_stationary`; no stationarity is involved. -/
-theorem Ex_push_eq (K : FinKernel α β) (μ : FinDist α) (g : β → ℝ) :
-    Ex (K.push μ) g = Ex μ (K.act g) := by
-  simp only [Ex_apply, FinKernel.push_apply, FinKernel.act_apply]
-  calc ∑ y, (∑ x, μ x * K x y) * g y
-      = ∑ y, ∑ x, μ x * K x y * g y :=
-        Finset.sum_congr rfl fun y _ => Finset.sum_mul _ _ _
-    _ = ∑ x, ∑ y, μ x * K x y * g y := Finset.sum_comm
-    _ = ∑ x, μ x * ∑ y, K x y * g y := by
-        refine Finset.sum_congr rfl fun x _ => ?_
-        rw [Finset.mul_sum]
-        exact Finset.sum_congr rfl fun y _ => by ring
-
-/-- The `L²` inner product under a pushforward. -/
-theorem ip_push_eq (K : FinKernel α β) (μ : FinDist α) (g h : β → ℝ) :
-    ip (K.push μ) g h = Ex μ (K.act (fun y => g y * h y)) := by
-  rw [ip_eq_Ex_mul, Ex_push_eq]
-
-end Push
-
 /-! ## The conditional variance of a kernel
 
 `condVar K g x` is the variance of `g` under the row distribution `K.row x`,

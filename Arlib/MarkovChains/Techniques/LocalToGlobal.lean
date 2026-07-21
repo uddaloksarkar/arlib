@@ -41,20 +41,16 @@ dependent proof of `k < n`.
 
 *The link distribution.*  `LocalWalk.linkDist` carries `0 < mu w τ` in its data,
 so there is no term at all at null faces and a `π_k`-average over faces of the
-local variance is not even statable.  `linkDistOf` is the guarded variant: total
-in `τ`, equal to `linkDist` wherever the latter is defined, and a point mass at
-an arbitrary element otherwise.  The junk value forces `[Nonempty E]`, and this
-is unavoidable: `FinDist E` is an *empty type* when `E` is empty, so no total
-`Finset E → FinDist E` exists in general.  It costs nothing, because
-`nonempty_of_weight` derives `Nonempty E` from the standing hypotheses whenever
-`0 < n`.
+local variance is not even statable.  `LocalWalk.linkDistOf` is the guarded
+variant: total in `τ`, equal to `linkDist` wherever the latter is defined, and a
+point mass at an arbitrary element otherwise.  The junk value forces
+`[Nonempty E]`, and this is unavoidable: `FinDist E` is an *empty type* when `E`
+is empty, so no total `Finset E → FinDist E` exists in general.  It costs
+nothing, because `Levels.nonempty_of_weight` derives `Nonempty E` from the
+standing hypotheses whenever `0 < n`.
 
 Main declarations:
 
-* `nonempty_of_weight` — a weighted complex of positive dimension has a nonempty
-  ground set.
-* `linkDistOf`, `linkDistOf_eq_linkDist` — the guarded one-level-up
-  distribution.
 * `Ex_condVar_up_eq_Ex_Var_linkDistOf` and
   **`dirichlet_downUp_eq_Ex_Var_linkDistOf`** — the global averaged form of
   `LevelVariance.condVar_up_eq_Var_linkDist`: the Dirichlet form of the down-up
@@ -64,8 +60,9 @@ Main declarations:
   identity `levelVar_succ`.
 * **`levelVar_eq_add_sum`** and its unfolded form
   **`Var_pi_top_eq_add_sum_dirichlet`** — the telescoping identity.
-* `Var_pi_zero`, **`Var_pi_top_eq_sum_dirichlet`** — the exact decomposition of
-  the top-level variance into the down-up Dirichlet forms of all the levels.
+* **`Var_pi_top_eq_sum_dirichlet`** — the exact decomposition of the top-level
+  variance into the down-up Dirichlet forms of all the levels, the base case
+  being `Levels.Var_pi_zero`.
 * `dirichlet_downUp_levelFun_le_Var_pi_top` and
   **`mul_Var_levelFun_le_Var_pi_top_of_gap`** — the consequence: a single
   down-up walk's Dirichlet form is dominated by the top-level variance, so a
@@ -82,98 +79,17 @@ namespace Arlib.MarkovChains
 open scoped BigOperators
 open Finset
 
-variable {E : Type*} [Fintype E]
+variable {E : Type*} [Fintype E] [DecidableEq E]
 
-/-! ## The ground set is nonempty
+/-! ## Averaging the guarded one-level-up distribution
 
-A weighted complex of positive dimension cannot live on an empty ground set: the
-only face would be `∅`, whose cardinality is `0 ≠ n`, so the total weight would
-be `0` rather than `1`.  This is what makes the `[Nonempty E]` hypothesis of
-`linkDistOf` below free of charge. -/
-
-/-- **A weighted complex of positive dimension has a nonempty ground set.**
-
-Recorded because `linkDistOf` needs a junk value in `FinDist E`, which does not
-exist when `E` is empty; this lemma says the hypothesis is never a genuine
-restriction. -/
-theorem nonempty_of_weight {w : Finset E → ℝ} {n : ℕ}
-    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
-    (hsum : ∑ σ : Finset E, w σ = 1) (hn : 0 < n) : Nonempty E := by
-  by_contra hE
-  have hzero : ∀ σ : Finset E, w σ = 0 := by
-    intro σ
-    refine hsupp σ ?_
-    have hσ : σ = ∅ := Finset.eq_empty_of_forall_not_mem fun e _ => hE ⟨e⟩
-    rw [hσ, Finset.card_empty]
-    omega
-  rw [Finset.sum_congr rfl fun σ _ => hzero σ, Finset.sum_const_zero] at hsum
-  exact zero_ne_one hsum
-
-variable [DecidableEq E]
-
-/-! ## The guarded one-level-up distribution
-
-`LocalWalk.linkDist w n τ hw hsupp hpos hk` requires `hpos : 0 < mu w τ` and
-`hk : τ.card < n` *in its data*, so there is literally no term at a null face.
-That is fine for statements about a single face, but it blocks any statement
-that *averages over faces*, even though the null faces carry no `π_k`-mass.
-`linkDistOf` removes the obstruction by guarding both hypotheses and falling
-back on a point mass. -/
+`LocalWalk.linkDistOf` is the total-in-`τ` variant of `linkDist`; it is what
+makes the statements below, which average over *all* faces of a level, statable
+at all. -/
 
 section Guarded
 
 variable [Nonempty E]
-
-/-- The **guarded one-level-up distribution** `π_{τ,1}`: `LocalWalk.linkDist`
-where that is defined, and a point mass at an arbitrary element of `E`
-elsewhere.
-
-Unlike `linkDist` this is a total function of the face `τ`, so it can appear
-inside a `π_k`-average.  The junk value is invisible to every statement below,
-because a face at which either guard fails has `π_k`-mass `0`.
-
-The `[Nonempty E]` hypothesis is what makes the junk value exist at all — the
-type `FinDist E` is empty when `E` is — and `nonempty_of_weight` shows it is
-implied by the standing hypotheses of a complex of positive dimension. -/
-noncomputable def linkDistOf (w : Finset E → ℝ) (n : ℕ)
-    (hw : ∀ σ : Finset E, 0 ≤ w σ)
-    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0) (τ : Finset E) : FinDist E where
-  p e :=
-    if h : 0 < mu w τ ∧ τ.card < n then linkDist w n τ hw hsupp h.1 h.2 e
-    else (if e = Classical.arbitrary E then 1 else 0)
-  p_nonneg e := by
-    dsimp only
-    by_cases h : 0 < mu w τ ∧ τ.card < n
-    · rw [dif_pos h]
-      exact (linkDist w n τ hw hsupp h.1 h.2).p_nonneg e
-    · rw [dif_neg h]
-      split
-      · exact zero_le_one
-      · exact le_rfl
-  p_sum := by
-    by_cases h : 0 < mu w τ ∧ τ.card < n
-    · simp only [dif_pos h]
-      exact (linkDist w n τ hw hsupp h.1 h.2).p_sum
-    · simp only [dif_neg h]
-      simp
-
-/-- The defining formula for `linkDistOf`. -/
-theorem linkDistOf_apply (w : Finset E → ℝ) (n : ℕ)
-    (hw : ∀ σ : Finset E, 0 ≤ w σ)
-    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0) (τ : Finset E) (e : E) :
-    linkDistOf w n hw hsupp τ e =
-      if h : 0 < mu w τ ∧ τ.card < n then linkDist w n τ hw hsupp h.1 h.2 e
-      else (if e = Classical.arbitrary E then 1 else 0) := rfl
-
-/-- **The guard is invisible where `linkDist` is defined.**  At a face of
-positive derived weight and cardinality below `n`, the guarded distribution *is*
-the monograph's `π_{τ,1}`. -/
-theorem linkDistOf_eq_linkDist (w : Finset E → ℝ) (n : ℕ)
-    (hw : ∀ σ : Finset E, 0 ≤ w σ)
-    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0) {τ : Finset E}
-    (hpos : 0 < mu w τ) (hk : τ.card < n) :
-    linkDistOf w n hw hsupp τ = linkDist w n τ hw hsupp hpos hk :=
-  FinDist.ext fun e => by rw [linkDistOf_apply, dif_pos ⟨hpos, hk⟩]
 
 /-- **The averaged form of `condVar_up_eq_Var_linkDist`.**
 
@@ -409,57 +325,12 @@ theorem Var_pi_top_eq_add_sum_dirichlet (w : Finset E → ℝ) (n : ℕ)
   rwa [levelVar_apply w n n hw hsupp hsum f le_rfl, levelVar_apply w n ℓ hw hsupp hsum f hℓ,
     levelFun_top w n hw hsupp f] at h
 
-/-! ## The bottom level, and the exact decomposition
+/-! ## The exact decomposition
 
-`π_0` is a point mass at the empty face, so it has no variance at all.  The
-telescoping identity at `ℓ = 0` therefore decomposes the top-level variance
-*exactly* into the Dirichlet forms of the `n` down-up walks. -/
-
-/-- The derived weight of the empty face is the total weight. -/
-theorem mu_empty (w : Finset E → ℝ) : mu w ∅ = ∑ σ : Finset E, w σ := by
-  simp [mu_apply]
-
-/-- `π_0` is the point mass at the empty face. -/
-theorem pi_zero_apply (w : Finset E → ℝ) (n : ℕ)
-    (hw : ∀ σ : Finset E, 0 ≤ w σ)
-    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
-    (hsum : ∑ σ : Finset E, w σ = 1) (τ : Finset E) :
-    pi w n 0 hw hsupp hsum (Nat.zero_le n) τ = if τ = ∅ then 1 else 0 := by
-  rw [pi_apply, Nat.choose_zero_right]
-  by_cases h : τ = ∅
-  · subst h
-    rw [if_pos Finset.card_empty, if_pos rfl, mu_empty, hsum]
-    norm_num
-  · rw [if_neg h, if_neg fun hc => h (Finset.card_eq_zero.mp hc)]
-
-/-- Under `π_0` the expectation is evaluation at the empty face. -/
-theorem Ex_pi_zero (w : Finset E → ℝ) (n : ℕ)
-    (hw : ∀ σ : Finset E, 0 ≤ w σ)
-    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
-    (hsum : ∑ σ : Finset E, w σ = 1) (g : Finset E → ℝ) :
-    Ex (pi w n 0 hw hsupp hsum (Nat.zero_le n)) g = g ∅ := by
-  rw [Ex_apply, Finset.sum_eq_single (∅ : Finset E)]
-  · rw [pi_zero_apply, if_pos rfl, one_mul]
-  · intro σ _ hne
-    rw [pi_zero_apply, if_neg hne, zero_mul]
-  · intro h
-    exact absurd (Finset.mem_univ (∅ : Finset E)) h
-
-/-- **There is no variance at the bottom level.**  `π_0` is a point mass, so
-`Var_{π_0}(g) = 0` for every `g`.  This is the base case that turns the
-telescoping identity into an exact decomposition. -/
-theorem Var_pi_zero (w : Finset E → ℝ) (n : ℕ)
-    (hw : ∀ σ : Finset E, 0 ≤ w σ)
-    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
-    (hsum : ∑ σ : Finset E, w σ = 1) (g : Finset E → ℝ) :
-    Var (pi w n 0 hw hsupp hsum (Nat.zero_le n)) g = 0 := by
-  rw [Var_apply, Ex_pi_zero w n hw hsupp hsum g]
-  refine Finset.sum_eq_zero fun σ _ => ?_
-  by_cases h : σ = ∅
-  · subst h
-    rw [sub_self]
-    ring
-  · rw [pi_zero_apply, if_neg h, zero_mul]
+`π_0` is a point mass at the empty face, so it has no variance at all
+(`Levels.Var_pi_zero`).  The telescoping identity at `ℓ = 0` therefore
+decomposes the top-level variance *exactly* into the Dirichlet forms of the `n`
+down-up walks. -/
 
 /-- **The exact decomposition of the top-level variance.**
 

@@ -44,32 +44,7 @@ open Finset
 
 variable {Ω : Type*} [Fintype Ω]
 
-/-! ## Explicit bilinearity of the inner product
-
-`isBilin_ip` states bilinearity in terms of `Pi` addition and scalar
-multiplication.  The computations below are much smoother with the arguments
-written as explicit lambdas, so we record that form here.  (These are candidates
-for migration into `Techniques.Functional`.) -/
-
-theorem ip_add_left (μ : FinDist Ω) (f g h : Ω → ℝ) :
-    ip μ (fun x => f x + g x) h = ip μ f h + ip μ g h := by
-  simp only [ip, ← Finset.sum_add_distrib]
-  exact Finset.sum_congr rfl fun x _ => by ring
-
-theorem ip_add_right (μ : FinDist Ω) (f g h : Ω → ℝ) :
-    ip μ f (fun x => g x + h x) = ip μ f g + ip μ f h := by
-  simp only [ip, ← Finset.sum_add_distrib]
-  exact Finset.sum_congr rfl fun x _ => by ring
-
-theorem ip_smul_left (μ : FinDist Ω) (c : ℝ) (f g : Ω → ℝ) :
-    ip μ (fun x => c * f x) g = c * ip μ f g := by
-  simp only [ip, Finset.mul_sum]
-  exact Finset.sum_congr rfl fun x _ => by ring
-
-theorem ip_smul_right (μ : FinDist Ω) (c : ℝ) (f g : Ω → ℝ) :
-    ip μ f (fun x => c * g x) = c * ip μ f g := by
-  simp only [ip, Finset.mul_sum]
-  exact Finset.sum_congr rfl fun x _ => by ring
+/-! ## The action of a kernel on an affine combination -/
 
 /-- The action of a kernel on an explicit affine combination. -/
 theorem FinKernel.act_add_smul (P : FinChain Ω) (f g : Ω → ℝ) (s : ℝ) :

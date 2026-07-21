@@ -51,6 +51,11 @@ induction descend one level at a time.
   It is a distribution by `Levels.sum_insert_mu`, which exists for exactly this
   purpose.  The monograph only ever uses `j = 1`, so no general `π_{τ,j}` is
   built.
+* `linkDistOf` — the **guarded** variant of `linkDist`, added beside it rather
+  than in place of it: total in `τ`, so that it can appear inside an average over
+  a whole level, at the price of a `[Nonempty E]` instance for its junk value.
+  The instance is unavoidable — `FinDist E` is an empty type when `E` is — and
+  free, by `Levels.nonempty_of_weight`.
 * `localWalk` — the local walk `Q_τ` on ground-set elements, which from `e`
   jumps to `e' ∉ τ ∪ {e}` with probability proportional to
   `mu w (τ ∪ {e, e'})`, with `linkDist_mul_localWalk` and
@@ -394,6 +399,75 @@ theorem linkDist_of_not_mem (w : Finset E → ℝ) (n : ℕ) (τ : Finset E)
     linkDist w n τ hw hsupp hpos hk e
       = mu w (insert e τ) / (((n - τ.card : ℕ) : ℝ) * mu w τ) := by
   rw [linkDist_apply, if_neg he]
+
+/-! ### The guarded one-level-up distribution
+
+`linkDist w n τ hw hsupp hpos hk` requires `hpos : 0 < mu w τ` and
+`hk : τ.card < n` *in its data*, so there is literally no term at a null face.
+That is fine for statements about a single face, but it blocks any statement
+that *averages over faces*, even though the null faces carry no `π_k`-mass.
+`linkDistOf` removes the obstruction by guarding both hypotheses and falling
+back on a point mass.
+
+This is added *beside* `linkDist`, not in place of it: the hypotheses-in-data
+form is what `linkDist_mul_localWalk` and `localWalk_reversible` consume, and
+those need no `[Nonempty E]` instance. -/
+
+section Guarded
+
+variable [Nonempty E]
+
+/-- The **guarded one-level-up distribution** `π_{τ,1}`: `linkDist` where that is
+defined, and a point mass at an arbitrary element of `E` elsewhere.
+
+Unlike `linkDist` this is a total function of the face `τ`, so it can appear
+inside a `π_k`-average.  The junk value is invisible to every statement using
+it, because a face at which either guard fails has `π_k`-mass `0`.
+
+The `[Nonempty E]` hypothesis is what makes the junk value exist at all — the
+type `FinDist E` is empty when `E` is — and `Levels.nonempty_of_weight` shows it
+is implied by the standing hypotheses of a complex of positive dimension. -/
+noncomputable def linkDistOf (w : Finset E → ℝ) (n : ℕ)
+    (hw : ∀ σ : Finset E, 0 ≤ w σ)
+    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0) (τ : Finset E) : FinDist E where
+  p e :=
+    if h : 0 < mu w τ ∧ τ.card < n then linkDist w n τ hw hsupp h.1 h.2 e
+    else (if e = Classical.arbitrary E then 1 else 0)
+  p_nonneg e := by
+    dsimp only
+    by_cases h : 0 < mu w τ ∧ τ.card < n
+    · rw [dif_pos h]
+      exact (linkDist w n τ hw hsupp h.1 h.2).p_nonneg e
+    · rw [dif_neg h]
+      split
+      · exact zero_le_one
+      · exact le_rfl
+  p_sum := by
+    by_cases h : 0 < mu w τ ∧ τ.card < n
+    · simp only [dif_pos h]
+      exact (linkDist w n τ hw hsupp h.1 h.2).p_sum
+    · simp only [dif_neg h]
+      simp
+
+/-- The defining formula for `linkDistOf`. -/
+theorem linkDistOf_apply (w : Finset E → ℝ) (n : ℕ)
+    (hw : ∀ σ : Finset E, 0 ≤ w σ)
+    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0) (τ : Finset E) (e : E) :
+    linkDistOf w n hw hsupp τ e =
+      if h : 0 < mu w τ ∧ τ.card < n then linkDist w n τ hw hsupp h.1 h.2 e
+      else (if e = Classical.arbitrary E then 1 else 0) := rfl
+
+/-- **The guard is invisible where `linkDist` is defined.**  At a face of
+positive derived weight and cardinality below `n`, the guarded distribution *is*
+the monograph's `π_{τ,1}`. -/
+theorem linkDistOf_eq_linkDist (w : Finset E → ℝ) (n : ℕ)
+    (hw : ∀ σ : Finset E, 0 ≤ w σ)
+    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0) {τ : Finset E}
+    (hpos : 0 < mu w τ) (hk : τ.card < n) :
+    linkDistOf w n hw hsupp τ = linkDist w n τ hw hsupp hpos hk :=
+  FinDist.ext fun e => by rw [linkDistOf_apply, dif_pos ⟨hpos, hk⟩]
+
+end Guarded
 
 /-! ## The local walk
 

@@ -130,26 +130,6 @@ principle, and it needs nothing beyond `f ≥ 0`: the case `μ(f) = 0` is genuin
 degenerate (then `μ`-almost every value of `f` is `0`, and both sides vanish)
 rather than excluded. -/
 
-/-- A pointwise positive function has positive `μ`-mean.  Needed to license the
-mean-normalisation in the attainment half; it is not automatic from `f ≥ 0`. -/
-theorem Ex_pos_of_pos {μ : FinDist Ω} {f : Ω → ℝ} (hf : ∀ x, 0 < f x) : 0 < Ex μ f := by
-  rcases (Ex_nonneg fun x => (hf x).le).eq_or_lt with h0 | hpos
-  · exfalso
-    have hsum : ∑ x : Ω, μ x * f x = 0 := by rw [← Ex_apply]; exact h0.symm
-    have hz : ∀ x : Ω, μ x * f x = 0 := fun x =>
-      (Finset.sum_eq_zero_iff_of_nonneg fun y _ =>
-        mul_nonneg (μ.coe_nonneg y) (hf y).le).mp hsum x (Finset.mem_univ x)
-    have hzero : ∀ x : Ω, μ x = 0 := by
-      intro x
-      rcases mul_eq_zero.mp (hz x) with h | h
-      · exact h
-      · exact absurd h (hf x).ne'
-    have h1 : (1 : ℝ) = 0 := by
-      rw [← μ.sum_coe]
-      exact Finset.sum_eq_zero fun x _ => hzero x
-    exact one_ne_zero h1
-  · exact hpos
-
 /-- **The Gibbs variational principle, bound half.**  For `f ≥ 0` and any `g`
 with `μ(e^g) ≤ 1`,
 
@@ -277,37 +257,17 @@ theorem Ent_eq_sSup {μ : FinDist Ω} {f : Ω → ℝ} (hf : ∀ x, 0 < f x) :
 
 /-! ## Entropy is dominated by variance
 
-The payoff of the module, and the one place a *second* pointwise inequality is
-needed.  `Techniques.Entropy` records `mul_log_le_mul_log_add_sub`, which is
-`log u ≤ u − 1` at `u = m/t`; that is the direction giving `Ent ≥ 0`.  Here we
-need the *opposite* evaluation, `log u ≤ u − 1` at `u = t/m`, so the lemma below
-is a genuinely new instance of `Real.log_le_sub_one_of_pos` rather than a
-corollary of the existing one.
+The payoff of the module.  It rests on a *second* pointwise inequality,
+`Entropy.mul_log_le_mul_log_add_sq_div`: `Techniques.Entropy` records
+`mul_log_le_mul_log_add_sub`, which is `log u ≤ u − 1` at `u = m/t`, the
+direction giving `Ent ≥ 0`; here we need the *opposite* evaluation,
+`log u ≤ u − 1` at `u = t/m`, which is a genuinely new instance of
+`Real.log_le_sub_one_of_pos` rather than a corollary of the existing one.
 
 Homogeneity check, in the spirit of `naiveModLogSobolev_le_zero`: `Ent` is
 `1`-homogeneous, `Var` is `2`-homogeneous and `μ(f)` is `1`-homogeneous, so
 `Var_μ(f)/μ(f)` is `1`-homogeneous.  The two sides scale together, as they must
 for the inequality to have content. -/
-
-/-- The pointwise inequality behind `Ent_le_Var_div`: for `m > 0` and `x ≥ 0`,
-
-  `x log x ≤ (log m) x + (x²/m − x)`.
-
-It is `log u ≤ u − 1` at `u = x/m`, multiplied by `x`. -/
-theorem mul_log_le_mul_log_add_sq_div {m x : ℝ} (hm : 0 < m) (hx : 0 ≤ x) :
-    x * Real.log x ≤ Real.log m * x + (m⁻¹ * (x * x) - x) := by
-  rcases hx.eq_or_lt with h0 | hpos
-  · rw [← h0]; simp
-  · have h := Real.log_le_sub_one_of_pos (show (0 : ℝ) < x / m by positivity)
-    have h2 := mul_le_mul_of_nonneg_left h hpos.le
-    rw [Real.log_div hpos.ne' hm.ne'] at h2
-    have e : x * (x / m - 1) = m⁻¹ * (x * x) - x := by
-      field_simp
-      ring
-    rw [e] at h2
-    have e2 : x * (Real.log x - Real.log m) = x * Real.log x - Real.log m * x := by ring
-    rw [e2] at h2
-    linarith
 
 /-- **Entropy is dominated by variance**: for `f ≥ 0` with positive mean,
 

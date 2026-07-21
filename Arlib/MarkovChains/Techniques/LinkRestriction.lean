@@ -61,6 +61,15 @@ Main declarations:
   independently built `LocalWalk.linkDist`.
 * `linkShiftPi_eq_zero_of_not_disjoint`, `linkPi_apply_of_subset` — the two
   lemmas that separate `π_{τ,j}` from `LocalWalk.linkPi w n j τ`.
+* `sum_ite_disjoint_union` — the reindexing of `mu_linkShift`, isolated so that
+  it applies to a summand other than a derived weight.
+* `linkShiftPiOf`, `linkShiftPiOf_eq_linkShiftPi` — the **guarded-total**
+  `π_{τ,j}`, total in `τ` so that it can appear inside a `π_k`-average, with
+  `Ex_linkShiftPi_congr` and `Var_linkShiftPi_congr` for the partial agreement on
+  the support.  Unlike `LocalWalk.linkDistOf` it needs no `[Nonempty E]`: its
+  state space is `Finset E`, which always contains `∅`.
+* `linkLevelFun`, `linkLevelFun_eq_levelFun` — the guarded-total `f_τ^{(j)}`,
+  together with the restriction theorem in guarded form.
 * `Var_linkShiftPi_succ_eq` and **`Var_linkShiftPi_two_eq`** — the one-step
   variance identity of `Techniques.LevelVariance` inside the link, at the level
   pair `(1, 2)` that `claim:first-step` uses.
@@ -355,6 +364,41 @@ theorem levelFun_linkWeightNorm_disjoint (w : Finset E → ℝ) (n j : ℕ)
 
 /-! ## The honest link, with the levels shifted down by `|τ|` -/
 
+/-- **The faces of a link reindex the faces above `τ`.**  For every `Φ`,
+
+  `∑_{ρ : |ρ| = j, ρ ∩ τ = ∅} Φ (τ ∪ ρ) = ∑_{σ : |σ| = |τ| + j, τ ⊆ σ} Φ σ`,
+
+under the mutually inverse maps `ρ ↦ τ ∪ ρ` and `σ ↦ σ ∖ τ`.
+
+This is the reindexing performed inside `mu_linkShift` below, isolated
+so that it can be applied to a summand other than a derived weight; here it is
+applied to `σ ↦ mu w σ · G σ`. -/
+theorem sum_ite_disjoint_union (τ : Finset E) (j : ℕ) (Φ : Finset E → ℝ) :
+    ∑ ρ : Finset E, (if ρ.card = j ∧ Disjoint τ ρ then Φ (τ ∪ ρ) else 0)
+      = ∑ σ : Finset E, (if σ.card = τ.card + j ∧ τ ⊆ σ then Φ σ else 0) := by
+  rw [← Finset.sum_filter, ← Finset.sum_filter]
+  have hset : (Finset.univ.filter fun σ : Finset E => σ.card = τ.card + j ∧ τ ⊆ σ)
+      = (Finset.univ.filter fun ρ : Finset E => ρ.card = j ∧ Disjoint τ ρ).image
+          (fun ρ => τ ∪ ρ) := by
+    ext σ
+    simp only [Finset.mem_filter, Finset.mem_univ, true_and, Finset.mem_image]
+    constructor
+    · rintro ⟨hcard, hsub⟩
+      refine ⟨σ \ τ, ⟨?_, Finset.disjoint_sdiff⟩, ?_⟩
+      · rw [Finset.card_sdiff hsub, hcard]
+        omega
+      · rw [Finset.union_comm, Finset.sdiff_union_of_subset hsub]
+    · rintro ⟨ρ, ⟨hc, hd⟩, rfl⟩
+      exact ⟨by rw [Finset.card_union_of_disjoint hd, hc], Finset.subset_union_left⟩
+  have hinj : ∀ a ∈ (Finset.univ.filter fun ρ : Finset E => ρ.card = j ∧ Disjoint τ ρ),
+      ∀ b ∈ (Finset.univ.filter fun ρ : Finset E => ρ.card = j ∧ Disjoint τ ρ),
+      τ ∪ a = τ ∪ b → a = b := by
+    intro a ha b hb hab
+    rw [Finset.mem_filter] at ha hb
+    rw [← Finset.union_sdiff_cancel_left ha.2.2, hab,
+      Finset.union_sdiff_cancel_left hb.2.2]
+  rw [hset, Finset.sum_image hinj]
+
 /-- **The derived weights of the shifted link are the ambient ones shifted by
 `τ`**: `mu (linkShift v τ) ρ = mu v (τ ∪ ρ)` for `ρ` disjoint from `τ`.
 
@@ -406,6 +450,16 @@ theorem mu_linkShift (v : Finset E → ℝ) {τ ρ : Finset E} (hd : Disjoint τ
     rw [← Finset.union_sdiff_cancel_left ha.2.2, hab,
       Finset.union_sdiff_cancel_left hb.2.2]
   rw [hset, Finset.sum_image hinj]
+
+/-- The derived weights of the shifted link vanish off the faces disjoint from
+`τ`: a face of the link meeting `τ` has no face of the link above it. -/
+theorem mu_linkShift_eq_zero_of_not_disjoint (w : Finset E → ℝ) {τ ρ : Finset E}
+    (hd : ¬ Disjoint τ ρ) : mu (linkShift w τ) ρ = 0 := by
+  rw [mu_apply]
+  refine Finset.sum_eq_zero fun σ _ => ?_
+  by_cases hsub : ρ ⊆ σ
+  · rw [if_pos hsub, linkShift_apply, if_neg fun hc => hd (hc.mono_right hsub)]
+  · rw [if_neg hsub]
 
 /-- The partition function of the shifted link is the derived weight of `τ`,
 exactly as for `LocalWalk.linkWeight`. -/
@@ -481,6 +535,14 @@ theorem linkShiftPi_apply_of_disjoint (w : Finset E → ℝ) (n j : ℕ) (τ : F
   split
   · rw [mu_linkShiftNorm w hd, div_div]
   · rfl
+
+/-- `π_{τ,j}` vanishes off level `j`, for the same reason `pi` does. -/
+theorem linkShiftPi_eq_zero_of_card_ne (w : Finset E → ℝ) (n j : ℕ) (τ : Finset E)
+    (hw : ∀ σ : Finset E, 0 ≤ w σ) (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
+    (hτn : τ.card ≤ n) (hpos : 0 < mu w τ) (hj : j ≤ n - τ.card) {ρ : Finset E}
+    (hcard : ρ.card ≠ j) :
+    linkShiftPi w n j τ hw hsupp hτn hpos hj ρ = 0 := by
+  rw [linkShiftPi, pi_apply, if_neg hcard]
 
 /-- **The one-level-up distribution of `Techniques.LocalWalk` is `π_{τ,1}`.**
 
@@ -588,6 +650,158 @@ theorem linkPi_apply_of_subset (w : Finset E → ℝ) (n j : ℕ) (τ : Finset E
     linkPi w n j τ hw hsupp hpos hj ρ = 1 / ((n.choose j : ℕ) : ℝ) := by
   rw [linkPi_apply, if_pos hcard, Finset.union_eq_left.mpr hsub, ← div_div,
     div_self hpos.ne']
+
+/-! ## The guarded-total link distribution and link projection
+
+`linkShiftPi w n j τ …` needs `0 < mu w τ` and `τ.card + j ≤ n` in its data, so
+a `π_k`-average over *all* faces `τ` of a quantity built from it does not
+typecheck, even though the offending faces carry no `π_k`-mass.  The two
+definitions here remove the obstruction exactly as `LocalWalk.linkDistOf`
+does: guard both hypotheses, fall back on a junk value, and record that the
+junk is invisible where the real object exists.
+
+Unlike `linkDistOf` neither definition needs a nonemptiness hypothesis: the
+state space of `π_{τ,j}` is `Finset E`, which contains `∅` however small `E`
+is. -/
+
+/-- The **guarded-total level-`j` link distribution**: `linkShiftPi`
+where that is defined, and the point mass at `∅` elsewhere.
+
+Unlike `linkShiftPi` this is a total function of the face `τ`, so it can appear
+inside a `π_k`-average.  The junk value is invisible to every statement below,
+because a face at which either guard fails has `π_k`-mass `0`. -/
+noncomputable def linkShiftPiOf (w : Finset E → ℝ) (n j : ℕ) (τ : Finset E)
+    (hw : ∀ σ : Finset E, 0 ≤ w σ)
+    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0) : FinDist (Finset E) where
+  p ρ :=
+    if h : 0 < mu w τ ∧ τ.card + j ≤ n then
+      linkShiftPi w n j τ hw hsupp (by omega) h.1 (by omega) ρ
+    else (if ρ = ∅ then 1 else 0)
+  p_nonneg ρ := by
+    dsimp only
+    by_cases h : 0 < mu w τ ∧ τ.card + j ≤ n
+    · rw [dif_pos h]
+      exact (linkShiftPi w n j τ hw hsupp (by omega) h.1 (by omega)).p_nonneg ρ
+    · rw [dif_neg h]
+      split
+      · exact zero_le_one
+      · exact le_rfl
+  p_sum := by
+    by_cases h : 0 < mu w τ ∧ τ.card + j ≤ n
+    · simp only [dif_pos h]
+      exact (linkShiftPi w n j τ hw hsupp (by omega) h.1 (by omega)).p_sum
+    · simp only [dif_neg h]
+      simp
+
+/-- The defining formula for `linkShiftPiOf`. -/
+theorem linkShiftPiOf_apply (w : Finset E → ℝ) (n j : ℕ) (τ : Finset E)
+    (hw : ∀ σ : Finset E, 0 ≤ w σ)
+    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0) (ρ : Finset E) :
+    linkShiftPiOf w n j τ hw hsupp ρ =
+      if h : 0 < mu w τ ∧ τ.card + j ≤ n then
+        linkShiftPi w n j τ hw hsupp (by omega) h.1 (by omega) ρ
+      else (if ρ = ∅ then 1 else 0) := rfl
+
+/-- **The guard is invisible where `linkShiftPi` is defined.**  At a face of
+positive derived weight with room for `j` more levels, the guarded distribution
+*is* the monograph's `π_{τ,j}`. -/
+theorem linkShiftPiOf_eq_linkShiftPi (w : Finset E → ℝ) (n j : ℕ) (τ : Finset E)
+    (hw : ∀ σ : Finset E, 0 ≤ w σ)
+    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
+    (hτn : τ.card ≤ n) (hpos : 0 < mu w τ) (hj : j ≤ n - τ.card) :
+    linkShiftPiOf w n j τ hw hsupp = linkShiftPi w n j τ hw hsupp hτn hpos hj :=
+  FinDist.ext fun ρ => by
+    rw [linkShiftPiOf_apply, dif_pos ⟨hpos, by omega⟩]
+
+/-- The **guarded-total link projection** `f_τ^{(j)}`: the level-`j` projection
+computed inside the honest link of `τ`, junk-valued `0` when `τ` is too big for
+the link to exist.
+
+The guard is only `τ.card ≤ n`, which is all that the link complex
+`linkShiftNorm w τ` of dimension `n − |τ|` needs in order to be a weighted
+complex; positivity of `mu w τ` is not required for the *function* (only for the
+distribution). -/
+noncomputable def linkLevelFun (w : Finset E → ℝ) (n j : ℕ) (τ : Finset E)
+    (hw : ∀ σ : Finset E, 0 ≤ w σ)
+    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0) (f : Finset E → ℝ) : Finset E → ℝ :=
+  if h : τ.card ≤ n then
+    levelFun (linkShiftNorm w τ) (n - τ.card) (linkShiftNorm_nonneg hw τ)
+      (linkShiftNorm_supp hsupp h) (fun σ => f (τ ∪ σ)) j
+  else fun _ => 0
+
+/-- In range, the guarded link projection is the projection computed in the
+link. -/
+theorem linkLevelFun_apply (w : Finset E → ℝ) (n j : ℕ) (τ : Finset E)
+    (hw : ∀ σ : Finset E, 0 ≤ w σ)
+    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0) (f : Finset E → ℝ)
+    (hτn : τ.card ≤ n) :
+    linkLevelFun w n j τ hw hsupp f
+      = levelFun (linkShiftNorm w τ) (n - τ.card) (linkShiftNorm_nonneg hw τ)
+          (linkShiftNorm_supp hsupp hτn) (fun σ => f (τ ∪ σ)) j :=
+  dif_pos hτn
+
+/-- **The restriction theorem in guarded form**: for `ρ` disjoint from `τ` of
+cardinality `j` and of positive derived weight,
+
+  `f_τ^{(j)}(ρ) = f^{(|τ| + j)}(τ ∪ ρ)`.
+
+This is `levelFun_linkShiftNorm` with the guard put on. -/
+theorem linkLevelFun_eq_levelFun (w : Finset E → ℝ) (n j : ℕ) (τ : Finset E)
+    (hw : ∀ σ : Finset E, 0 ≤ w σ)
+    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0) (f : Finset E → ℝ)
+    (hτn : τ.card ≤ n) {ρ : Finset E} (hd : Disjoint τ ρ) (hcard : ρ.card = j)
+    (hpos : 0 < mu w (τ ∪ ρ)) :
+    linkLevelFun w n j τ hw hsupp f ρ = levelFun w n hw hsupp f (τ.card + j) (τ ∪ ρ) := by
+  rw [linkLevelFun_apply w n j τ hw hsupp f hτn]
+  exact levelFun_linkShiftNorm w n j hw hsupp f hτn hd hcard hpos
+
+/-! ## Congruence on the support of `π_{τ,j}`
+
+The guarded projection agrees with the ambient one only on the faces `ρ` that are
+disjoint from `τ`, of cardinality `j` and of positive derived weight — which is
+exactly the support of `π_{τ,j}`.  These two lemmas let that partial agreement be
+used inside an expectation and inside a variance. -/
+
+/-- Two functions agreeing on the support of `π_{τ,j}` have the same
+`π_{τ,j}`-average. -/
+theorem Ex_linkShiftPi_congr (w : Finset E → ℝ) (n j : ℕ) (τ : Finset E)
+    (hw : ∀ σ : Finset E, 0 ≤ w σ)
+    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
+    (hτn : τ.card ≤ n) (hpos : 0 < mu w τ) (hj : j ≤ n - τ.card)
+    {h₁ h₂ : Finset E → ℝ}
+    (h : ∀ ρ : Finset E, ρ.card = j → Disjoint τ ρ → 0 < mu w (τ ∪ ρ) → h₁ ρ = h₂ ρ) :
+    Ex (linkShiftPi w n j τ hw hsupp hτn hpos hj) h₁
+      = Ex (linkShiftPi w n j τ hw hsupp hτn hpos hj) h₂ := by
+  simp only [Ex_apply]
+  refine Finset.sum_congr rfl fun ρ _ => ?_
+  by_cases hc : ρ.card = j
+  · by_cases hd : Disjoint τ ρ
+    · by_cases hm : 0 < mu w (τ ∪ ρ)
+      · rw [h ρ hc hd hm]
+      · have h0 : mu w (τ ∪ ρ) = 0 := le_antisymm (not_lt.mp hm) (mu_nonneg hw _)
+        rw [linkShiftPi_apply_of_disjoint w n j τ hw hsupp hτn hpos hj hd, if_pos hc, h0,
+          zero_div, zero_mul, zero_mul]
+    · rw [linkShiftPi_eq_zero_of_not_disjoint w n j τ hw hsupp hτn hpos hj hd,
+        zero_mul, zero_mul]
+  · rw [linkShiftPi_eq_zero_of_card_ne w n j τ hw hsupp hτn hpos hj hc, zero_mul, zero_mul]
+
+/-- Two functions agreeing on the support of `π_{τ,j}` have the same
+`π_{τ,j}`-variance. -/
+theorem Var_linkShiftPi_congr (w : Finset E → ℝ) (n j : ℕ) (τ : Finset E)
+    (hw : ∀ σ : Finset E, 0 ≤ w σ)
+    (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
+    (hτn : τ.card ≤ n) (hpos : 0 < mu w τ) (hj : j ≤ n - τ.card)
+    {h₁ h₂ : Finset E → ℝ}
+    (h : ∀ ρ : Finset E, ρ.card = j → Disjoint τ ρ → 0 < mu w (τ ∪ ρ) → h₁ ρ = h₂ ρ) :
+    Var (linkShiftPi w n j τ hw hsupp hτn hpos hj) h₁
+      = Var (linkShiftPi w n j τ hw hsupp hτn hpos hj) h₂ := by
+  rw [Var_eq_ip_sub_sq, Var_eq_ip_sub_sq, ip_eq_Ex_mul, ip_eq_Ex_mul,
+    Ex_linkShiftPi_congr w n j τ hw hsupp hτn hpos hj
+      (h₁ := fun ρ => h₁ ρ * h₁ ρ) (h₂ := fun ρ => h₂ ρ * h₂ ρ)
+      (fun ρ hc hd hm => by
+        show h₁ ρ * h₁ ρ = h₂ ρ * h₂ ρ
+        rw [h ρ hc hd hm]),
+    Ex_linkShiftPi_congr w n j τ hw hsupp hτn hpos hj h]
 
 /-! ## The one-step identity inside the link
 
