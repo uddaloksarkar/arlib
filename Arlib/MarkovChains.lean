@@ -89,6 +89,9 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
   the average over faces of the variance inside the two-levels-up link.  The
   content is a factor of two — the link counts each face once, the two-step up
   operator once per intermediate face.
+* `Techniques.ImprovedRandomWalk` — `lem:improved-technical` and the Improved
+  Random Walk Theorem: local Poincaré inequalities at every link give a gap for
+  the top-level down-up walk, `Γ_m / ∑_{i≤m} Γ_i`.
 * `Techniques.UpDownDownUp` — the up-down and down-up walks of an adjoint pair
   have the same Poincaré constant, provided `γ ≤ 1`.  The monograph proves this
   from equality of the nonzero spectra of `AB` and `BA`; here it is one
@@ -182,6 +185,7 @@ import Arlib.MarkovChains.Techniques.LocalToGlobal
 import Arlib.MarkovChains.Techniques.LinkRestriction
 import Arlib.MarkovChains.Techniques.UpDownDownUp
 import Arlib.MarkovChains.Techniques.FirstStep
+import Arlib.MarkovChains.Techniques.ImprovedRandomWalk
 import Arlib.MarkovChains.Techniques.Transport
 import Arlib.MarkovChains.Techniques.EntropyVariational
 import Arlib.MarkovChains.Techniques.PsdOrder
