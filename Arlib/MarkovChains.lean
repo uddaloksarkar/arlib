@@ -192,6 +192,8 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
 * `Chains.ProductOptimalMixing` — the monograph's headline claim, reached: the
   Glauber dynamics of a product measure needs `t ≥ n·ln(n·ln(b/a)/ε)` steps for
   `D_KL ≤ ε`, i.e. `O(n log(n/ε))`, against the variance route's `Θ(n²)`.
+* `Chains.OptimalMixingTV` — the same bound in *total variation*, via Pinsker,
+  and an exact crossover against the variance route: neither dominates.
 * `Chains.ProductEntropy` — the same for entropy, and the library's first
   modified log-Sobolev instance: `ModLogSobolev μ (glauber …) (1/n)`.  Also
   `localEnt_le_entropyProduction`, which holds for *any* reversible chain.
@@ -245,5 +247,6 @@ import Arlib.MarkovChains.Chains.HardCore
 import Arlib.MarkovChains.Chains.ProductMeasure
 import Arlib.MarkovChains.Chains.ProductEntropy
 import Arlib.MarkovChains.Chains.ProductOptimalMixing
+import Arlib.MarkovChains.Chains.OptimalMixingTV
 import Arlib.MarkovChains.Chains.UniformComplex
 import Arlib.MarkovChains.Chains.BernoulliLaplace
