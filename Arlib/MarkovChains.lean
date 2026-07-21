@@ -127,6 +127,11 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
   gives geometric decay of entropy, and the mixing bound in relative entropy it
   yields: `Θ(ρ⁻¹ log log(1/μ_min))`.  Also `exists_modLogSobolev_not_entropyContraction`,
   proving a modified log-Sobolev inequality does **not** suffice.
+* `Techniques.Pinsker` — `2·d_TV(ν,μ)² ≤ D_KL(ν‖μ)`, with the sharp constant,
+  so the entropy mixing bounds can be stated in total variation.  Requires
+  absolute continuity, without which it is false for these definitions.  This is
+  the one module in the area that imports real calculus, and its docstring
+  explains why the sharp constant cannot avoid it.
 * `Techniques.EntropyVariational` — Young's inequality for entropy, the Gibbs
   variational principle, `Ent ≤ Var / E`, and hence `KL ≤ χ²`.
 
@@ -219,6 +224,7 @@ import Arlib.MarkovChains.Techniques.ImprovedRandomWalk
 import Arlib.MarkovChains.Techniques.MultiStep
 import Arlib.MarkovChains.Techniques.LocalWalkBridge
 import Arlib.MarkovChains.Techniques.EntropyDecay
+import Arlib.MarkovChains.Techniques.Pinsker
 import Arlib.MarkovChains.Techniques.Transport
 import Arlib.MarkovChains.Techniques.EntropyVariational
 import Arlib.MarkovChains.Techniques.PsdOrder
