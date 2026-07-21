@@ -56,7 +56,7 @@ across several projects but are not in Mathlib under an obvious name.
 
 ### `Arlib.MarkovChains` — finite Markov chains
 
-36 modules, ~15.0k LOC, split by a load-bearing design principle: `Techniques/` holds
+37 modules, ~15.8k LOC, split by a load-bearing design principle: `Techniques/` holds
 machinery valid for *any* finite chain, `Chains/` holds the analysis of *specific* chains,
 and every general definition is instantiated against a concrete chain that keeps it honest.
 Following the Chen–Štefankovič–Vigoda monograph on spectral independence (`source/main.tex`).
@@ -103,6 +103,7 @@ here by an elementary variational, discriminant, or adjointness argument.
 | `Chains.LevelEncoding` | Spin systems as weighted complexes; the down-up walk at the top level *is* the Glauber dynamics. |
 | `Chains.GlauberViaLevels` | Transporting that encoding back: PSD-ness of the Glauber dynamics derived a third time, now from adjointness, and the Poincaré inequality transferred in both directions. |
 | `Chains.PinnedGlauber` | Conditioning does not leave the category: pinned marginals, `π_{η,1}`, and the local walk `Q_η` — shown to be the complex-side `localWalk` entry for entry. |
+| `Chains.ProductMeasure` | The first weight for which approximate tensorization is *proved*, discharging the hypothesis the `GlauberTensorization` equivalences were built to consume: a product measure gives `C = 1`, hence Glauber gap exactly `1/n`. The induction needs no site ordering — proving it for every `Λ` at once makes it monotone, so plain `Finset.induction_on` closes it. |
 | `Chains.HardCore` | The monograph's two running examples. Hard-core, whose weight can vanish, with the exact `Zloc` trichotomy and the `λ/(1+λ)` update; and Ising, whose weight cannot, so `0 < Z` needs no hypothesis at all. |
 
 ### `Arlib.Prelude`

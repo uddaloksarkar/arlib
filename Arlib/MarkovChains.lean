@@ -138,6 +138,10 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
   theory applies to the Gibbs sampler.
 * `Chains.HardCore` — the monograph's two running examples, hard-core and Ising,
   with explicit single-site updates.
+* `Chains.ProductMeasure` — the first weight for which approximate tensorization
+  is actually *proved*, discharging the hypothesis the `GlauberTensorization`
+  results were built to consume: a product measure gives `C = 1`, hence Glauber
+  gap exactly `1/n` and an `O(n log(1/(ε√m)))` mixing bound.
 -/
 
 import Arlib.MarkovChains.Techniques.Bilinear
@@ -176,3 +180,4 @@ import Arlib.MarkovChains.Chains.LevelEncoding
 import Arlib.MarkovChains.Chains.GlauberViaLevels
 import Arlib.MarkovChains.Chains.PinnedGlauber
 import Arlib.MarkovChains.Chains.HardCore
+import Arlib.MarkovChains.Chains.ProductMeasure
