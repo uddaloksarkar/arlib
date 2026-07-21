@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kuldeep S. Meel
 -/
 import Arlib.InformationTheory.Basic
+import Arlib.InformationTheory.Variational
+import Arlib.InformationTheory.Uniform
+import Arlib.InformationTheory.ChainRule
 import Arlib.InformationTheory.Defs
 import Arlib.InformationTheory.Entropy
 import Arlib.InformationTheory.Gibbs

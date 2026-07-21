@@ -28,6 +28,7 @@ import Arlib.Probability.ProbSpace
 import Arlib.Probability.ProbSpaceValidation
 import Arlib.Probability.IntersectionTailBound
 import Arlib.Probability.Independence
+import Arlib.Probability.KWiseIndependent
 import Arlib.Probability.Median
 import Arlib.Probability.FirstBad
 import Arlib.Probability.CondExpConstruction
