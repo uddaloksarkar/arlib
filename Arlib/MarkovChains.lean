@@ -180,6 +180,10 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
   Bernoulli–Laplace), and an audit of the general theorems against those exact
   answers, including where `ℰ ≤ Var` is tight and how much slack it has
   otherwise.
+* `Chains.BernoulliLaplace` — the first non-trivial Poincaré inequality in the
+  library, and the first end-to-end use of the local-to-global machinery:
+  `γ ≥ (N+1)/((N+1−d)(d+1))`, against the exact `N/((d+1)(N−d))`, so the
+  machinery's relative loss is measured at `1 − d/(N(N+1−d))`.
 * `Chains.ProductEntropy` — the same for entropy, and the library's first
   modified log-Sobolev instance: `ModLogSobolev μ (glauber …) (1/n)`.  Also
   `localEnt_le_entropyProduction`, which holds for *any* reversible chain.
@@ -232,3 +236,4 @@ import Arlib.MarkovChains.Chains.HardCore
 import Arlib.MarkovChains.Chains.ProductMeasure
 import Arlib.MarkovChains.Chains.ProductEntropy
 import Arlib.MarkovChains.Chains.UniformComplex
+import Arlib.MarkovChains.Chains.BernoulliLaplace
