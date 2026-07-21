@@ -184,6 +184,9 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
   library, and the first end-to-end use of the local-to-global machinery:
   `γ ≥ (N+1)/((N+1−d)(d+1))`, against the exact `N/((d+1)(N−d))`, so the
   machinery's relative loss is measured at `1 − d/(N(N+1−d))`.
+* `Chains.ProductOptimalMixing` — the monograph's headline claim, reached: the
+  Glauber dynamics of a product measure needs `t ≥ n·ln(n·ln(b/a)/ε)` steps for
+  `D_KL ≤ ε`, i.e. `O(n log(n/ε))`, against the variance route's `Θ(n²)`.
 * `Chains.ProductEntropy` — the same for entropy, and the library's first
   modified log-Sobolev instance: `ModLogSobolev μ (glauber …) (1/n)`.  Also
   `localEnt_le_entropyProduction`, which holds for *any* reversible chain.
@@ -235,5 +238,6 @@ import Arlib.MarkovChains.Chains.PinnedGlauber
 import Arlib.MarkovChains.Chains.HardCore
 import Arlib.MarkovChains.Chains.ProductMeasure
 import Arlib.MarkovChains.Chains.ProductEntropy
+import Arlib.MarkovChains.Chains.ProductOptimalMixing
 import Arlib.MarkovChains.Chains.UniformComplex
 import Arlib.MarkovChains.Chains.BernoulliLaplace
