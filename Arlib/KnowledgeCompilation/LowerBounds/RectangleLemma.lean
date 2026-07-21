@@ -66,6 +66,20 @@ naming what each is for.
 A fourth, `descend_congr`, is the usual locality statement: the descent depends
 on the assignment only through the variables below the starting node.
 
+## Reachability, and why the descent supplies it for free
+
+`Respects` and `Deterministic` are imposed on the nodes *reachable from the
+source* (`Circuits/NNF.lean`), so a consumer must produce a proof of
+`C.Reaches C.root i` at every node where it wants to use them.  This file is the
+main consumer, and it pays nothing: the descent starts at `C.root` and every one
+of its steps is a step to a child, so `NNF.Reaches.trans` with
+`Reaches.of_conj_left` and friends carries the reachability of the current node
+to the next one.  That is the whole of the bookkeeping — the recursive lemmas
+`valAt_of_descend` and `descend_eq_of_agree` take `C.Reaches C.root i` alongside
+the node `i` and thread it, and the callers, which start at the root, discharge
+it with `Reaches.refl`.  `ConjSplit` is relativized the same way, since it is
+`Respects` in the only form the descent uses.
+
 ## Why the rectangles are indexed by *all* nodes
 
 One might expect to index only by nodes `v` with `var(v) ⊆ X`, since those are
@@ -110,9 +124,13 @@ Isolated as a predicate because it is the *only* thing the descent below needs
 to know about the v-tree: `Respects.conjSplit` establishes it, and nothing
 afterwards mentions `VTree` again.  Keeping the interface this narrow is also
 what makes the descent lemmas readable, since they would otherwise carry four
-v-tree hypotheses each. -/
+v-tree hypotheses each.
+
+It is quantified over the nodes reachable from the source, as `Respects` is —
+it is nothing but `Respects` in the form the descent uses, and the descent has
+the reachability proof in hand at every node it visits. -/
 def ConjSplit (C : NNF V) (X : Finset V) : Prop :=
-  ∀ ⦃i j k : Fin C.size⦄, C.gate i = .conj j k →
+  ∀ ⦃i j k : Fin C.size⦄, C.Reaches C.root i → C.gate i = .conj j k →
     C.varsAt i ⊆ X ∨ Disjoint (C.varsAt j) X ∨ Disjoint (C.varsAt k) X
 
 /-- **Respecting a v-tree gives `ConjSplit` at every node of that v-tree.**
@@ -125,8 +143,8 @@ the containments.
 This is the step where structuredness is consumed, and the only one. -/
 theorem Respects.conjSplit {C : NNF V} {T s : VTree V} (hT : T.WellFormed)
     (hR : C.Respects T) (hs : VTree.IsSubtree s T) : C.ConjSplit s.vars := by
-  intro i j k hg
-  obtain ⟨tl, tr, ht, hj, hk⟩ := hR hg
+  intro i j k hri hg
+  obtain ⟨tl, tr, ht, hj, hk⟩ := hR hri hg
   rcases VTree.vars_cases_of_node hT ht hs with ⟨h1, h2⟩ | h1 | h1
   · exact Or.inl (by rw [C.varsAt_conj hg]; exact Finset.union_subset (hj.trans h1) (hk.trans h2))
   · exact Or.inr (Or.inl (Finset.disjoint_of_subset_left hj h1))
@@ -273,10 +291,14 @@ lemma; the crossing property `Rectangle.mem_cross` is its shadow.
 The hypothesis at the witness is stated conditionally, `var(w) ⊆ X → …`, because
 the descent may stop at a node whose variables are *not* inside `X` — a literal
 of `Y`, or a node the circuit never gives an `X`-variable to — and at such a node
-nothing needs to be assumed: agreement on `Y` already fixes its value. -/
+nothing needs to be assumed: agreement on `Y` already fixes its value.
+
+`hri` is the reachability of the current node, carried down the recursion so
+that `ConjSplit` can be applied at it; the caller starts at `C.root`, where it
+is `Reaches.refl`. -/
 theorem valAt_of_descend (P : VarPartition Z) (hsplit : C.ConjSplit P.X)
-    (hδ : ∀ y ∈ P.Y, δ y = α y) (i : Fin C.size) (hiZ : C.varsAt i ⊆ Z)
-    (hi : C.valAt α i = true)
+    (hδ : ∀ y ∈ P.Y, δ y = α y) (i : Fin C.size) (hri : C.Reaches C.root i)
+    (hiZ : C.varsAt i ⊆ Z) (hi : C.valAt α i = true)
     (hw : C.varsAt (C.descend P.X α i) ⊆ P.X → C.valAt δ (C.descend P.X α i) = true) :
     C.valAt δ i = true := by
   by_cases hs : C.varsAt i ⊆ P.X
@@ -301,11 +323,13 @@ theorem valAt_of_descend (P : VarPartition Z) (hsplit : C.ConjSplit P.X)
       by_cases hd : Disjoint (C.varsAt j) P.X
       · rw [descend_conj_right hs hg hd] at hw
         exact ⟨by rw [valAt_eq_of_disjoint_X P hjZ hd hδ]; exact hi.1,
-          valAt_of_descend P hsplit hδ k hkZ hi.2 hw⟩
+          valAt_of_descend P hsplit hδ k (hri.trans (Reaches.of_conj_right hg)) hkZ
+            hi.2 hw⟩
       · have hdk : Disjoint (C.varsAt k) P.X :=
-          ((hsplit hg).resolve_left hs).resolve_left hd
+          ((hsplit hri hg).resolve_left hs).resolve_left hd
         rw [descend_conj_left hs hg hd] at hw
-        exact ⟨valAt_of_descend P hsplit hδ j hjZ hi.1 hw,
+        exact ⟨valAt_of_descend P hsplit hδ j (hri.trans (Reaches.of_conj_left hg)) hjZ
+            hi.1 hw,
           by rw [valAt_eq_of_disjoint_X P hkZ hdk hδ]; exact hi.2⟩
     | .disj j k =>
       have hji : C.varsAt j ⊆ C.varsAt i := by
@@ -317,10 +341,12 @@ theorem valAt_of_descend (P : VarPartition Z) (hsplit : C.ConjSplit P.X)
       rw [C.valAt_disj hg, Bool.or_eq_true]
       by_cases hv : C.valAt α j = true
       · rw [descend_disj_left hs hg hv] at hw
-        exact Or.inl (valAt_of_descend P hsplit hδ j hjZ hv hw)
+        exact Or.inl (valAt_of_descend P hsplit hδ j
+          (hri.trans (Reaches.of_disj_left hg)) hjZ hv hw)
       · rw [C.valAt_disj hg, Bool.or_eq_true] at hi
         rw [descend_disj_right hs hg hv] at hw
-        exact Or.inr (valAt_of_descend P hsplit hδ k hkZ (hi.resolve_left hv) hw)
+        exact Or.inr (valAt_of_descend P hsplit hδ k
+          (hri.trans (Reaches.of_disj_right hg)) hkZ (hi.resolve_left hv) hw)
 termination_by i.val
 decreasing_by
   · exact (C.conj_lt hg).2
@@ -345,10 +371,12 @@ satisfied too, the `∨`-node would have two satisfied children, which determini
 forbids.
 
 This is the sole use of determinism in the rectangle lemma, and it is exactly
-what turns the cover into a partition. -/
+what turns the cover into a partition — and, being the only place `Deterministic`
+is consumed, the only place the reachability argument `hri` is needed for
+anything but `ConjSplit`. -/
 theorem descend_eq_of_agree (P : VarPartition Z) (hsplit : C.ConjSplit P.X)
     (hdet : C.Deterministic) (hδ : ∀ y ∈ P.Y, δ y = α y) (i : Fin C.size)
-    (hiZ : C.varsAt i ⊆ Z) (hi : C.valAt α i = true)
+    (hri : C.Reaches C.root i) (hiZ : C.varsAt i ⊆ Z) (hi : C.valAt α i = true)
     (hw : C.varsAt (C.descend P.X α i) ⊆ P.X → C.valAt δ (C.descend P.X α i) = true) :
     C.descend P.X δ i = C.descend P.X α i := by
   by_cases hs : C.varsAt i ⊆ P.X
@@ -367,10 +395,12 @@ theorem descend_eq_of_agree (P : VarPartition Z) (hsplit : C.ConjSplit P.X)
       by_cases hd : Disjoint (C.varsAt j) P.X
       · rw [descend_conj_right hs hg hd] at hw
         rw [descend_conj_right hs hg hd, descend_conj_right hs hg hd]
-        exact descend_eq_of_agree P hsplit hdet hδ k hkZ hi.2 hw
+        exact descend_eq_of_agree P hsplit hdet hδ k
+          (hri.trans (Reaches.of_conj_right hg)) hkZ hi.2 hw
       · rw [descend_conj_left hs hg hd] at hw
         rw [descend_conj_left hs hg hd, descend_conj_left hs hg hd]
-        exact descend_eq_of_agree P hsplit hdet hδ j hjZ hi.1 hw
+        exact descend_eq_of_agree P hsplit hdet hδ j
+          (hri.trans (Reaches.of_conj_left hg)) hjZ hi.1 hw
     | .disj j k =>
       have hji : C.varsAt j ⊆ C.varsAt i := by
         rw [C.varsAt_disj hg]; exact Finset.subset_union_left
@@ -380,16 +410,18 @@ theorem descend_eq_of_agree (P : VarPartition Z) (hsplit : C.ConjSplit P.X)
       have hkZ : C.varsAt k ⊆ Z := hki.trans hiZ
       by_cases hv : C.valAt α j = true
       · rw [descend_disj_left hs hg hv] at hw
-        have hvδ : C.valAt δ j = true := valAt_of_descend P hsplit hδ j hjZ hv hw
+        have hrj : C.Reaches C.root j := hri.trans (Reaches.of_disj_left hg)
+        have hvδ : C.valAt δ j = true := valAt_of_descend P hsplit hδ j hrj hjZ hv hw
         rw [descend_disj_left hs hg hv, descend_disj_left hs hg hvδ]
-        exact descend_eq_of_agree P hsplit hdet hδ j hjZ hv hw
+        exact descend_eq_of_agree P hsplit hdet hδ j hrj hjZ hv hw
       · rw [C.valAt_disj hg, Bool.or_eq_true] at hi
         have hk : C.valAt α k = true := hi.resolve_left hv
+        have hrk : C.Reaches C.root k := hri.trans (Reaches.of_disj_right hg)
         rw [descend_disj_right hs hg hv] at hw
-        have hkδ : C.valAt δ k = true := valAt_of_descend P hsplit hδ k hkZ hk hw
-        have hvδ : C.valAt δ j ≠ true := fun h => hdet hg δ ⟨h, hkδ⟩
+        have hkδ : C.valAt δ k = true := valAt_of_descend P hsplit hδ k hrk hkZ hk hw
+        have hvδ : C.valAt δ j ≠ true := fun h => hdet hri hg δ ⟨h, hkδ⟩
         rw [descend_disj_right hs hg hv, descend_disj_right hs hg hvδ]
-        exact descend_eq_of_agree P hsplit hdet hδ k hkZ hk hw
+        exact descend_eq_of_agree P hsplit hdet hδ k hrk hkZ hk hw
 termination_by i.val
 decreasing_by
   · exact (C.conj_lt hg).2
@@ -507,7 +539,7 @@ theorem covers_rect (C : NNF V) {Z : Finset V} (P : VarPartition Z)
       rw [C.valAt_congr v fun x hx => hδX x (hsub hx)]
       exact hleft hsub
     have hδsat : C.valAt (P.cross a γ) C.root = true :=
-      valAt_of_descend P hsplit hδY C.root hroot hevr hw
+      valAt_of_descend P hsplit hδY C.root (Reaches.refl _) hroot hevr hw
     have hZa : ∀ x ∈ Z, P.cross a γ x = a x := by
       intro x hx
       rcases P.mem_or_mem hx with h | h
@@ -546,7 +578,7 @@ theorem descend_cross (C : NNF V) {Z : Finset V} (P : VarPartition Z)
     rw [hd] at hsub ⊢
     rw [C.valAt_congr v fun x hx => hδX x (hsub hx)]
     exact hleft hsub
-  rw [descend_eq_of_agree P hsplit hdet hδY C.root hroot hevr hw]
+  rw [descend_eq_of_agree P hsplit hdet hδY C.root (Reaches.refl _) hroot hevr hw]
   exact hd
 
 /-- **A deterministic circuit gives a rectangular *partition*.**
@@ -682,10 +714,10 @@ private lemma C₁_gate (i : Fin C₁.size) : C₁.gate i = .lit 0 true := rfl
 /-- With no `∧`-node at all, respecting any v-tree is vacuous — and so, for the
 same reason, is determinism. -/
 private lemma C₁_respects (T : VTree (Fin 2)) : C₁.Respects T := by
-  intro i j k hg; rw [C₁_gate i] at hg; exact Gate.noConfusion hg
+  intro i j k _ hg; rw [C₁_gate i] at hg; exact Gate.noConfusion hg
 
 private lemma C₁_deterministic : C₁.Deterministic := by
-  intro i j k hg; rw [C₁_gate i] at hg; exact Gate.noConfusion hg
+  intro i j k _ hg; rw [C₁_gate i] at hg; exact Gate.noConfusion hg
 
 private lemma C₁_vars : C₁.vars = {0} := C₁.varsAt_lit (C₁_gate _)
 

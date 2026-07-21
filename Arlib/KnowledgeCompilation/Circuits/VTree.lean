@@ -76,6 +76,12 @@ inductive type would otherwise have to be partial functions or carry a
 non-leafness hypothesis.  Leaves of `T` are correctly excluded: the paper's `t_ℓ`
 and `t_ᵣ` only exist at internal nodes.
 
+The `∧`-nodes quantified over are the *nodes of the circuit*, i.e. those
+reachable from its source, matching `Decomposable` and `Deterministic` in
+`Circuits/NNF.lean`; see that file's module docstring for why the conditions are
+relativized this way.  `RespectsFrom T r` is the version at an arbitrary source
+and `Respects T` is it at `C.root`.
+
 ## Structuredness implies decomposability
 
 `Respects.decomposable` is the reason well-formedness is worth its keep: if the
@@ -348,6 +354,14 @@ variable {V : Type*} [DecidableEq V] (C : NNF V)
 
 /-! ## Respecting a v-tree, and structuredness -/
 
+/-- **`T` is respected at every node reachable from `r`.**  The relativized form
+of `Respects`, and the form a recursion over the circuit carries; see the module
+docstring of `Circuits/NNF.lean`. -/
+def RespectsFrom (T : VTree V) (r : Fin C.size) : Prop :=
+  ∀ ⦃i j k : Fin C.size⦄, C.Reaches r i → C.gate i = .conj j k →
+    ∃ tl tr : VTree V, VTree.IsSubtree (.node tl tr) T ∧
+      C.varsAt j ⊆ tl.vars ∧ C.varsAt k ⊆ tr.vars
+
 /-- **`C` respects the v-tree `T`** (paper `source/kc/arXiv.tex:154`): for every
 `∧`-node `g` of `C` there is a node `t` of `T` with `var(gₗ) ⊆ var(t_ℓ)` and
 `var(gᵣ) ⊆ var(t_ᵣ)`.
@@ -356,26 +370,33 @@ The v-tree node depends on the `∧`-node: this is `∀ g, ∃ t`, **not** `∃ 
 Only the children of `t` are ever used, so the existential is over the pair of
 children directly — a node of `T` with two children is exactly a subtree of `T`
 of the form `.node tl tr` — which correctly excludes the leaves of `T`, where
-`t_ℓ` and `t_ᵣ` do not exist. -/
-def Respects (T : VTree V) : Prop :=
-  ∀ ⦃i j k : Fin C.size⦄, C.gate i = .conj j k →
-    ∃ tl tr : VTree V, VTree.IsSubtree (.node tl tr) T ∧
-      C.varsAt j ⊆ tl.vars ∧ C.varsAt k ⊆ tr.vars
+`t_ℓ` and `t_ᵣ` do not exist.
 
-/-- **Respecting a v-tree implies decomposability.**  The two children of an
-`∧`-node land inside the two children of a v-tree node, whose variable sets are
-disjoint by well-formedness; so the `∧`-node's own children have disjoint
-variable sets.
+As with `Decomposable` and `Deterministic`, "every `∧`-node `g` of `C`" is read
+as the paper reads it: every `∧`-node *of the circuit*, i.e. every one reachable
+from the source. -/
+def Respects (T : VTree V) : Prop := C.RespectsFrom T C.root
+
+/-- **Respecting a v-tree implies decomposability, at every node reachable from
+`r`.**  The two children of an `∧`-node land inside the two children of a v-tree
+node, whose variable sets are disjoint by well-formedness; so the `∧`-node's own
+children have disjoint variable sets.
 
 This is why the paper can define structuredness on top of DNNF without further
 compatibility conditions, and it is the form in which structuredness is first
 used in the rectangle lemma (`lem: rectangle`, `source/kc/arXiv.tex:299`). -/
-theorem Respects.decomposable {C : NNF V} {T : VTree V} (hT : T.WellFormed)
-    (h : C.Respects T) : C.Decomposable := by
-  intro i j k hg
-  obtain ⟨tl, tr, hsub, hj, hk⟩ := h hg
+theorem RespectsFrom.decomposableFrom {C : NNF V} {T : VTree V} {r : Fin C.size}
+    (hT : T.WellFormed) (h : C.RespectsFrom T r) : C.DecomposableFrom r := by
+  intro i j k hr hg
+  obtain ⟨tl, tr, hsub, hj, hk⟩ := h hr hg
   exact Finset.disjoint_of_subset_left hj
     (Finset.disjoint_of_subset_right hk (hsub.wellFormed hT).2.2)
+
+/-- **Respecting a v-tree implies decomposability**, the special case of
+`RespectsFrom.decomposableFrom` at the source. -/
+theorem Respects.decomposable {C : NNF V} {T : VTree V} (hT : T.WellFormed)
+    (h : C.Respects T) : C.Decomposable :=
+  RespectsFrom.decomposableFrom hT h
 
 /-- **A structured DNNF (SDNNF)** (paper `def: structure`,
 `source/kc/arXiv.tex:156`): a DNNF that respects some v-tree.

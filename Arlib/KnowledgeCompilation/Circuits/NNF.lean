@@ -50,15 +50,30 @@ large as possible; `varsAt` computes `var(·)` syntactically.  Since determinism
 in the paper is stated with `dom(C(gₗ)) = dom(C(gᵣ)) = dom(C)`, this choice is
 exactly the paper's convention, with none of the bookkeeping.
 
-## A recorded gap
+## Reachability, and why the conditions are relativized to it
 
-`Decomposable` and `Deterministic` below quantify over **all** node indices,
-whereas the paper imposes them only on the nodes of the circuit, i.e. those
-reachable from the source.  Our classes are therefore contained in the paper's,
-which weakens a lower bound stated over them.  The two agree up to pruning:
-unreachable nodes can be deleted, which only decreases `size`.  That pruning
-lemma is a deferred obligation — see `ROADMAP.md`, §"Recorded gaps".  Nothing
-proved here depends on it.
+The paper's syntactic conditions are imposed on the *nodes of the circuit*,
+which for a DAG with a distinguished source means the nodes reachable from that
+source; an index of `Fin size` that no directed path from `root` visits is not a
+node of the circuit at all, it is bookkeeping.  `Reaches` below is that
+reflexive-transitive closure of the child relation, and `Decomposable`,
+`Deterministic` (here) and `Respects` (in `Circuits/VTree.lean`) all quantify
+over the `i` with `C.Reaches C.root i`, not over every `i : Fin C.size`.
+
+This is not cosmetic, and it matters in both directions.  Quantifying over all
+indices defines classes *strictly smaller* than the paper's — a circuit with the
+right structure below its root but carrying an unreachable nondeterministic
+`∨`-node would be excluded — and a lower bound proved over a smaller class is a
+weaker theorem.  It also makes the containment SDD ⊆ d-SDNNF
+(`Circuits/SDD.lean`) false as stated, since `IsSDDAt C C.root T` constrains
+only what lies below the source.  Relativizing costs the *consumers* a
+reachability argument, which they always have: the rectangle lemma's descent
+starts at the root and only ever steps to children.
+
+Determinism comes in two forms, `DeterministicFrom r` relativized to an
+arbitrary source `r` and `Deterministic` at `r = C.root`; the relativized form
+is what a recursion over the circuit carries, and the two are by definition the
+same statement at the root.  `Circuits/VTree.lean` does the same for `Respects`.
 -/
 import Arlib.Prelude
 import Mathlib.Data.Finset.Lattice.Fold
@@ -118,6 +133,81 @@ structure NNF (V : Type*) where
   root : Fin size
 
 namespace NNF
+
+/-! ## Reachability
+
+The nodes of the circuit, in the paper's sense: those lying on a directed path
+from the source.  Every syntactic condition below is imposed on these and not on
+every index of `Fin size`; see the module docstring for why. -/
+
+/-- **`j` is reachable from `i`**: there is a directed path `i → … → j` in the
+circuit.  Reflexive-transitive closure of the child relation. -/
+inductive Reaches (C : NNF V) : Fin C.size → Fin C.size → Prop
+  /-- Every node reaches itself. -/
+  | refl (i : Fin C.size) : Reaches C i i
+  /-- Step to a child. -/
+  | step {i j k : Fin C.size} (h : j ∈ (C.gate i).children) (h' : Reaches C j k) :
+      Reaches C i k
+
+namespace Reaches
+
+variable {C : NNF V}
+
+theorem child {i j : Fin C.size} (h : j ∈ (C.gate i).children) : C.Reaches i j :=
+  .step h (.refl j)
+
+theorem trans {i j k : Fin C.size} (hij : C.Reaches i j) (hjk : C.Reaches j k) :
+    C.Reaches i k := by
+  induction hij with
+  | refl => exact hjk
+  | step h _ ih => exact .step h (ih hjk)
+
+/-- A node with no children reaches only itself; the inversion used at every
+terminal of an SDD. -/
+theorem eq_of_leaf {i j : Fin C.size} (h : (C.gate i).children = []) (hr : C.Reaches i j) :
+    j = i := by
+  cases hr with
+  | refl => rfl
+  | step hc _ => rw [h] at hc; exact absurd hc (List.not_mem_nil _)
+
+theorem of_conj_left {i j k : Fin C.size} (h : C.gate i = .conj j k) : C.Reaches i j :=
+  child (by rw [h]; simp)
+
+theorem of_conj_right {i j k : Fin C.size} (h : C.gate i = .conj j k) : C.Reaches i k :=
+  child (by rw [h]; simp)
+
+theorem of_disj_left {i j k : Fin C.size} (h : C.gate i = .disj j k) : C.Reaches i j :=
+  child (by rw [h]; simp)
+
+theorem of_disj_right {i j k : Fin C.size} (h : C.gate i = .disj j k) : C.Reaches i k :=
+  child (by rw [h]; simp)
+
+/-- Inversion at an `∧`-node: a node reachable from it is the node itself or is
+reachable from one of its two children. -/
+theorem conj_inv {i p s j : Fin C.size} (hg : C.gate i = .conj p s)
+    (hr : C.Reaches i j) : j = i ∨ C.Reaches p j ∨ C.Reaches s j := by
+  cases hr with
+  | refl => exact Or.inl rfl
+  | step hc hrest =>
+    rw [hg] at hc
+    simp only [Gate.children_conj, List.mem_cons, List.not_mem_nil, or_false] at hc
+    rcases hc with rfl | rfl
+    · exact Or.inr (Or.inl hrest)
+    · exact Or.inr (Or.inr hrest)
+
+/-- Inversion at an `∨`-node. -/
+theorem disj_inv {i p s j : Fin C.size} (hg : C.gate i = .disj p s)
+    (hr : C.Reaches i j) : j = i ∨ C.Reaches p j ∨ C.Reaches s j := by
+  cases hr with
+  | refl => exact Or.inl rfl
+  | step hc hrest =>
+    rw [hg] at hc
+    simp only [Gate.children_disj, List.mem_cons, List.not_mem_nil, or_false] at hc
+    rcases hc with rfl | rfl
+    · exact Or.inr (Or.inl hrest)
+    · exact Or.inr (Or.inr hrest)
+
+end Reaches
 
 variable (C : NNF V)
 
@@ -254,23 +344,39 @@ end Vars
 /-! ## Decomposability and determinism
 
 The two syntactic restrictions that carve d-DNNF out of NNF (paper §2,
-`source/kc/arXiv.tex:146`).  Both are stated over all node indices; see the
-recorded gap in the module docstring. -/
+`source/kc/arXiv.tex:146`).  Both are imposed on the *nodes* of the circuit,
+i.e. on the indices reachable from the source, exactly as in the paper; see the
+module docstring. -/
+
+/-- **Decomposability at every node reachable from `r`**: the relativized form
+of `Decomposable`, which is what a recursion over the circuit carries. -/
+def DecomposableFrom [DecidableEq V] (r : Fin C.size) : Prop :=
+  ∀ ⦃i j k : Fin C.size⦄, C.Reaches r i → C.gate i = .conj j k →
+    Disjoint (C.varsAt j) (C.varsAt k)
 
 /-- **Decomposability**: the two children of every `∧`-node have disjoint
-variable sets. -/
-def Decomposable [DecidableEq V] : Prop :=
-  ∀ ⦃i j k : Fin C.size⦄, C.gate i = .conj j k → Disjoint (C.varsAt j) (C.varsAt k)
+variable sets.
+
+"Every `∧`-node" means every `∧`-node *of the circuit*, i.e. every one reachable
+from the source; an index that no path from `root` visits is not a node. -/
+def Decomposable [DecidableEq V] : Prop := C.DecomposableFrom C.root
+
+/-- **Determinism at every node reachable from `r`**: the relativized form of
+`Deterministic`.  This is the shape in which determinism is established by a
+recursion over the circuit (`NNF.IsSDDAt.deterministicFrom`) and the shape in
+which it descends into a subcircuit. -/
+def DeterministicFrom (r : Fin C.size) : Prop :=
+  ∀ ⦃i j k : Fin C.size⦄, C.Reaches r i → C.gate i = .disj j k →
+    ∀ α, ¬(C.valAt α j = true ∧ C.valAt α k = true)
 
 /-- **Determinism**: the two children of every `∨`-node have disjoint sets of
 satisfying assignments.
 
 The paper phrases this as `sat(C(gₗ)) ∩ sat(C(gᵣ)) = ∅` with both subcircuits
 read over the full domain `dom(C)`; since our assignments are already total on
-`V`, that is literally the statement below. -/
-def Deterministic : Prop :=
-  ∀ ⦃i j k : Fin C.size⦄, C.gate i = .disj j k →
-    ∀ α, ¬(C.valAt α j = true ∧ C.valAt α k = true)
+`V`, that is literally the statement below.  As with decomposability, "every
+`∨`-node" is every `∨`-node reachable from the source. -/
+def Deterministic : Prop := C.DeterministicFrom C.root
 
 /-- A **DNNF** is a decomposable NNF. -/
 def IsDNNF [DecidableEq V] : Prop := C.Decomposable
@@ -300,10 +406,11 @@ theorem valAt_conj_split [DecidableEq V] {i j k : Fin C.size}
 /-- **Determinism at an `∨`-node, in disjunctive form.**  If the node fires,
 exactly one child fires. -/
 theorem valAt_disj_unique (hC : C.Deterministic) {i j k : Fin C.size}
-    (h : C.gate i = .disj j k) {α : V → Bool} (hi : C.valAt α i = true) :
+    (hr : C.Reaches C.root i) (h : C.gate i = .disj j k) {α : V → Bool}
+    (hi : C.valAt α i = true) :
     (C.valAt α j = true ∧ C.valAt α k = false) ∨
       (C.valAt α j = false ∧ C.valAt α k = true) := by
-  have hd := hC h α
+  have hd := hC hr h α
   rw [C.valAt_disj h] at hi
   cases hj : C.valAt α j <;> cases hk : C.valAt α k <;> simp_all
 

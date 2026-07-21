@@ -102,20 +102,18 @@ Note that this makes `IsSDDAt` recursive on the v-tree and not on the circuit,
 which is why it is a structural recursion and not a `child_lt` one; the circuit
 side descends only through the chain relation.
 
-## The containment, and where it is conditional
+## The containment
 
-`IsSDD.isdSDNNF` is the point of the file.  It needs one hypothesis that the
-paper does not state, and the reason is `ROADMAP.md` gap G1: `Deterministic`,
-`Decomposable` and `Respects` in `Circuits/NNF` and `Circuits/VTree` quantify
-over *all* node indices, whereas `IsSDDAt C C.root T` constrains only the nodes
-reachable from the source.  A circuit can therefore be an SDD at its root and
-still carry an unreachable nondeterministic `∨`-node, which is not deterministic
-in the sense of `Circuits/NNF`.  The containment is stated with the hypothesis
-`∀ i, C.Reaches C.root i` for that reason, and the unconditional statements
-`IsSDDAt.deterministicFrom` and `IsSDDAt.respectsFrom` — which give the two
-conditions at every node *reachable from the root*, with no hypothesis at all —
-are the real content.  Discharging G1 (pruning to reachable nodes, which only
-decreases `size`) removes the hypothesis; nothing else is missing.
+`IsSDD.isdSDNNF` is the point of the file, and it is unconditional, as in the
+paper.  `IsSDDAt C C.root T` constrains only what lies below the source, so the
+containment can only hold because `Deterministic`, `Decomposable` and `Respects`
+(`Circuits/NNF`, `Circuits/VTree`) are themselves imposed on the nodes reachable
+from the source and not on every index of `Fin size`.  Were they imposed on
+every index the statement would be *false*: a circuit that is an SDD at its root
+may carry an unreachable nondeterministic `∨`-node.  This was `ROADMAP.md` gap
+G1, now closed; the two halves `IsSDDAt.deterministicFrom` and
+`IsSDDAt.respectsFrom` are stated with `DeterministicFrom`/`RespectsFrom` at the
+node in hand, which at the root are `Deterministic`/`Respects` by definition.
 -/
 import Arlib.KnowledgeCompilation.Basic
 import Arlib.KnowledgeCompilation.Circuits.VTree
@@ -183,83 +181,6 @@ end XDecomp
 namespace NNF
 
 variable {V : Type*}
-
-/-! ## Reachability
-
-The paper's conditions on a circuit are imposed on its nodes, i.e. on what is
-reachable from the source; ours (`Decomposable`, `Deterministic`, `Respects`)
-are imposed on all indices.  `Reaches` is what mediates between the two, and is
-what lets the SDD conditions — which only ever constrain what is below the root
-— be stated at all.  See `ROADMAP.md`, gap G1. -/
-
-/-- **`j` is reachable from `i`**: there is a directed path `i → … → j` in the
-circuit.  Reflexive-transitive closure of the child relation. -/
-inductive Reaches (C : NNF V) : Fin C.size → Fin C.size → Prop
-  /-- Every node reaches itself. -/
-  | refl (i : Fin C.size) : Reaches C i i
-  /-- Step to a child. -/
-  | step {i j k : Fin C.size} (h : j ∈ (C.gate i).children) (h' : Reaches C j k) :
-      Reaches C i k
-
-namespace Reaches
-
-variable {C : NNF V}
-
-theorem child {i j : Fin C.size} (h : j ∈ (C.gate i).children) : C.Reaches i j :=
-  .step h (.refl j)
-
-theorem trans {i j k : Fin C.size} (hij : C.Reaches i j) (hjk : C.Reaches j k) :
-    C.Reaches i k := by
-  induction hij with
-  | refl => exact hjk
-  | step h _ ih => exact .step h (ih hjk)
-
-/-- A node with no children reaches only itself; the inversion used at every
-terminal of an SDD. -/
-theorem eq_of_leaf {i j : Fin C.size} (h : (C.gate i).children = []) (hr : C.Reaches i j) :
-    j = i := by
-  cases hr with
-  | refl => rfl
-  | step hc _ => rw [h] at hc; exact absurd hc (List.not_mem_nil _)
-
-theorem of_conj_left {i j k : Fin C.size} (h : C.gate i = .conj j k) : C.Reaches i j :=
-  child (by rw [h]; simp)
-
-theorem of_conj_right {i j k : Fin C.size} (h : C.gate i = .conj j k) : C.Reaches i k :=
-  child (by rw [h]; simp)
-
-theorem of_disj_left {i j k : Fin C.size} (h : C.gate i = .disj j k) : C.Reaches i j :=
-  child (by rw [h]; simp)
-
-theorem of_disj_right {i j k : Fin C.size} (h : C.gate i = .disj j k) : C.Reaches i k :=
-  child (by rw [h]; simp)
-
-/-- Inversion at an `∧`-node: a node reachable from it is the node itself or is
-reachable from one of its two children. -/
-theorem conj_inv {i p s j : Fin C.size} (hg : C.gate i = .conj p s)
-    (hr : C.Reaches i j) : j = i ∨ C.Reaches p j ∨ C.Reaches s j := by
-  cases hr with
-  | refl => exact Or.inl rfl
-  | step hc hrest =>
-    rw [hg] at hc
-    simp only [Gate.children_conj, List.mem_cons, List.not_mem_nil, or_false] at hc
-    rcases hc with rfl | rfl
-    · exact Or.inr (Or.inl hrest)
-    · exact Or.inr (Or.inr hrest)
-
-/-- Inversion at an `∨`-node. -/
-theorem disj_inv {i p s j : Fin C.size} (hg : C.gate i = .disj p s)
-    (hr : C.Reaches i j) : j = i ∨ C.Reaches p j ∨ C.Reaches s j := by
-  cases hr with
-  | refl => exact Or.inl rfl
-  | step hc hrest =>
-    rw [hg] at hc
-    simp only [Gate.children_disj, List.mem_cons, List.not_mem_nil, or_false] at hc
-    rcases hc with rfl | rfl
-    · exact Or.inr (Or.inl hrest)
-    · exact Or.inr (Or.inr hrest)
-
-end Reaches
 
 /-! ## Decomposition chains
 
@@ -517,21 +438,9 @@ theorem xDecomposition_of_chain {C : NNF V} {i : Fin C.size} {tl tr : VTree V}
 
 The containment that makes the paper's lower bounds for d-SDNNF say something
 about SDD (`thm: sep`, `source/kc/arXiv.tex:465`).  It is proved in two halves,
-each stated over the nodes reachable from the root; see the module docstring for
-why the reachability bookkeeping is unavoidable here. -/
-
-/-- **Determinism at every node reachable from `r`.**  The relativized form of
-`NNF.Deterministic`. -/
-def DeterministicFrom (C : NNF V) (r : Fin C.size) : Prop :=
-  ∀ ⦃i j k : Fin C.size⦄, C.Reaches r i → C.gate i = .disj j k →
-    ∀ α, ¬(C.valAt α j = true ∧ C.valAt α k = true)
-
-/-- **`T` is respected at every node reachable from `r`.**  The relativized form
-of `NNF.Respects`. -/
-def RespectsFrom (C : NNF V) (T : VTree V) (r : Fin C.size) : Prop :=
-  ∀ ⦃i j k : Fin C.size⦄, C.Reaches r i → C.gate i = .conj j k →
-    ∃ tl tr : VTree V, VTree.IsSubtree (.node tl tr) T ∧
-      C.varsAt j ⊆ tl.vars ∧ C.varsAt k ⊆ tr.vars
+each stated at the node in hand with the relativized `NNF.DeterministicFrom` and
+`NNF.RespectsFrom`; taken at `C.root` those *are* `Deterministic` and `Respects`,
+which is why the containment comes out unconditional. -/
 
 /-- **An SDD respecting `t` respects `t` in the sense of `NNF.Respects`**, at
 every node reachable from it.  This is the structuredness half of
@@ -617,31 +526,28 @@ definition that SDDs are deterministic and structured").  This is the
 containment that lets the paper's lower bound for d-SDNNF be read as a lower
 bound for SDD in `thm: sep` (`source/kc/arXiv.tex:465`).
 
-The hypothesis `hreach` — every node of `C` is reachable from the source — is
-`ROADMAP.md` gap G1 showing through, and is not in the paper.  It is needed
-because `Deterministic` and `Respects` are stated over *all* node indices while
-`IsSDD` constrains only what lies below the root, so an unreachable
-nondeterministic `∨`-node would be a counterexample to the unconditional
-statement.  Pruning unreachable nodes only decreases `size`, so discharging G1
-removes the hypothesis outright; the substance is in `IsSDDAt.deterministicFrom`
-and `IsSDDAt.respectsFrom`, which are unconditional. -/
-theorem IsSDD.isdSDNNF {C : NNF V} (h : C.IsSDD) (hreach : ∀ i, C.Reaches C.root i) :
-    C.IsdSDNNF := by
+There is no reachability hypothesis, and there had better not be: the paper
+states the containment outright.  It comes out that way because `Deterministic`
+and `Respects` are imposed on the nodes reachable from the source — exactly what
+`IsSDD` constrains — so that `C.Deterministic` is *by definition*
+`C.DeterministicFrom C.root` and `C.Respects T` is `C.RespectsFrom T C.root`.
+Under the older reading, over all indices of `Fin size`, the statement was false
+(an unreachable nondeterministic `∨`-node is a counterexample) and had to carry
+`∀ i, C.Reaches C.root i`; that was `ROADMAP.md` gap G1. -/
+theorem IsSDD.isdSDNNF {C : NNF V} (h : C.IsSDD) : C.IsdSDNNF := by
   obtain ⟨T, hT, hroot⟩ := h
-  have hdet : C.Deterministic := fun i j k hg α =>
-    IsSDDAt.deterministicFrom T C.root hroot (hreach i) hg α
-  have hresp : C.Respects T := fun i j k hg =>
-    IsSDDAt.respectsFrom T (VTree.IsSubtree.refl T) C.root hroot (hreach i) hg
+  have hdet : C.Deterministic := IsSDDAt.deterministicFrom T C.root hroot
+  have hresp : C.Respects T :=
+    IsSDDAt.respectsFrom T (VTree.IsSubtree.refl T) C.root hroot
   exact ⟨hdet, Respects.decomposable hT hresp, T, hT, hresp⟩
 
 /-- **SDD ⊆ d-DNNF**, by composition with `IsdSDNNF.isdDNNF`. -/
-theorem IsSDD.isdDNNF {C : NNF V} (h : C.IsSDD) (hreach : ∀ i, C.Reaches C.root i) :
-    C.IsdDNNF := (h.isdSDNNF hreach).isdDNNF
+theorem IsSDD.isdDNNF {C : NNF V} (h : C.IsSDD) : C.IsdDNNF := h.isdSDNNF.isdDNNF
 
 /-- **SDD ⊆ DNNF**: an SDD is decomposable, which is the paper's standing
 requirement that an SDD be a DNNF. -/
-theorem IsSDD.isDNNF {C : NNF V} (h : C.IsSDD) (hreach : ∀ i, C.Reaches C.root i) :
-    C.IsDNNF := (h.isdSDNNF hreach).isSDNNF.isDNNF
+theorem IsSDD.isDNNF {C : NNF V} (h : C.IsSDD) : C.IsDNNF :=
+  h.isdSDNNF.isSDNNF.isDNNF
 
 /-- An SDD mentions only the variables of the v-tree it respects. -/
 theorem IsSDD.vars_subset {C : NNF V} (h : C.IsSDD) :
@@ -758,8 +664,12 @@ theorem xnor_isSDD : xnorCircuit.IsSDD := by
     · exact ⟨fun _ => true, by simpa using (xnor_val (fun _ => true)).1⟩
     · exact ⟨fun _ => false, by simpa using (xnor_val (fun _ => false)).2.1⟩
 
-/-- Every node of the XNOR circuit is reachable from its source, so the
-hypothesis of `NNF.IsSDD.isdSDNNF` is met. -/
+/-- Every node of the XNOR circuit is reachable from its source: the circuit
+carries no garbage, so its `Deterministic` and `Respects` say the same thing
+whether read over the reachable nodes or over all of `Fin 7`.
+
+`NNF.IsSDD.isdSDNNF` no longer needs this — that was gap G1 — but it is kept as
+the one concrete exercise of `NNF.Reaches` in the file. -/
 theorem xnor_reaches : ∀ i, xnorCircuit.Reaches xnorCircuit.root i := by
   have c65 : xnorCircuit.Reaches 6 5 := NNF.Reaches.child (by decide)
   have c64 : xnorCircuit.Reaches 6 4 := NNF.Reaches.child (by decide)
@@ -782,7 +692,7 @@ theorem xnor_reaches : ∀ i, xnorCircuit.Reaches xnorCircuit.root i := by
 /-- **The containment, exercised end to end**: the XNOR circuit is an SDD, hence
 a d-SDNNF.  This is the validation `ROADMAP.md` gap G4 asks for, for the
 definitions of this file. -/
-theorem xnor_isdSDNNF : xnorCircuit.IsdSDNNF := xnor_isSDD.isdSDNNF xnor_reaches
+theorem xnor_isdSDNNF : xnorCircuit.IsdSDNNF := xnor_isSDD.isdSDNNF
 
 end Example
 

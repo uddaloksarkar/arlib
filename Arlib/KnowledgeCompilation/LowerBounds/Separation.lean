@@ -268,10 +268,11 @@ theorem thm_sep {c d : ℕ}
       T hT hTvars, ?_⟩
   intro T C hT hTvars hSDD hC
   -- complement the SDD: same v-tree, size at most `c·|C|^d`
-  obtain ⟨C', hSDD', hreach, hC', hsize⟩ := comp.compl T C _ hT hSDD hC
-  -- an SDD is structured, at every node reachable from its source
-  have hR' : C'.Respects T := fun i _ _ hg =>
-    NNF.IsSDDAt.respectsFrom T (VTree.IsSubtree.refl T) C'.root hSDD' (hreach i) hg
+  obtain ⟨C', hSDD', hC', hsize⟩ := comp.compl T C _ hT hSDD hC
+  -- an SDD is structured, at every node reachable from its source — which is
+  -- exactly what `Respects` asks for
+  have hR' : C'.Respects T :=
+    NNF.IsSDDAt.respectsFrom T (VTree.IsSubtree.refl T) C'.root hSDD'
   have hCT' : C'.vars ⊆ T.vars := NNF.IsSDDAt.varsAt_subset T C'.root hSDD'
   exact le_trans
     (coverBound_le_size_of_computes_not H he hrep hm hz hT hTvars hR' hCT' hC') hsize

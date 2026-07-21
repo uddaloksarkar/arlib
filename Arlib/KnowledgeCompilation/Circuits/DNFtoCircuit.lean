@@ -80,8 +80,14 @@ Exactly once, in `dnfExt_det`, at the `∨`-node joining a term block to the cha
 for the remaining terms: an assignment firing both children would satisfy two
 terms of `ψ`.  Every other `∨`-node is another link of the same chain, and there
 are no others anywhere — that is `termExt_not_disj`, and it is what makes
-`Deterministic`, which quantifies over *all* nodes, follow from a statement about
-the chain.  This is the reason the paper needs unambiguous DNFs at all.
+`Deterministic` follow from a statement about the chain.  This is the reason the
+paper needs unambiguous DNFs at all.
+
+Being a *producer*, this file has the easy side of the reachability convention
+of `Circuits/NNF.lean`: `Respects` and `Deterministic` need only be established
+at the nodes reachable from the source, and what is proved here holds at every
+index of `Fin size`, reachable or not.  The reachability hypothesis is therefore
+discarded on entry to `dnfCircuit_respects` and `dnfCircuit_deterministic`.
 
 ## The bound is explicit
 
@@ -1185,7 +1191,7 @@ theorem dnfCircuit_computes (T : VTree V) (ψ : DNF V)
 containing the variables of `ψ`.  This is the content of the paper's "they all
 admit a d-DNNF respecting `T`" (`source/kc/arXiv.tex:340`). -/
 theorem dnfCircuit_respects (T : VTree V) (ψ : DNF V) : (dnfCircuit T ψ).Respects T := by
-  intro i j k hg
+  intro i j k _ hg
   have hL := RawGate.eq_conj_of_toGate hg
   exact dnfExt_respects T ψ [] (dnfExt_valid T ψ rawValid_nil) _ (List.prefix_refl _)
     i.1 (Nat.zero_le _) i.2 i.2 j.1 k.1 j.2 k.2 hL
@@ -1193,7 +1199,7 @@ theorem dnfCircuit_respects (T : VTree V) (ψ : DNF V) : (dnfCircuit T ψ).Respe
 /-- **The circuit is deterministic**, because `ψ` is unambiguous. -/
 theorem dnfCircuit_deterministic (T : VTree V) (ψ : DNF V) (hun : ψ.Unambiguous)
     (hvars : ∀ t ∈ ψ, Term.vars t ⊆ T.vars) : (dnfCircuit T ψ).Deterministic := by
-  intro i j k hg
+  intro i j k _ hg
   have hL := RawGate.eq_disj_of_toGate hg
   exact dnfExt_det T ψ [] (dnfExt_valid T ψ rawValid_nil) _ hun hvars (List.prefix_refl _)
     i.1 (Nat.zero_le _) i.2 i.2 j.1 k.1 j.2 k.2 hL

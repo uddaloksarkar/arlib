@@ -157,18 +157,18 @@ this way the bundle is both closer to the truth and much easier to consume: the
 lower bound needs a v-tree for `C'`, and asking the import to produce one out of
 nowhere would be asking for more than it gives.
 
-*Reachability.*  `IsSDDAt` constrains only what lies below the source, while
-`Respects` and `Deterministic` quantify over every node index, so getting from
-one to the other needs `Reaches` — `ROADMAP.md` gap G1 showing through.  It is
-part of the output rather than a side condition on the consumer: any actual
-complementation procedure builds a circuit with no unreachable garbage in it.
-Discharging G1 deletes this field and changes nothing else. -/
+*Nothing about reachability.*  The bundle used to carry a third clause, that the
+output circuit has no unreachable nodes, purely so that a consumer could get from
+`IsSDDAt` — which constrains only what lies below the source — to `Respects` and
+`Deterministic`, which then quantified over every node index.  That was
+`ROADMAP.md` gap G1; with the two conditions now imposed on the reachable nodes,
+`NNF.IsSDDAt.respectsFrom` bridges the two outright and the clause is gone. -/
 structure SDDComplementation (V : Type*) [DecidableEq V] (c d : ℕ) where
   /-- From an SDD for `f` respecting `T`, an SDD for `¬f` respecting `T`, of
   size at most `c·|C|^d`. -/
   compl : ∀ (T : VTree V) (C : NNF V) (f : (V → Bool) → Bool), T.WellFormed →
     C.IsSDDAt C.root T → C.Computes f →
-    ∃ C' : NNF V, C'.IsSDDAt C'.root T ∧ (∀ i, C'.Reaches C'.root i) ∧
+    ∃ C' : NNF V, C'.IsSDDAt C'.root T ∧
       C'.Computes (fun α => !(f α)) ∧ C'.size ≤ c * C.size ^ d
 
 end Imported

@@ -44,15 +44,18 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
 ### Circuits
 
 * `Circuits.NNF` — the DAG encoding, node values `valAt`, the computed function
-  `eval`, syntactic variables `varsAt`, the locality lemma `valAt_congr`, and
-  the predicates `Decomposable`, `Deterministic`, `IsDNNF`, `IsdDNNF`.
+  `eval`, syntactic variables `varsAt`, the locality lemma `valAt_congr`,
+  reachability `Reaches`, and the predicates `Decomposable`, `Deterministic`,
+  `IsDNNF`, `IsdDNNF` — each relativized to the nodes reachable from the source,
+  as the paper defines them.
 * `Circuits.VTree` — v-trees, well-formedness (equivalently, no repeated leaf),
   the subtree relation, `NNF.Respects`, and the structured classes `IsSDNNF`
   and `IsdSDNNF`.  Includes `Respects.decomposable`: respecting a well-formed
   v-tree already forces decomposability.
 * `Circuits.SDD` — `XDecomposition`, the fan-in-2 chain relation `IsChain`, the
-  SDD predicate `IsSDDAt` by recursion on the v-tree, reachability, and the
-  containment SDD ⊆ d-SDNNF.
+  SDD predicate `IsSDDAt` by recursion on the v-tree, and the containment
+  SDD ⊆ d-SDNNF (unconditional — the conditions are relativized to reachable
+  nodes in `Circuits.NNF`, which is what the paper actually asks for).
 * `Circuits.DNFtoCircuit` — the upper-bound half of `thm: main`: an unambiguous
   `k`-DNF with `ℓ` terms admits a d-SDNNF respecting *any* given v-tree, of size
   at most `ℓ·(2k+2) + 1`.  Determinism comes exactly from unambiguity.

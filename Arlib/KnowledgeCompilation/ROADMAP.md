@@ -231,32 +231,42 @@ out: doing it needs a family of fields `F` of order `2^t`, and nothing here buil
 
 ## 6. Recorded gaps
 
-Deferred obligations. Each is a real hole; none is currently load-bearing.
+Deferred obligations, and the record of what closing them taught. G1, G2, G3 and G6 are
+**closed**; G4 is partly closed; G5 remains. Entries are kept after closure because several
+of them were wrong in instructive ways, and the corrections are worth more than the
+original statements.
 
-**G1 — pruning to reachable nodes. NOW LOAD-BEARING.** `Decomposable`, `Deterministic` and
-`Respects` quantify over all node indices, whereas the paper imposes them only on nodes
-reachable from the source.
+**G1 — the conditions must be relativized to reachable nodes. CLOSED.**
+`Decomposable`, `Deterministic` and `Respects` used to quantify over *all* node indices,
+whereas the paper imposes them only on nodes reachable from the source. They are now
+relativized: `NNF.DecomposableFrom`, `DeterministicFrom` and `RespectsFrom` take a root, and
+the absolute forms are *definitionally* the relativized ones at `C.root`.
 
-This has stopped being hypothetical. `NNF.IsSDD.isdSDNNF` (SDD ⊆ d-SDNNF) currently carries
-an extra hypothesis `∀ i, C.Reaches C.root i`, and **the unconditional statement is false as
-formalized**: a circuit that is an SDD at its root but carries an unreachable
-nondeterministic `∨`-node satisfies `IsSDD` and not `Deterministic`. This is not a proof
-failure — `IsSDDAt.deterministicFrom` and `IsSDDAt.respectsFrom` are unconditional and give
-both conditions at every reachable node, which is the paper's actual claim.
+`NNF.Reaches` moved from `Circuits/SDD.lean` down to `Circuits/NNF.lean`, where it belongs.
+`NNF.IsSDD.isdSDNNF` is now **unconditional**, and `Imported.SDDComplementation` no longer
+carries a reachability field to work around the mismatch.
 
-There are two ways out, and **the second is now clearly better**:
+Two corrections to this entry's own earlier account:
 
-1. *Prune.* From a circuit satisfying the conditions on reachable nodes, build one
-   satisfying them everywhere with `size` no larger. Needs a renumbering of `Fin size`;
-   self-contained but genuinely fiddly.
-2. *Restate.* Redefine `Decomposable`/`Deterministic`/`Respects` to quantify over reachable
-   nodes only, matching the paper exactly. `Circuits/SDD` has already built the vocabulary
-   this needs — `NNF.Reaches`, `DeterministicFrom`, `RespectsFrom` — so most of the work is
-   done. It makes the containment unconditional and removes the gap outright rather than
-   working around it.
+- The fix worked cheaply *only* because the absolute predicates were defined as the
+  relativized ones at the root, definitionally. `IsSDDAt.deterministicFrom` already concluded
+  in the `…From` form, so it *is* a proof of `Deterministic` with no glue, and no use site
+  needed an unfolding lemma. Restating the predicates independently would have forced an
+  unfolding step at every consumer.
+- "Our classes are strictly contained in the paper's, so every lower bound over them is
+  weaker" named the wrong harm. The lower bounds take these predicates as *hypotheses*, so the
+  old reading made them apply to fewer circuits — a silent weakening, but not the visible
+  break. What was actually broken was the SDD ⊆ d-SDNNF containment, whose unconditional form
+  was **false** as formalized.
 
-Option 2 is a refactor of `Circuits/NNF` and `Circuits/VTree` and should be done in one
-pass, not piecemeal.
+Worth naming for symmetry: the *upper*-bound half of `thm_main` now asserts a formally weaker
+property of the circuit it builds. No content is lost — `dnfCircuit` satisfies the all-indices
+version and the paper's claim is the reachable one — but that is the price of making both
+halves speak about the paper's classes rather than about two different ones.
+
+The anticipated "lemma that the descent stays within the reachable set" was not needed:
+threading reachability alongside the node index through the recursion is strictly less work,
+because the recursive structure hands you the child-step exactly where it is required.
 
 **G2 — Claim `perm`. CLOSED.** The paper proves Claim `perm` (line 448) by citing Knop,
 Theorem 4.2, remarking only that "an inspection of the proof shows that everything goes

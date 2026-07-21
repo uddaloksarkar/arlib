@@ -104,8 +104,11 @@ the choice of total assignments; `⟨C⟩` is not needed and is not formalized.
 
 **D9. DNNF, d-DNNF.** (line 146) Decomposable NNF; deterministic DNNF.
 **In Lean** as `NNF.IsDNNF`, `NNF.IsdDNNF`.
-*Recorded gap G1:* our predicates quantify over all node indices rather than reachable
-ones. See `ROADMAP.md` §6.
+The conditions are relativized to the nodes reachable from the source
+(`NNF.DecomposableFrom`/`DeterministicFrom`/`RespectsFrom`, with the absolute forms
+*definitionally* these at `C.root`), which is what the paper imposes. Gap G1, now closed —
+see `ROADMAP.md` §6 for what that cost and for two corrections to how the gap was
+originally described.
 
 **D10. v-tree.** (`def: vtree`, line 150) A **full**, rooted, binary tree whose leaves are
 in bijection with the variables `X`.
