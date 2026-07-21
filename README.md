@@ -56,7 +56,7 @@ across several projects but are not in Mathlib under an obvious name.
 
 ### `Arlib.MarkovChains` — finite Markov chains
 
-20 modules, ~5.7k LOC, split by a load-bearing design principle: `Techniques/` holds
+25 modules, ~8.0k LOC, split by a load-bearing design principle: `Techniques/` holds
 machinery valid for *any* finite chain, `Chains/` holds the analysis of *specific* chains,
 and every general definition is instantiated against a concrete chain that keeps it honest.
 Following the Chen–Štefankovič–Vigoda monograph on spectral independence (`source/main.tex`).
@@ -79,6 +79,8 @@ here by an elementary variational, discriminant, or adjointness argument.
 | `Techniques.Mixture` | Convex combinations of kernels — two-way, uniform average, general weights — and the inheritance of stationarity, reversibility, PSD and the gap. |
 | `Techniques.Adjoint` | Mutually adjoint kernel pairs `μ(x)K(x,y) = ν(y)L(y,x)`; composites are reversible **and** PSD for free. `Reversible` is the self-adjoint case. |
 | `Techniques.Levels` | The up and down walks on the levels of a weighted complex, their adjointness, and hence reversibility, stationarity and PSD of the up-down and down-up walks. |
+| `Techniques.LocalWalk` | Links of a face — again weighted complexes, so `Levels` applies verbatim — the one-level-up distribution, and the local walk with its reversibility. |
+| `Techniques.Entropy` | The entropy functional `Ent_μ(f)`, the modified log-Sobolev inequality, entropy decay along a chain, and KL divergence with its contraction. |
 | `Techniques.Comparison` | Comparison of Dirichlet forms and transfer of the spectral gap; off-diagonal domination suffices; the absolute bound for iterates. |
 | `Techniques.Conductance` | Ergodic flow, cut, conductance; `ℰ_P(1_A) = cut`; the easy direction of Cheeger's inequality. |
 | `Techniques.Coupling` | Couplings, the coupling inequality, and the maximal coupling — so TV distance *is* the minimum disagreement probability. |
@@ -88,6 +90,9 @@ here by an elementary variational, discriminant, or adjointness argument.
 | `Chains.SpinSystem` | Configurations, single-site updates, the Gibbs distribution and its local partition functions; the hard-core model. |
 | `Chains.Glauber` | The Glauber dynamics: single-site heat-bath updates, reversibility w.r.t. Gibbs, and positive semidefiniteness via self-adjoint idempotence. |
 | `Chains.Pinning` | Pinnings and conditional Gibbs measures; the single-site update recovered as "resample from the conditional distribution". |
+| `Chains.BlockDynamics` | Heat-bath block dynamics; reversibility and PSD for a single block, inherited by the mixture; Glauber is the singleton-block case. |
+| `Chains.GlauberTensorization` | The Dirichlet form of the Glauber dynamics as a mean conditional variance, and approximate tensorization of variance as an equivalent of the spectral gap. |
+| `Chains.LevelEncoding` | Spin systems as weighted complexes; the down-up walk at the top level *is* the Glauber dynamics. |
 
 ### `Arlib.Prelude`
 

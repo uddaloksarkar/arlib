@@ -73,6 +73,8 @@ import Arlib.MarkovChains.Techniques.Lazy
 import Arlib.MarkovChains.Techniques.Mixture
 import Arlib.MarkovChains.Techniques.Adjoint
 import Arlib.MarkovChains.Techniques.Levels
+import Arlib.MarkovChains.Techniques.LocalWalk
+import Arlib.MarkovChains.Techniques.Entropy
 import Arlib.MarkovChains.Techniques.Comparison
 import Arlib.MarkovChains.Techniques.Conductance
 import Arlib.MarkovChains.Techniques.Coupling
@@ -83,3 +85,6 @@ import Arlib.MarkovChains.Chains.IndependentSampler
 import Arlib.MarkovChains.Chains.SpinSystem
 import Arlib.MarkovChains.Chains.Glauber
 import Arlib.MarkovChains.Chains.Pinning
+import Arlib.MarkovChains.Chains.BlockDynamics
+import Arlib.MarkovChains.Chains.GlauberTensorization
+import Arlib.MarkovChains.Chains.LevelEncoding
