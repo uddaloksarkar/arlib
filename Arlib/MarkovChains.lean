@@ -195,6 +195,10 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
 * `Chains.SpectralIndependenceMixing` — **the monograph's central theorem**:
   spectral independence at every pinning gives the Glauber dynamics a spectral
   gap, with an explicit constant that is exactly `1/n` at `η = 1`.
+* `Chains.ProductSpectralIndependence` — the first instance of that theorem: a
+  product weight is pairwise independent, pinning preserves the property, and
+  the resulting `γ ≥ 1/n` is *the same proposition* `ProductMeasure` proves by
+  approximate tensorization — two independent routes to one constant.
 * `Chains.OptimalMixingTV` — the same bound in *total variation*, via Pinsker,
   and an exact crossover against the variance route: neither dominates.
 * `Chains.ProductEntropy` — the same for entropy, and the library's first
@@ -252,5 +256,6 @@ import Arlib.MarkovChains.Chains.ProductEntropy
 import Arlib.MarkovChains.Chains.ProductOptimalMixing
 import Arlib.MarkovChains.Chains.OptimalMixingTV
 import Arlib.MarkovChains.Chains.SpectralIndependenceMixing
+import Arlib.MarkovChains.Chains.ProductSpectralIndependence
 import Arlib.MarkovChains.Chains.UniformComplex
 import Arlib.MarkovChains.Chains.BernoulliLaplace

@@ -56,7 +56,7 @@ across several projects but are not in Mathlib under an obvious name.
 
 ### `Arlib.MarkovChains` — finite Markov chains
 
-52 modules, ~24.9k LOC, split by a load-bearing design principle: `Techniques/` holds
+53 modules, ~25.5k LOC, split by a load-bearing design principle: `Techniques/` holds
 machinery valid for *any* finite chain, `Chains/` holds the analysis of *specific* chains,
 and every general definition is instantiated against a concrete chain that keeps it honest.
 Following the Chen–Štefankovič–Vigoda monograph on spectral independence (`source/main.tex`).
@@ -115,6 +115,7 @@ here by an elementary variational, discriminant, or adjointness argument.
 | `Chains.ProductMeasure` | The first weight for which approximate tensorization is *proved*, discharging the hypothesis the `GlauberTensorization` equivalences were built to consume: a product measure gives `C = 1`, hence Glauber gap exactly `1/n`. The induction needs no site ordering — proving it for every `Λ` at once makes it monotone, so plain `Finset.induction_on` closes it. |
 | `Chains.ProductOptimalMixing` | `O(n log(n/ε))` mixing in relative entropy for product-measure Glauber — the monograph's headline claim. The comparison is made honestly: the variance route is `Θ(n²)` here, since `log(1/√m) = Θ(n)`, and the baseline is restated without laziness first, because Glauber is already PSD. KL only; no TV bound at this rate is claimed. |
 | `Chains.SpectralIndependenceMixing` | **The monograph's central theorem.** Spectral independence at every pinning ⟹ a spectral gap for Glauber, chaining `LocalSpectralIndependence` → `PinnedGlauber` → `LocalWalkBridge` → `ImprovedRandomWalk` → `GlauberViaLevels`. Exactly `1/n` at `η = 1`, matching the product-measure answer with no slack. The `η ≤ 3/2` hypothesis is an artefact of our `ImprovedRandomWalk`, not of the mathematics. |
+| `Chains.ProductSpectralIndependence` | Discharges the central theorem's hypothesis for the first time. Pairwise independence of a product weight is the *unnormalised* identity `Z(pin{v,u})·Z = Z(pin{v})·Z(pin{u})` — no division, no positivity needed, which matters because pinned families carry point masses. Yields `γ ≥ 1/n` via spectral independence: literally the same proposition `ProductMeasure` proves via tensorization. |
 | `Chains.OptimalMixingTV` | `O(n log(n/δ))` for product Glauber in **total variation**. Pinsker's real cost is not a constant in a log but the squaring `δ ↦ δ²`, which halves the effective decay rate `ρ ↦ ρ/2`; the χ² route has no analogue. Proves the exact crossover: entropy beats variance iff `ln(nL/δ) < nL/2`, so neither dominates. |
 | `Chains.ProductEntropy` | Tensorization of *entropy* for a product measure at `C = 1`, and the library's first modified log-Sobolev instance, `ModLogSobolev μ (glauber …) (1/n)` — stated against `entropyProduction`, never the vacuous naive form. Includes `localEnt_le_entropyProduction`, valid for any reversible chain. |
 | `Chains.HardCore` | The monograph's two running examples. Hard-core, whose weight can vanish, with the exact `Zloc` trichotomy and the `λ/(1+λ)` update; and Ising, whose weight cannot, so `0 < Z` needs no hypothesis at all. |
