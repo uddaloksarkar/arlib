@@ -67,6 +67,16 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
 * `Techniques.Comparison` — transfer of a Poincaré inequality along a comparison
   of Dirichlet forms.
 * `Techniques.Conductance` — the easy direction of Cheeger's inequality.
+* `Techniques.PotentialDecay` — the Lyapunov/supermartingale route to a
+  *hitting-time* bound rather than a mixing bound: a drift condition
+  `K Φ ≤ λ·Φ` self-improves to `K^t Φ ≤ λ^t·Φ`, and a finite Markov inequality
+  turns that into `Pr[not in T after t steps] ≤ λ^t · Φ(x₀)`.
+* `Techniques.SinusoidalPotential` — Wilson's potential `Φ(i) = sin(Ci)/sin C`
+  and the hitting-time bound it yields for the hole walk of Huber's bounding
+  chain for linear extensions (Huber 2006b, Theorem 5).  The engine is the
+  second-difference identity `Φ(i-1) + Φ(i+1) = 2 cos(C)·Φ(i)`; the module also
+  records two repairs to the published argument, one for a backward rate
+  `q ≤ p` and one for the reflecting boundary.
 
 ### Techniques — the local-to-global machinery
 
@@ -180,6 +190,8 @@ import Arlib.MarkovChains.Techniques.Comparison
 import Arlib.MarkovChains.Techniques.Conductance
 import Arlib.MarkovChains.Techniques.Coupling
 import Arlib.MarkovChains.Techniques.MixingTime
+import Arlib.MarkovChains.Techniques.PotentialDecay
+import Arlib.MarkovChains.Techniques.SinusoidalPotential
 import Arlib.MarkovChains.Techniques.LevelVariance
 import Arlib.MarkovChains.Techniques.LocalToGlobal
 import Arlib.MarkovChains.Techniques.LinkRestriction
