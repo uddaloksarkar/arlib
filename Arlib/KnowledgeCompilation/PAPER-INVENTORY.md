@@ -18,11 +18,21 @@ should not need to reopen the paper except to check a proof detail.
   results exist (I1–I4 in `ROADMAP.md` §3); each is flagged at its entry.
 
 **Existing Lean (do not redo).**
-`Arlib/KnowledgeCompilation/Circuits/NNF.lean`: `Gate`, `Gate.children`, `NNF`
-(with `size`, `gate`, `child_lt`, `root`), `conj_lt`, `disj_lt`, `valAt` (+ the four
-unfolding lemmas), `eval`, `Sat`, `Equiv`, `Computes`, `varsAt` (+ four unfolding
-lemmas), `vars`, `valAt_congr`, `eval_congr`, `Decomposable`, `Deterministic`, `IsDNNF`,
-`IsdDNNF`, `valAt_conj_split`, `valAt_disj_unique`.
+`Circuits/NNF.lean`: `Gate`, `Gate.children`, `NNF` (with `size`, `gate`, `child_lt`,
+`root`), `conj_lt`, `disj_lt`, `valAt` (+ the four unfolding lemmas), `eval`, `Sat`,
+`Equiv`, `Computes`, `varsAt` (+ four unfolding lemmas), `vars`, `valAt_congr`,
+`eval_congr`, `Decomposable`, `Deterministic`, `IsDNNF`, `IsdDNNF`, `valAt_conj_split`,
+`valAt_disj_unique`.
+
+`Circuits/VTree.lean`: `VTree`, `leaves`, `vars`, `WellFormed`,
+`wellFormed_iff_nodup_leaves`, `IsSubtree` (+ `trans`, `vars_subset`, `wellFormed`),
+`NNF.Respects`, `NNF.Respects.decomposable`, `NNF.IsSDNNF`, `NNF.IsdSDNNF` and their
+projections.
+
+`Circuits/DNF.lean`: `Lit`, `Term.Sat`, `Term.vars`, `Term.width`, `Term.Consistent`,
+`Term.sat_union`, `Term.sat_congr`, `Term.not_sat_of_not_consistent`, `DNF`, `DNF.Sat`,
+`DNF.eval`, `DNF.satTerms`, `DNF.numTerms`, `DNF.IsKDNF`, `DNF.Unambiguous`,
+`DNF.Unambiguous.eq_of_sat`, `DNF.Unambiguous.sublist`.
 
 Reusable from elsewhere in Arlib: `Arlib.Probability.ProbSpace.chebyshev`,
 `Arlib.Probability.PolyHash` (degree-`<k` polynomial hash family over a finite field),
@@ -86,24 +96,37 @@ ones. See `ROADMAP.md` §6.
 
 **D10. v-tree.** (`def: vtree`, line 150) A **full**, rooted, binary tree whose leaves are
 in bijection with the variables `X`.
-*Deps:* none. *Lean note:* `inductive VTree V | leaf : V → VTree V | node : VTree V → VTree V → VTree V`,
-plus the injectivity of the leaf labelling as a side condition (a `VTree` with repeated
-leaves is not a v-tree). "Full" is automatic for this inductive: every internal node has
-exactly two children. Define `VTree.vars : VTree V → Finset V` and require
-`vars` of the two children to be disjoint, which is the same condition as leaf-injectivity
-and is the form actually used.
+*Deps:* none. **In Lean** as `VTree`, with `VTree.vars` and `VTree.WellFormed`.
+"Full" is automatic for the inductive. Leaf-injectivity is imposed as a side condition
+(a `VTree` with repeated leaves is not a v-tree) in the form "at every internal node the
+two children have disjoint `vars`"; that this is genuinely equivalent to the paper's 1-1
+correspondence is **proved**, as `VTree.wellFormed_iff_nodup_leaves`, not assumed.
+Well-formedness is deliberately *not* a field of `VTree`, so that recursion on the
+inductive stays unobstructed; it rides along as a hypothesis where needed, and is
+inherited by subtrees (`IsSubtree.wellFormed`).
 
 **D11. Respecting a v-tree.** (line 154) A DNNF `C` *respects* `T` if for every `∧`-node
 `g` of `C` there is a node `t` of `T` with `var(gₗ) ⊆ var(t_ℓ)` and `var(gᵣ) ⊆ var(t_ᵣ)`.
-*Deps:* D7, D10. *Lean note:* `∀ ⦃i j k⦄, C.gate i = .conj j k → ∃ t ∈ T.nodes,
-C.varsAt j ⊆ t.left.vars ∧ C.varsAt k ⊆ t.right.vars`. Note the node `t` may depend on the
-`∧`-node `g` — a common misreading is to require a single `t` for all of `C`.
+*Deps:* D7, D10. **In Lean** as `NNF.Respects`.
+Note the node `t` may depend on the `∧`-node `g` — a common misreading is to require a
+single `t` for all of `C`. Since only the *children* of `t` are ever used, the existential
+is over the pair of children directly: `∃ tl tr, VTree.IsSubtree (.node tl tr) T ∧ …`.
+*Ambiguity in the paper, resolved:* the definition says "a node `t` of `T`" without
+restricting to internal nodes, but then writes `t_ℓ`, `t_ᵣ`, which exist only at internal
+nodes. The internal-node reading is the only one under which the definition typechecks,
+and it matches the figure at line 238; `IsSubtree (.node tl tr) T` encodes exactly that.
 
 **D12. Structured (d-)DNNF; d-SDNNF.** (`def: structure`, line 156) A (d-)DNNF is
 *structured* if it respects **some** v-tree.
-*Deps:* D9, D11. *Lean note:* the existential over v-trees is genuine; the lower bounds
-must hold for every choice, so in a lower-bound proof this is *hypothesis* data to
-destructure, and in an upper-bound proof it is data to supply.
+*Deps:* D9, D11. **In Lean** as `NNF.IsSDNNF` and `NNF.IsdSDNNF`.
+The existential over v-trees is genuine; the lower bounds must hold for every choice, so
+in a lower-bound proof this is *hypothesis* data to destructure, and in an upper-bound
+proof it is data to supply. The existential carries `T.WellFormed`: admitting a tree with
+repeated leaves would enlarge the class and thereby weaken every lower bound stated over
+it. Note that `IsSDNNF` lists decomposability explicitly even though
+`NNF.Respects.decomposable` shows it is implied by respecting a well-formed v-tree — the
+paper defines structuredness as a property *of a DNNF*, and this is a transcription of
+that.
 
 **D13. `X`-decomposition.** (`def: decomp`, line 244) For `f : {0,1}^Z → {0,1}` and
 disjoint `X, Y ⊆ Z`, if `f = ⋁_{i=1}^n p_i(X) ∧ s_i(Y)`, then
@@ -251,6 +274,25 @@ from, every term derived from `D` has the displayed shape
 `⋀_{i∈I_p} y_{i,jᵢ} ∧ ⋀_{j≠jᵢ} ¬y_{i,j} ∧ ⋀_{i∈I_n} ⋀_j ¬y_{i,j}`, and that shape forces
 `C = C'`.
 *This is the best entry point for real proof work in the area* — see `ROADMAP.md` §7.
+
+> **Trap — `ψ^∨` is *not* equivalent to `ψ[xᵢ := ⋁ⱼ y_{i,j}]`.** It is very natural to
+> assume the re-disambiguation step is semantics-preserving, and it is not. The
+> intermediate DNF `φ` (before the extra step) *is* equivalent to the substituted
+> formula; but adding the conjuncts `¬y_{i,j'}` at line 385 strictly shrinks the
+> satisfying set. Concretely, an `α` turning on **two** copies `y_{i,1}, y_{i,2}` satisfies
+> `φ` — it satisfies the term that chose either copy — but satisfies no term of `ψ^∨`,
+> since every such term forces all other copies off.
+>
+> The paper never claims the equivalence: the lemma at line 391 asserts only unambiguity,
+> the width and the term count. Nothing is wrong, but a formalization that states
+> `Sat (ψ^∨) α ↔ Sat ψ (collapse α)` unconditionally **will be false**.
+>
+> The correct statement, and the one T7 actually consumes, is conditional on the
+> assignment being *one-hot*: at most one copy of each original variable is set. Soundness
+> (`Sat (ψ^∨) α → Sat ψ (collapse α)`, where `collapse α i = ⋁ⱼ α(i,j)`) holds for every
+> `α`; the converse needs one-hotness. And this is exactly why the protocol at lines
+> 452–457 sets **every other variable in `V` to zero** — that clause is not padding, it is
+> what puts the simulated input into the region where `ψ^∨` and `ψ` agree.
 
 **T5. The Wegman–Carter family. [IMPORTED — I3]** (`lem: indperm`, line 423)
 *Let `𝔽` be the field of order `n' = 2^t` and `𝒫 = {x ↦ ax + b : a, b ∈ 𝔽, a ≠ 0}`. Then

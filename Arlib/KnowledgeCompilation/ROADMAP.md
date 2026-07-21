@@ -79,9 +79,9 @@ Three directories, mirroring the shape of the argument.
 | Module | Contents | Status |
 | --- | --- | --- |
 | `NNF` | DAG encoding, `valAt`, `eval`, `varsAt`, `valAt_congr`, `Decomposable`, `Deterministic`, `IsDNNF`, `IsdDNNF` | **done** |
-| `VTree` | v-trees over `V`, the variables below a v-tree node, `Respects`, `IsdSDNNF` | next |
-| `SDD` | `X`-decomposition, `IsSDDAt`, SDD ⊆ d-SDNNF | after `VTree` |
-| `DNF` | DNF, terms, `k`-DNF, unambiguity, the DNF-to-d-SDNNF upper bound | after `VTree` |
+| `VTree` | v-trees, `WellFormed` (⟺ no repeated leaf), `IsSubtree`, `Respects`, `IsSDNNF`, `IsdSDNNF`, `Respects.decomposable` | **done** |
+| `SDD` | `X`-decomposition, `IsSDDAt`, SDD ⊆ d-SDNNF | next |
+| `DNF` | terms, width, `IsKDNF`, `Unambiguous` — **done**; the DNF-to-d-SDNNF upper bound still to do, now unblocked by `VTree` | partial |
 | `Arithmetic` | AC, monotone/positive AC, `supp`, the relabelling `φ`, p-decomposition, PSDD | last |
 
 ### `Communication/` — the tool
