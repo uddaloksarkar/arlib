@@ -151,6 +151,11 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
   is actually *proved*, discharging the hypothesis the `GlauberTensorization`
   results were built to consume: a product measure gives `C = 1`, hence Glauber
   gap exactly `1/n` and an `O(n log(1/(ε√m)))` mixing bound.
+* `Chains.UniformComplex` — the concrete complex the `Levels` half was missing:
+  `mu`, `pi`, `up` and `downUp` in closed form (the down-up walk is
+  Bernoulli–Laplace), and an audit of the general theorems against those exact
+  answers, including where `ℰ ≤ Var` is tight and how much slack it has
+  otherwise.
 * `Chains.ProductEntropy` — the same for entropy, and the library's first
   modified log-Sobolev instance: `ModLogSobolev μ (glauber …) (1/n)`.  Also
   `localEnt_le_entropyProduction`, which holds for *any* reversible chain.
@@ -196,3 +201,4 @@ import Arlib.MarkovChains.Chains.PinnedGlauber
 import Arlib.MarkovChains.Chains.HardCore
 import Arlib.MarkovChains.Chains.ProductMeasure
 import Arlib.MarkovChains.Chains.ProductEntropy
+import Arlib.MarkovChains.Chains.UniformComplex

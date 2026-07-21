@@ -56,7 +56,7 @@ across several projects but are not in Mathlib under an obvious name.
 
 ### `Arlib.MarkovChains` — finite Markov chains
 
-40 modules, ~17.8k LOC, split by a load-bearing design principle: `Techniques/` holds
+41 modules, ~18.7k LOC, split by a load-bearing design principle: `Techniques/` holds
 machinery valid for *any* finite chain, `Chains/` holds the analysis of *specific* chains,
 and every general definition is instantiated against a concrete chain that keeps it honest.
 Following the Chen–Štefankovič–Vigoda monograph on spectral independence (`source/main.tex`).
@@ -105,6 +105,7 @@ here by an elementary variational, discriminant, or adjointness argument.
 | `Chains.LevelEncoding` | Spin systems as weighted complexes; the down-up walk at the top level *is* the Glauber dynamics. |
 | `Chains.GlauberViaLevels` | Transporting that encoding back: PSD-ness of the Glauber dynamics derived a third time, now from adjointness, and the Poincaré inequality transferred in both directions. |
 | `Chains.PinnedGlauber` | Conditioning does not leave the category: pinned marginals, `π_{η,1}`, and the local walk `Q_η` — shown to be the complex-side `localWalk` entry for entry. |
+| `Chains.UniformComplex` | The concrete instantiation the `Levels`/`LocalWalk` development lacked: `mu`, `π_k` (uniform, and *independent of the dimension*), `U_k = 1/(N−k)`, and `downUp` as the Bernoulli–Laplace walk in closed form. Audits the general theory against exact answers — detailed balance proved twice, the Rayleigh quotient exactly `N/((k+1)(N−k))`, and `ℰ ≤ Var` shown tight at `k = 0` with its slack computed above. |
 | `Chains.ProductMeasure` | The first weight for which approximate tensorization is *proved*, discharging the hypothesis the `GlauberTensorization` equivalences were built to consume: a product measure gives `C = 1`, hence Glauber gap exactly `1/n`. The induction needs no site ordering — proving it for every `Λ` at once makes it monotone, so plain `Finset.induction_on` closes it. |
 | `Chains.ProductEntropy` | Tensorization of *entropy* for a product measure at `C = 1`, and the library's first modified log-Sobolev instance, `ModLogSobolev μ (glauber …) (1/n)` — stated against `entropyProduction`, never the vacuous naive form. Includes `localEnt_le_entropyProduction`, valid for any reversible chain. |
 | `Chains.HardCore` | The monograph's two running examples. Hard-core, whose weight can vanish, with the exact `Zloc` trichotomy and the `λ/(1+λ)` update; and Ising, whose weight cannot, so `0 < Z` needs no hypothesis at all. |
