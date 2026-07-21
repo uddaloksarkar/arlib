@@ -255,5 +255,91 @@ theorem sat_copyTerm_iff [NeZero m] {t : Finset (Lit ι)} {α : ι × Fin m → 
     (∃ c : ι → Fin m, Term.Sat (copyTerm t c) α) ↔ Term.Sat t (collapse α) :=
   ⟨fun ⟨_, hc⟩ => sat_of_sat_copyTerm hc, exists_copyTerm_sat hone⟩
 
+/-! ## Assembling `ψ^∨`
+
+The DNF of the construction: one derived term per original term and per choice
+function.  The enumeration of choice functions is a *parameter* rather than
+being fixed here, and that is deliberate — see the discussion below. -/
+
+/-- **`ψ^∨`** (paper §4.4.1, `source/kc/arXiv.tex:389`), relative to a supplied
+enumeration `choices t` of the choice functions to use for the term `t`.
+
+Fixing the enumeration inside this definition would mean committing to a
+concrete listing of the functions `posPart t → Fin m`, which in Lean means
+`Finset.pi` plus a total extension.  That machinery has nothing to do with the
+mathematics: `copyTerm t c` depends on `c` only through its restriction to
+`posPart t` (`copyTerm_congr`), so *any* enumeration hitting every restriction
+gives the same DNF up to the order and multiplicity of its terms.  Taking it as a
+parameter keeps the two concerns apart, and lets the term count below be stated
+against whatever bound the enumeration achieves — the paper's `m^k` per term
+being the case where `choices t` enumerates `posPart t → Fin m` exactly once
+each. -/
+def copyDNF (ψ : DNF ι) (choices : Finset (Lit ι) → List (ι → Fin m)) :
+    DNF (ι × Fin m) :=
+  ψ.flatMap (fun t => (choices t).map (copyTerm t))
+
+lemma mem_copyDNF {ψ : DNF ι} {choices : Finset (Lit ι) → List (ι → Fin m)}
+    {u : Finset (Lit (ι × Fin m))} :
+    u ∈ copyDNF ψ choices ↔ ∃ t ∈ ψ, ∃ c ∈ choices t, copyTerm t c = u := by
+  simp [copyDNF]
+
+/-- **The term count.**  At most one derived term per original term per choice
+function, so the counts multiply.  With `choices t` enumerating the functions
+`posPart t → Fin m` this is the paper's `O(ℓ · m^k)` for a `k`-DNF. -/
+theorem numTerms_copyDNF_le (ψ : DNF ι) (choices : Finset (Lit ι) → List (ι → Fin m))
+    (B : ℕ) (hB : ∀ t ∈ ψ, (choices t).length ≤ B) :
+    (copyDNF ψ choices).numTerms ≤ ψ.numTerms * B := by
+  classical
+  induction ψ with
+  | nil => simp [copyDNF, DNF.numTerms]
+  | cons t rest ih =>
+    have hrest : ∀ u ∈ rest, (choices u).length ≤ B :=
+      fun u hu => hB u (List.mem_cons_of_mem _ hu)
+    have ht : (choices t).length ≤ B := hB t (List.mem_cons_self _ _)
+    simp only [copyDNF, List.flatMap_cons, DNF.numTerms, List.length_append,
+      List.length_map] at *
+    calc (choices t).length + (rest.flatMap fun u => (choices u).map (copyTerm u)).length
+        ≤ B + rest.length * B := Nat.add_le_add ht (ih hrest)
+      _ = (rest.length + 1) * B := by ring
+      _ = (t :: rest).length * B := by simp [Nat.add_comm]
+
+/-! ## Faithfulness of `ψ^∨` -/
+
+/-- **Soundness for the whole DNF**, unconditional: if `α` satisfies `ψ^∨` then
+the collapsed assignment satisfies `ψ`. -/
+theorem sat_of_sat_copyDNF {ψ : DNF ι} {choices : Finset (Lit ι) → List (ι → Fin m)}
+    {α : ι × Fin m → Bool} (h : DNF.Sat (copyDNF ψ choices) α) :
+    DNF.Sat ψ (collapse α) := by
+  obtain ⟨u, hu, hsat⟩ := h
+  obtain ⟨t, ht, c, _, rfl⟩ := mem_copyDNF.mp hu
+  exact ⟨t, ht, sat_of_sat_copyTerm hsat⟩
+
+/-- **Unambiguity of `ψ^∨`, in pairwise form** (paper's lemma at
+`source/kc/arXiv.tex:391`).
+
+Two derived terms satisfied by the same assignment are *equal*.  The argument is
+the paper's: collapse `α`, use unambiguity of `ψ` to see both came from the same
+original term, then `copyTerm_eq_of_sat` to see the choice functions agree where
+it matters.
+
+This is the pairwise statement (`Unambiguous.eq_of_sat`-shaped), not the counting
+one that `DNF.Unambiguous` asks for.  Upgrading it needs the enumeration
+`choices t` to be *irredundant* — to list no restriction to `posPart t` twice —
+which is a property of the enumeration rather than of the construction, and is
+exactly the multiplicity issue that motivated making `DNF` a `List`.  See the
+module docstring of `Circuits/DNF.lean`. -/
+theorem copyDNF_eq_of_sat {ψ : DNF ι} {choices : Finset (Lit ι) → List (ι → Fin m)}
+    (hψ : DNF.Unambiguous ψ) {α : ι × Fin m → Bool}
+    {u u' : Finset (Lit (ι × Fin m))} (hu : u ∈ copyDNF ψ choices)
+    (hu' : u' ∈ copyDNF ψ choices) (hs : Term.Sat u α) (hs' : Term.Sat u' α) :
+    u = u' := by
+  obtain ⟨t, ht, c, _, rfl⟩ := mem_copyDNF.mp hu
+  obtain ⟨t', ht', c', _, rfl⟩ := mem_copyDNF.mp hu'
+  -- both collapse to satisfied terms of `ψ`, so they came from the same one
+  have : t = t' :=
+    hψ.eq_of_sat ht ht' (sat_of_sat_copyTerm hs) (sat_of_sat_copyTerm hs')
+  subst this
+  exact copyTerm_eq_of_sat hs hs'
+
 end Copies
 end Arlib.KnowledgeCompilation
