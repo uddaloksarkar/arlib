@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kuldeep S. Meel
 -/
 import Arlib.InformationTheory.Basic
+import Arlib.InformationTheory.QueryLowerBound
 import Arlib.InformationTheory.Fano
 import Arlib.InformationTheory.DataProcessing
 import Arlib.InformationTheory.Submodular
