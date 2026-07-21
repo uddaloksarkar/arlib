@@ -56,7 +56,7 @@ across several projects but are not in Mathlib under an obvious name.
 
 ### `Arlib.MarkovChains` — finite Markov chains
 
-53 modules, ~25.5k LOC, split by a load-bearing design principle: `Techniques/` holds
+54 modules, ~26.1k LOC, split by a load-bearing design principle: `Techniques/` holds
 machinery valid for *any* finite chain, `Chains/` holds the analysis of *specific* chains,
 and every general definition is instantiated against a concrete chain that keeps it honest.
 Following the Chen–Štefankovič–Vigoda monograph on spectral independence (`source/main.tex`).
@@ -90,6 +90,7 @@ here by an elementary variational, discriminant, or adjointness argument.
 | `Techniques.FirstStep` | `claim:first-step` — the two-level variance drop equals the average over faces of the variance inside the two-levels-up link. Needs no WLOG centering (the squared means cancel by a pushforward identity), and the crux is the factor `2·(n−k).choose 2 = (n−k)(n−k−1)` relating the link to two applications of the up operator. |
 | `Techniques.ImprovedRandomWalk` | `lem:improved-technical` and the Improved Random Walk Theorem — per-link Poincaré inequalities give the top-level down-up walk a gap of `Γ_m / ∑_{i≤m} Γ_i`, with `Γ_i = ∏_{j<i}(2γ_j − 1)`. The monograph's induction tacitly needs `2γ_j ≥ 1`, which is why the theorem is stated in those factors at all; here it is an explicit hypothesis. |
 | `Techniques.LocalWalkBridge` | `P^∧∨_{τ,1} = (Q_τ + I)/2` — an entrywise identity on *every* row, degenerate ones included, because the two constructions' guards are literally the same predicate. Hence `γ(P^∧∨_{τ,1}) ≥ γ/2 ↔ γ(Q_τ) ≥ γ`, exact in both directions, and the Random Walk Theorem restated on `Q_τ`. |
+| `Techniques.ImprovedRandomWalkSharp` | The monograph's suggested sharpening (line 1987): `γ/(2−γ)` for `2γ−1`. The gain is an identity — `γ/(2−γ) − (2γ−1) = 2(γ−1)²/(2−γ)`, exactly the term the other proof throws away — and the constants themselves compare, not just the factors. Not a strict improvement: at `γ = 2` the old factor is `3` and the sharp one `0`, and `BernoulliLaplace` attains `γ = 2`. |
 | `Techniques.MultiStep` | `Adjoint.comp` — adjointness composes, with the order reversed on one side — hence multi-step operators between any two levels, `lem:diff-var` for general `i > j`, and the multi-level `eqn:RW-improved-general`. `multiDownUp_succ` audits the orientation against `Levels.downUp`. |
 | `Techniques.UpDownDownUp` | Equal Poincaré constants for the two composites of an adjoint pair (`lem:updown-downup`), where the monograph uses equality of the nonzero spectra of `AB` and `BA`. The `γ ≤ 1` side condition is *necessary* — a point-mass source satisfies every Poincaré inequality vacuously — and the counterexample is formalized. |
 | `Techniques.Transport` | μ-almost-everywhere agreement of chains, and transport of the whole `L²` theory along an injective embedding of state spaces. Rows of weight zero are invisible; the range carries all the mass. |

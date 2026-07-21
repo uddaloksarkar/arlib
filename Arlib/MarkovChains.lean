@@ -106,6 +106,10 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
   local walk, on every row; hence `γ(P^∧∨_{τ,1}) ≥ γ/2 ↔ γ(Q_τ) ≥ γ`, which lets
   the Random Walk Theorem take its hypothesis on `Q_τ` — the object the rest of
   the monograph actually bounds.
+* `Techniques.ImprovedRandomWalkSharp` — the same theorem with the factor
+  `γ/(2−γ)` in place of `2γ−1`.  Better on `0 ≤ γ < 2`, by exactly the term the
+  other proof discards — but *worse* at `γ = 2`, which one of the library's two
+  instantiations attains, so the two are kept side by side.
 * `Techniques.MultiStep` — adjointness composes, hence multi-step up/down
   operators between any two levels, `lem:diff-var` in general, and
   `eqn:RW-improved-general` for the multi-level down-up walk.
@@ -231,6 +235,7 @@ import Arlib.MarkovChains.Techniques.UpDownDownUp
 import Arlib.MarkovChains.Techniques.FirstStep
 import Arlib.MarkovChains.Techniques.ImprovedRandomWalk
 import Arlib.MarkovChains.Techniques.MultiStep
+import Arlib.MarkovChains.Techniques.ImprovedRandomWalkSharp
 import Arlib.MarkovChains.Techniques.LocalWalkBridge
 import Arlib.MarkovChains.Techniques.EntropyDecay
 import Arlib.MarkovChains.Techniques.Pinsker
