@@ -210,6 +210,10 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
   (`lem:opt-relax-SI`): a Glauber relaxation-time bound at every pinning gives
   spectral independence.  Introduces `freeGlauber`, the chain that resamples
   only unpinned sites, which the library did not previously have.
+* `Chains.TwoSiteSpectralIndependence` — the calibration the whole
+  spectral-independence half was missing: for two sites and two spins the exact
+  constant is `η = 1 + |ρ|`, the correlation of the spin indicators, attaining
+  both `1` (product) and `2` (perfect correlation).
 * `Chains.ProductSpectralIndependence` — the first instance of that theorem: a
   product weight is pairwise independent, pinning preserves the property, and
   the resulting `γ ≥ 1/n` is *the same proposition* `ProductMeasure` proves by
@@ -276,5 +280,6 @@ import Arlib.MarkovChains.Chains.SpectralIndependenceMixing
 import Arlib.MarkovChains.Chains.ProductSpectralIndependence
 import Arlib.MarkovChains.Chains.SpectralIndependenceMixingSharp
 import Arlib.MarkovChains.Chains.GlauberToSpectralIndependence
+import Arlib.MarkovChains.Chains.TwoSiteSpectralIndependence
 import Arlib.MarkovChains.Chains.UniformComplex
 import Arlib.MarkovChains.Chains.BernoulliLaplace

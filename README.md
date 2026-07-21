@@ -56,7 +56,7 @@ across several projects but are not in Mathlib under an obvious name.
 
 ### `Arlib.MarkovChains` — finite Markov chains
 
-57 modules, ~28.1k LOC, split by a load-bearing design principle: `Techniques/` holds
+58 modules, ~29.3k LOC, split by a load-bearing design principle: `Techniques/` holds
 machinery valid for *any* finite chain, `Chains/` holds the analysis of *specific* chains,
 and every general definition is instantiated against a concrete chain that keeps it honest.
 Following the Chen–Štefankovič–Vigoda monograph on spectral independence (`source/main.tex`).
@@ -119,6 +119,7 @@ here by an elementary variational, discriminant, or adjointness argument.
 | `Chains.SpectralIndependenceMixing` | **The monograph's central theorem.** Spectral independence at every pinning ⟹ a spectral gap for Glauber, chaining `LocalSpectralIndependence` → `PinnedGlauber` → `LocalWalkBridge` → `ImprovedRandomWalk` → `GlauberViaLevels`. Exactly `1/n` at `η = 1`, matching the product-measure answer with no slack. The `η ≤ 3/2` hypothesis is an artefact of our `ImprovedRandomWalk`, not of the mathematics. |
 | `Chains.SpectralIndependenceMixingSharp` | The central theorem under `η ≤ 2` (one-sided — `0 ≤ η` is derived), deriving the old conclusion on the overlap. On `3/2 < η < 2` the old side condition is *refuted*, not merely unproved. The `η = 0` degeneracy is unreachable: any site with a marginal strictly inside `(0,1)` forces `0 < η`. |
 | `Chains.GlauberToSpectralIndependence` | `lem:opt-relax-SI`: `T_relax(Glauber for μ_τ) ≤ C(n−|Λ|)` at every pinning ⟹ spectral independence with constant `C`. Testing the Poincaré inequality at a linear statistic is an *identity*, not a bound — a Dirichlet form only sees increments the kernel charges. Introduces `freeGlauber`, resampling only free sites. Round trip is lossless exactly at `C = 1`. |
+| `Chains.TwoSiteSpectralIndependence` | The exact spectral independence constant for the smallest correlated system: `η = 1 + |ρ|`, with `Cov` the determinant `μ₀₀μ₁₁ − μ₀₁μ₁₀`. Attains `1` iff product and `2` at perfect correlation, so both the `ProductSpectralIndependence` calibration and the universal `|V|` bound are exact. Audits the local-walk gap `1 − |ρ|` by two independent routes. |
 | `Chains.ProductSpectralIndependence` | Discharges the central theorem's hypothesis for the first time. Pairwise independence of a product weight is the *unnormalised* identity `Z(pin{v,u})·Z = Z(pin{v})·Z(pin{u})` — no division, no positivity needed, which matters because pinned families carry point masses. Yields `γ ≥ 1/n` via spectral independence: literally the same proposition `ProductMeasure` proves via tensorization. |
 | `Chains.OptimalMixingTV` | `O(n log(n/δ))` for product Glauber in **total variation**. Pinsker's real cost is not a constant in a log but the squaring `δ ↦ δ²`, which halves the effective decay rate `ρ ↦ ρ/2`; the χ² route has no analogue. Proves the exact crossover: entropy beats variance iff `ln(nL/δ) < nL/2`, so neither dominates. |
 | `Chains.ProductEntropy` | Tensorization of *entropy* for a product measure at `C = 1`, and the library's first modified log-Sobolev instance, `ModLogSobolev μ (glauber …) (1/n)` — stated against `entropyProduction`, never the vacuous naive form. Includes `localEnt_le_entropyProduction`, valid for any reversible chain. |

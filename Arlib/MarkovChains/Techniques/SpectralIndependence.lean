@@ -363,8 +363,16 @@ theorem one_sub_marg_le_of_spectralIndependence {η : ℝ} (h : SpectralIndepend
 /-! ### The universal bound
 
 Some constant always works.  Cauchy–Schwarz on the `|V|`-term sum defining the
-linear statistic gives `η = |V|`, and that is the right order of magnitude: for
-`μ` uniform on the two constant configurations the ratio is `|V|/2`. -/
+linear statistic gives `η = |V|`, and that bound is **attained**: for `μ`
+uniform on the two constant configurations the ratio is `|V|`, as the test
+vector `a (v, true) = 1/2`, `a (v, false) = -1/2` shows — variance `|V|²/4`
+against diagonal form `|V|/4`.
+
+(An earlier version of this comment said `|V|/2`.  That is wrong, and
+disprovably so: `Chains/TwoSiteSpectralIndependence.lean` proves
+`twoSiteConst_eta_eq_card` — the constant is exactly `2` at `|V| = 2` — together
+with `twoSiteConst_not_spectralIndependence_one`, which refutes the `η = 1` that
+`|V|/2` would predict there.) -/
 
 /-- **Every distribution is `|V|`-spectrally independent.** -/
 theorem spectralIndependence_card (μ : FinDist (V → S)) :
