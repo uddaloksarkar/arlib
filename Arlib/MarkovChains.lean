@@ -206,6 +206,10 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
 * `Chains.SpectralIndependenceMixingSharp` — the same theorem through the sharp
   factor, under `η ≤ 2` rather than `η ≤ 3/2`, with the old conclusion derived
   from it on the overlap.  Still exactly `1/n` at `η = 1`.
+* `Chains.GlauberToSpectralIndependence` — the reverse implication
+  (`lem:opt-relax-SI`): a Glauber relaxation-time bound at every pinning gives
+  spectral independence.  Introduces `freeGlauber`, the chain that resamples
+  only unpinned sites, which the library did not previously have.
 * `Chains.ProductSpectralIndependence` — the first instance of that theorem: a
   product weight is pairwise independent, pinning preserves the property, and
   the resulting `γ ≥ 1/n` is *the same proposition* `ProductMeasure` proves by
@@ -271,5 +275,6 @@ import Arlib.MarkovChains.Chains.OptimalMixingTV
 import Arlib.MarkovChains.Chains.SpectralIndependenceMixing
 import Arlib.MarkovChains.Chains.ProductSpectralIndependence
 import Arlib.MarkovChains.Chains.SpectralIndependenceMixingSharp
+import Arlib.MarkovChains.Chains.GlauberToSpectralIndependence
 import Arlib.MarkovChains.Chains.UniformComplex
 import Arlib.MarkovChains.Chains.BernoulliLaplace
