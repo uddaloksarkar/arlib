@@ -101,7 +101,7 @@ Three directories, mirroring the shape of the argument.
 | `Copies` | Step 1: `copyTerm`, `collapse`, `OneHot`, soundness + one-hot completeness, and `copyTerm_eq_of_sat` (the crux of unambiguity) — **done**; assembling `ψ^∨` as a `DNF` and counting its terms still to do | partial |
 | `AffinePerms` | the Wegman–Carter family `x ↦ ax+b`, bijectivity, `|𝒫| = (q−1)q`, and exact pairwise independence | **done** — discharges I3 |
 | `Imported` | I1 and I1′ as `structure`s carrying explicit bounds | **done** |
-| `ClaimPerm` | the probabilistic argument producing a good permutation (Chebyshev) | see §3, gap G2 |
+| `ClaimPerm` | the second-moment argument producing a good permutation | **done** — closes G2 |
 | `Pullback` | protocol simulation as a rectangle pullback along a substitution | **done** |
 | `Lifting` | Step 2 (adding permutations) and the assembly of `thm: fixed_to_best` | needs `ClaimPerm` |
 | `Separation` | `thm: main`, `thm: sep`, `thm: union`, `thm: ex` | conditional on I1, I4 |
@@ -233,52 +233,37 @@ There are two ways out, and **the second is now clearly better**:
 Option 2 is a refactor of `Circuits/NNF` and `Circuits/VTree` and should be done in one
 pass, not piecemeal.
 
-**G2 — Claim `perm` has no proof in the paper.** Claim `perm` (line 448) is the technical
-heart of the lifting, and the paper proves it by citing Knop, Theorem 4.2, noting only
-that "an inspection of the proof shows that everything goes through" under the relaxed
-notion of balancedness (line 460). Formalizing it therefore means *reconstructing* the
-argument, not transcribing one: a second-moment argument over the family `𝒫`, using
-pairwise independence (I3) and Chebyshev (`ProbSpace.chebyshev`) to show that some
-`σ ∈ 𝒫` sends, for every `i` and every side `k` of the partition, at least one copy
-`y_{i,j}` to that side. Budget for this accordingly; it is the hardest genuinely-provable
-step in the paper.
+**G2 — Claim `perm`. CLOSED.** The paper proves Claim `perm` (line 448) by citing Knop,
+Theorem 4.2, remarking only that "an inspection of the proof shows that everything goes
+through" under its own notion of balancedness (line 460). It is now **proved**, in
+`LowerBounds/ClaimPerm.lean`, by a second-moment argument done entirely by *counting* —
+no probability space is constructed and `Arlib.Probability` is not imported. The only
+non-`ℕ` ring is `ℤ`, inside the centred square where signed subtraction is genuinely needed.
 
-*Amended.* The claim that the paper's balancedness is a relaxation needs care. For a
-genuine partition, `|Z| ≤ 3·min(|X|,|Y|)` is **equivalent** to `|Z|/3 ≤ |X| ≤ 2|Z|/3`
-(proved as `VarPartition.balanced_iff_left`), so the paper's notion is not weaker than the
-familiar two-sided one. Whatever Knop's proof assumes must therefore be *stricter* — most
-likely an exact split `|X| = |Y|`. Establish which before starting, because the difficulty
-being worked around is not the one the inventory originally described.
+The reconstruction turned up four things worth recording.
 
-**G4 — no concrete circuit instantiates the definitions. PARTLY CLOSED.** `Circuits/DNFtoCircuit`
-now instantiates `Respects`, `Deterministic` and `IsdSDNNF` for an infinite family, and its
-witnessing v-tree node genuinely varies per `∧`-node — so the `∃t ∀g` misreading of
-`Respects` would *not* support it. The vacuity worry is therefore gone. What remains of G4
-is a single machine-checked instance, which still cannot go through `valAt`/`varsAt` by
-`decide` for the reason below.
+- **The indicators are not pairwise independent.** The natural argument — "the copies land
+  independently, so `Var[N] ≤ E[N]`" — is wrong, and so is the appeal to I3 as stated: `σ`
+  is a *permutation*, so two distinct copies can never land on the same point, and the
+  family is pairwise **negatively correlated**. `E[XⱼXⱼ']` is `|S|(|S|−1)/(q(q−1))`, not
+  `|S|²/q²`. The conclusion `Var[N] ≤ E[N]` survives — it is `(m−1)(|S|−1)/(q−1) ≤ m|S|/q`,
+  true because `|S| ≤ q` — but the covariance has to be handled explicitly.
+- **The copies must be assumed distinct.** Writing `S_i = {y_{i,1}, …, y_{i,m}}` quietly
+  assumes the `m` copies are distinct field elements; the second-moment step is false
+  without it. It appears as an injectivity hypothesis.
+- **Balancedness is far more than the argument needs, and the slack is load-bearing.** Only
+  `|F| ≤ 4·|S|` is used — a full factor weaker than balancedness's `|F| ≤ 3·|S|` — and the
+  two-sided bound is not needed at all. The `4` is sharp for this route.
+- **The claim as stated in the paper indexes the wrong partition.** It is written with `Π`,
+  but `Π` partitions `var(ψ)` while `σ` permutes `V = var(ψ^∨)`. The partition actually in
+  play is `Γ`, of `var(ψ') = V ∪ Z` with `Z` the `2t` variables encoding `σ`. `Γ` balanced
+  on `V ∪ Z` gives only `3|Γ_k ∩ V| ≥ |V| − 2|Z|`, **not** `≥ |V|` — so the `3`-form does
+  not apply to it, and one must use the general form with `A := Γ₀ ∩ V`, `B := Γ₁ ∩ V`.
+  This is exactly why the extra slack above matters: the call typechecks under `4` and not
+  under `3`, with room to spare since `|Z| = O(log |V|)`.
 
-**G4 (original text).** `Decomposable`, `Deterministic`,
-`Respects` and `IsdSDNNF` are so far only ever *pushed around* by general lemmas; nothing
-checks them against an object whose answer is known independently. That is exactly how an
-encoding error survives — a `∀ g, ∃ t` misread as `∃ t, ∀ g` would support every general
-lemma we currently have. `Arlib.MarkovChains` guards against this with `Chains/`, and this
-area needs the analogue.
-
-An attempt was made and abandoned; what it cost is worth recording, because it is a real
-consequence of the `Fin size` DAG encoding chosen in §1.1:
-
-- `child_lt` *is* dischargeable by `decide` — it is purely syntactic in `gate`.
-- Nothing routed through `valAt` or `varsAt` is. Both are well-founded recursions, and
-  `WellFounded.fix` does not reduce in the kernel, so `decide` gets stuck no matter how
-  small the circuit. Every value must come from the unfolding lemmas.
-- Worse, `fin_cases`/`interval_cases` will not fire on a node index `i : Fin C.size`,
-  because `C.size` is not syntactically a numeral. The index has to be destructured and the
-  size unfolded by hand before any case analysis begins.
-
-So a concrete circuit costs roughly a lemma per node, not a `decide`. It is still worth
-building one — the validation is real — but budget for it, and do not expect automation to
-carry it. A worked instance of the paper's own Figure 1 (`source/kc/arXiv.tex:238`) is the
-natural target, since the caption states the computed formula independently.
+**G3 is also not needed** for this: the file works over an arbitrary finite field, so the
+`n' = 2^t` assumption never enters.
 
 **G3 — the `n' = 2^t` simplification.** The construction assumes the variable count is a
 power of two (line 421), with the general case handled by padding with dummy variables.

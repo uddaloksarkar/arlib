@@ -84,6 +84,10 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
   lower bound is a circuit lower bound: a structured d-DNNF of size `s` yields a
   rectangular *partition* of `f⁻¹(1)` into `s` pieces, so `Par₁(f) ≤ |C|`.  This
   **discharges** import I2.
+* `LowerBounds.ClaimPerm` — the probabilistic heart of the lifting, which the
+  paper proves only by citation: some affine permutation places, for every
+  original variable and every side of the partition, at least one copy on that
+  side.  Done by counting rather than by building a probability space.
 * `LowerBounds.Pullback` — protocol simulation, expressed on rectangles: a
   substitution respecting the two partitions block-by-block pulls a rectangle
   cover back to one of the same size.  This is the mechanism of
@@ -108,6 +112,7 @@ import Arlib.KnowledgeCompilation.Communication.Measures
 import Arlib.KnowledgeCompilation.LowerBounds.Copies
 import Arlib.KnowledgeCompilation.LowerBounds.BalancedCut
 import Arlib.KnowledgeCompilation.LowerBounds.RectangleLemma
+import Arlib.KnowledgeCompilation.LowerBounds.ClaimPerm
 import Arlib.KnowledgeCompilation.LowerBounds.Pullback
 import Arlib.KnowledgeCompilation.LowerBounds.AffinePerms
 import Arlib.KnowledgeCompilation.LowerBounds.Imported

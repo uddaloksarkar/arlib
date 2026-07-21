@@ -393,13 +393,26 @@ give disjoint terms, and within one `σ` unambiguity is T4.
 T5 is available (`AffinePerms`), so the permutation side is unblocked.
 *Assumption:* `n' = 2^t` is a power of two (line 421); see gap G3.
 
-**C1. Claim `perm`. [PROOF NOT IN THE PAPER — gap G2]** (`claim: perm`, line 448)
+**C1. Claim `perm`. [PROVED — the paper proves it only by citation]** (`claim: perm`, line 448)
 *There is a permutation `σ ∈ 𝒫` such that for every `i ∈ [n]` and every `k ∈ {0,1}`, some
 `y_{i,j}` is mapped by `σ` into the block `Π_k`.*
 The paper proves this by citing Knop, Theorem 4.2, remarking only that the relaxed notion
-of balancedness (D16) goes through (line 460). Tools named: Chebyshev's inequality and T5.
-**Formalizing this means reconstructing the argument, not transcribing it.** It is the
-hardest genuinely-provable step in the paper; see `ROADMAP.md` §6, G2.
+of balancedness (D16) goes through (line 460), so formalizing it meant *reconstructing* the
+argument. **In Lean** as `ClaimPerm.exists_maps_hits` (general),
+`exists_maps_hits_of_balanced` (the paper's form) and `exists_maps_hits_copies` (indexed as
+in `Copies.lean`), by a second-moment argument done purely by counting.
+
+> **The claim as stated indexes the wrong partition.** It is written with `Π`, but `Π`
+> partitions `var(ψ)` while `σ` permutes `V = var(ψ^∨)`. The partition in play is `Γ`, of
+> `var(ψ') = V ∪ Z` with `Z` the `2t` variables encoding `σ`. Balancedness of `Γ` on `V ∪ Z`
+> gives only `3|Γ_k ∩ V| ≥ |V| − 2|Z|`, not `≥ |V|`, so the `3`-form does not apply; callers
+> must use the general form with `A := Γ₀ ∩ V`, `B := Γ₁ ∩ V`. It goes through because the
+> argument in fact needs only `|F| ≤ 4|S|`, strictly weaker than balancedness — see
+> `ROADMAP.md` §6, G2, where three further corrections are recorded (the indicators are
+> *negatively* correlated, not independent; the copies must be assumed distinct).
+
+*The constant the paper leaves unspecified:* it says `m = cn` for "some sufficiently large
+constant `c`" (line 379) and never fixes `c`. **`c > 6` suffices**, as `6 * |ι| < m`.
 
 **T7. Proof of `thm: fixed_to_best`.** (line 445)
 Given C1 with witness `σ`, write `v_{r(i,k)}` for a copy `y_{i,j}` that `σ` sends into
