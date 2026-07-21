@@ -308,13 +308,24 @@ balanced partition of `var(T)`, while Claim `perm`'s cardinality bounds are abou
 so a v-tree omitting variables would need those bounds re-derived (and, for the dummy
 variables, an argument that they may be added back to the tree without changing the circuit).
 
-**G6 — no instantiation of the parameters is formalized.** `thm: main` takes `|F| ≥ 8|Zι|`,
-`|F|² ≤ 2^{|Zι|}` (through `rep`), an injection `ι × Fin m ↪ F` and `6|ι| < m`. These are
-simultaneously satisfiable — `|F| = 2^t`, `|Zι| = 2t`, `m = 6n + 1` and `t` large enough that
-`2^t ≥ max(16t, n(6n+1))`, so any `t ≥ 7` with `2^t ≥ n(6n+1)` — but the witness is not built,
-because it needs a concrete family of fields of order `2^t` (`GaloisField`) and the `Fintype`
-plumbing that goes with it. Until it is, the headline theorems are conditional statements whose
-hypotheses have not been exhibited in Lean.
+**G6 — the parameters are instantiated; the asymptotic packaging is not.** *(Non-vacuity half
+closed, in `LowerBounds/Instance.lean`.)* `thm: main` takes `|F| ≥ 8|Zι|`, `|F|² ≤ 2^{|Zι|}`
+(through `rep`), an injection `ι × Fin m ↪ F` and `6|ι| < m`. All four now hold simultaneously
+in Lean, for every `n`, at `|ι| = n`, `m = 6n + 1`, `F = GaloisField 2 t` and `|Zι| = 2t` with
+`t = 7 + ⌈log₂(n(6n+1))⌉` (`Instance.params_satisfiable`); `Instance.thm_main_instance` and
+`Instance.thm_sep_instance` apply the headline theorems to them, leaving
+`Imported.FixedPartitionHard` — and, for `thm: sep`, `SDDComplementation` — as the only
+hypotheses. The `t ≥ 7` is sharp (`16t ≤ 2^t` fails at `t = 6`), but "any `t` with
+`2^t ≥ n(6n+1)`" is *not* good enough: `t` must be **logarithmic**, since the upper bound
+carries the factor `|𝒫| ≈ |F|²` and the paper's `n^{k+4}` term count is `n⁴` precisely because
+`|F| = O(n²)`. `Instance.card_maps_Fld_le` records `|𝒫| ≤ (256·n(6n+1))²`.
+
+What remains is the asymptotic packaging, and the obstacle is not the witness. The paper's
+`n = k^{O(1)}`, `termBound = 2^{Õ(k)}` and `coverBound = 2^{Ω̃(k²)}` are properties of
+`Imported.FixedPartitionHard` *as a family indexed by `k`*, while the bundle is stated for one
+`k` at a time with both constants free. Turning the two explicit numbers into `n^{Ω̃(log n)}`
+therefore needs a family version of that bundle plus a definition of `Õ`/`Ω̃` — the
+"substantial development consumed exactly once" that `Imported.lean` declines.
 
 ---
 
@@ -323,10 +334,11 @@ hypotheses have not been exhibited in Lean.
 The spine — `thm: main` and `thm: sep`, both halves, both bounds explicit — is closed. What
 remains, in the order it is worth doing:
 
-1. **Instantiate the parameters** (G6). A family of fields of order `2^t` with `|Zι| = 2t`,
-   `m = 6n + 1`, and the arithmetic that turns the two explicit bounds of `thm_main` into the
-   paper's `n^{Ω̃(log n)}`. This is the only remaining asymptotic step in the area, and until
-   it is done the headline theorems are conditionals whose hypotheses have not been exhibited.
+1. ~~**Instantiate the parameters**~~ (G6) — *done*, `LowerBounds/Instance.lean`. What is left
+   of it is the asymptotic packaging: turning the two explicit bounds of `thm_main` into the
+   paper's `n^{Ω̃(log n)}`. This is the only remaining asymptotic step in the area, and it now
+   depends on a *family* version of `Imported.FixedPartitionHard` carrying `n = k^{O(1)}`,
+   `termBound = 2^{Õ(k)}` and `coverBound = 2^{Ω̃(k²)}`, not on anything about the witness.
 2. **`thm: union` and `thm: ex`** (T11, T12). `Imported.UnionHard` and the `Par`-side pullback
    (`Lifting.hasPartitionOfSize_of_hasPartitionOfSize_permDNF`) are both already in place, so
    T11 is the same assembly as `thm: main` with `Par₁` in place of `Cov₀`; T12 is a short

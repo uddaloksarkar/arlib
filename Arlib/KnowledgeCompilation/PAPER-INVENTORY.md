@@ -457,9 +457,13 @@ bound `2^{Ω̃(k²)} = n^{Ω̃(log n)}`.
 `ψ'` of size `≤ |𝒫|·(termBound·m^k)·(2(|Zι| + k·m) + 2) + 1` respecting any prescribed v-tree,
 and `coverBound ≤ |C|` for every structured DNNF computing `¬ψ'`. The lower half is
 `Separation.coverBound_le_size_of_computes_not`; the best-partition statement it factors
-through is `Separation.coverBound_le_bestCov_permDNF`. The last step of the paper's argument —
-turning those two numbers into `n^{Ω̃(log n)}` — is *not* done; it needs a concrete family of
-fields of order `2^t` (`ROADMAP.md` §6, G6).
+through is `Separation.coverBound_le_bestCov_permDNF`. **The parameters are instantiated** in
+`LowerBounds/Instance.lean`: `Instance.params_satisfiable` exhibits `F = GaloisField 2 t`,
+`|Zι| = 2t`, `m = 6n + 1` with `t = 7 + ⌈log₂(n(6n+1))⌉` satisfying all four hypotheses, and
+`Instance.thm_main_instance` restates `thm: main` over them with `Imported.FixedPartitionHard`
+as the sole hypothesis. The last step of the paper's argument — turning those two numbers into
+`n^{Ω̃(log n)}` — is still *not* done; it now needs a `k`-indexed family version of
+`Imported.FixedPartitionHard` carrying the `Õ`/`Ω̃` bounds (`ROADMAP.md` §6, G6).
 *One hypothesis that is not in the paper:* the lower bound quantifies over v-trees `T` with
 `var(T) = var(ψ')`. The paper's `def: vtree` builds this in, but here it must be said; see
 gap G5.

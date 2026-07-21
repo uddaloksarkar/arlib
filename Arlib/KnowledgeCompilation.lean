@@ -88,6 +88,11 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
   for *every* balanced partition of `var(ψ')` there is a substitution under which
   `ψ'` computes `ψ`, so a best-partition bound for `ψ'` inherits the
   fixed-partition bound for `ψ`.
+* `LowerBounds.Instance` — a concrete witness for every parameter `thm: main`
+  takes, so the headline theorems are not conditionals with unexhibited
+  hypotheses.  The field is `GaloisField 2 t` with `t` *logarithmic* in `n`,
+  which matters: a linear `t` satisfies every hypothesis and still destroys the
+  size comparison the theorem exists to make.
 * `LowerBounds.Separation` — `thm: main` and `thm: sep`, assembled, with fully
   explicit bounds and conditional only on the imported hardness.
 * `LowerBounds.ClaimPerm` — the probabilistic heart of the lifting, which the
@@ -121,6 +126,7 @@ import Arlib.KnowledgeCompilation.LowerBounds.RectangleLemma
 import Arlib.KnowledgeCompilation.LowerBounds.ClaimPerm
 import Arlib.KnowledgeCompilation.LowerBounds.Lifting
 import Arlib.KnowledgeCompilation.LowerBounds.Separation
+import Arlib.KnowledgeCompilation.LowerBounds.Instance
 import Arlib.KnowledgeCompilation.LowerBounds.Pullback
 import Arlib.KnowledgeCompilation.LowerBounds.AffinePerms
 import Arlib.KnowledgeCompilation.LowerBounds.Imported
