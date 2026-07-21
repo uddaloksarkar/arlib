@@ -196,6 +196,29 @@ pairwise independence (I3) and Chebyshev (`ProbSpace.chebyshev`) to show that so
 `y_{i,j}` to that side. Budget for this accordingly; it is the hardest genuinely-provable
 step in the paper.
 
+**G4 — no concrete circuit instantiates the definitions.** `Decomposable`, `Deterministic`,
+`Respects` and `IsdSDNNF` are so far only ever *pushed around* by general lemmas; nothing
+checks them against an object whose answer is known independently. That is exactly how an
+encoding error survives — a `∀ g, ∃ t` misread as `∃ t, ∀ g` would support every general
+lemma we currently have. `Arlib.MarkovChains` guards against this with `Chains/`, and this
+area needs the analogue.
+
+An attempt was made and abandoned; what it cost is worth recording, because it is a real
+consequence of the `Fin size` DAG encoding chosen in §1.1:
+
+- `child_lt` *is* dischargeable by `decide` — it is purely syntactic in `gate`.
+- Nothing routed through `valAt` or `varsAt` is. Both are well-founded recursions, and
+  `WellFounded.fix` does not reduce in the kernel, so `decide` gets stuck no matter how
+  small the circuit. Every value must come from the unfolding lemmas.
+- Worse, `fin_cases`/`interval_cases` will not fire on a node index `i : Fin C.size`,
+  because `C.size` is not syntactically a numeral. The index has to be destructured and the
+  size unfolded by hand before any case analysis begins.
+
+So a concrete circuit costs roughly a lemma per node, not a `decide`. It is still worth
+building one — the validation is real — but budget for it, and do not expect automation to
+carry it. A worked instance of the paper's own Figure 1 (`source/kc/arXiv.tex:238`) is the
+natural target, since the caption states the computed formula independently.
+
 **G3 — the `n' = 2^t` simplification.** The construction assumes the variable count is a
 power of two (line 421), with the general case handled by padding with dummy variables.
 Follow the paper and assume it; the padding is uninteresting but should eventually be
