@@ -56,3 +56,4 @@ import Arlib.Probability.MixedCondCELinear
 import Arlib.Probability.MixedCondProd
 import Arlib.Probability.MixedCoordIndep
 import Arlib.Probability.KWiseChernoff
+import Arlib.Probability.SequentialCond
