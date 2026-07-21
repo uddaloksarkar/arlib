@@ -30,6 +30,7 @@ import Arlib.Probability.ProbSpaceValidation
 import Arlib.Probability.IntersectionTailBound
 import Arlib.Probability.Independence
 import Arlib.Probability.KWiseIndependent
+import Arlib.Probability.FinProbProd
 import Arlib.Probability.MomentMethod
 import Arlib.Probability.FourthMomentTail
 import Arlib.Probability.EvenMoment
