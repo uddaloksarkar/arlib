@@ -54,6 +54,41 @@ across several projects but are not in Mathlib under an obvious name.
 | `Combinatorics.BigOperators` | Diagonal/off-diagonal split of a double sum (`sum_matrix_diag_offdiag`); products of an idempotent function over subsets/unions/`biUnion`s (`prod_mul_prod_subset`, `prod_union_idem`, `prod_biUnion_idem`); a surjection–product inequality (`prod_le_prod_comp_of_surj`); products of `{0,1}`-valued functions (`prod_zero_or_one`, `zo_prod_eq_one_iff`). |
 | `Combinatorics.ListFold` | Upper/lower bounds for `List.foldr min` (`foldr_min_le_init`, `foldr_min_le_mem`, `le_foldr_min`, `lt_foldr_min`). |
 
+### `Arlib.MarkovChains` — finite Markov chains
+
+20 modules, ~5.7k LOC, split by a load-bearing design principle: `Techniques/` holds
+machinery valid for *any* finite chain, `Chains/` holds the analysis of *specific* chains,
+and every general definition is instantiated against a concrete chain that keeps it honest.
+Following the Chen–Štefankovič–Vigoda monograph on spectral independence (`source/main.tex`).
+
+The area's defining commitment: **the spectral gap is defined variationally**, by the
+Poincaré inequality `γ·Var_μ(f) ≤ ℰ_P(f)`, and eigenvalues never appear — not in a
+statement, not in a proof. Every step a textbook takes via the spectral theorem is taken
+here by an elementary variational, discriminant, or adjointness argument.
+
+| Module | Content |
+| --- | --- |
+| `Techniques.Chain` | `FinDist`, `FinKernel` (rectangular, so the up/down operators of the local-to-global machinery fit), `FinChain`, `act`/`push`, composition, iteration, `Stationary`, `Reversible`. |
+| `Techniques.Bilinear` | Cauchy–Schwarz for a PSD symmetric bilinear form, by the discriminant trick rather than by eigenvalues. |
+| `Techniques.Functional` | The `L²(μ)` calculus: `Ex`, `ip`, `Var`, the pair form of the variance, `relDensity`, `chiSq`. |
+| `Techniques.Dirichlet` | The Dirichlet form and its pair form; the two-sided bound `\|⟪f,Pf⟫_μ\| ≤ ⟪f,f⟫_μ`; reversibility as self-adjointness; `SpectralGapAtLeast` (Poincaré) and `NonnegDefinite` (PSD). |
+| `Techniques.SpectralGap` | From the numerical-range bound to the operator bound `⟪Pf,Pf⟫ ≤ c²⟪f,f⟫`; geometric decay of variance and of χ²-divergence. |
+| `Techniques.TotalVariation` | TV distance, its event characterisation, the data-processing inequality, mixing time, and `(2·d_TV)² ≤ χ²`. |
+| `Techniques.MixingTime` | Point masses, χ² decay along the chain, and the assembled bound `T_mix(ε) ≤ (2/γ)·ln(1/(2ε√μ_min))`. |
+| `Techniques.Lazy` | The lazy chain `½(I+P)`: one source of PSD chains, and the capstone `Var_μ(P_lazy^t f) ≤ (1−γ/2)^{2t} Var_μ(f)`. |
+| `Techniques.Mixture` | Convex combinations of kernels — two-way, uniform average, general weights — and the inheritance of stationarity, reversibility, PSD and the gap. |
+| `Techniques.Adjoint` | Mutually adjoint kernel pairs `μ(x)K(x,y) = ν(y)L(y,x)`; composites are reversible **and** PSD for free. `Reversible` is the self-adjoint case. |
+| `Techniques.Levels` | The up and down walks on the levels of a weighted complex, their adjointness, and hence reversibility, stationarity and PSD of the up-down and down-up walks. |
+| `Techniques.Comparison` | Comparison of Dirichlet forms and transfer of the spectral gap; off-diagonal domination suffices; the absolute bound for iterates. |
+| `Techniques.Conductance` | Ergodic flow, cut, conductance; `ℰ_P(1_A) = cut`; the easy direction of Cheeger's inequality. |
+| `Techniques.Coupling` | Couplings, the coupling inequality, and the maximal coupling — so TV distance *is* the minimum disagreement probability. |
+| `Chains.Metropolis` | Metropolis–Hastings: manufacturing a chain reversible with respect to a prescribed target. |
+| `Chains.TwoState` | The two-state chain computed exactly — gap, contraction factor and Dirichlet form as identities — then plugged back into the general predicates, and used to audit the Cheeger bound. |
+| `Chains.IndependentSampler` | The `P(x,y) = μ(y)` chain: Dirichlet form = variance, gap exactly `1`, mixes in one step. The library's best case. |
+| `Chains.SpinSystem` | Configurations, single-site updates, the Gibbs distribution and its local partition functions; the hard-core model. |
+| `Chains.Glauber` | The Glauber dynamics: single-site heat-bath updates, reversibility w.r.t. Gibbs, and positive semidefiniteness via self-adjoint idempotence. |
+| `Chains.Pinning` | Pinnings and conditional Gibbs measures; the single-site update recovered as "resample from the conditional distribution". |
+
 ### `Arlib.Prelude`
 
 Small shared notation, currently the multiplicative **relative-error interval**
@@ -105,6 +140,10 @@ arlib/                    # repo folder (Lake package name stays lowercase)
     Probability/*.lean
     Combinatorics.lean    # area root
     Combinatorics/*.lean  # Finset, BigOperators, ListFold
+    MarkovChains.lean     # area root
+    MarkovChains/
+      Techniques/*.lean   # machinery valid for any finite chain
+      Chains/*.lean       # analysis of specific chains
 ```
 
 ## License

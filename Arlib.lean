@@ -24,6 +24,10 @@ aggregation of area roots — put content in the area modules, not here.
 * `Arlib.Combinatorics` — generic `Finset` / `List` / `BigOperators` helpers
   (union-folds, powerset-of-union, disjoint-union projection, a concatenation
   counting bound, `List.foldr min` bounds).
+* `Arlib.MarkovChains` — finite Markov chains: kernels, the `L²(μ)` calculus,
+  the Dirichlet form and the Poincaré inequality, decay of variance and of
+  χ²-divergence, total variation and mixing time, and analyses of specific
+  chains.
 -/
 
 import Arlib.Prelude
@@ -31,3 +35,4 @@ import Arlib.Probability
 import Arlib.Combinatorics
 import Arlib.GameTheory
 import Arlib.InformationTheory
+import Arlib.MarkovChains
