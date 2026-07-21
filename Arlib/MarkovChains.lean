@@ -85,6 +85,11 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
   restriction to a link.  Note `LocalWalk.linkWeight` is the *star* of a face,
   not the link: `linkShift` here is the link proper, and the two agree at level
   one, which is all `LocalWalk.linkDist` ever uses.
+* `Techniques.UpDownDownUp` — the up-down and down-up walks of an adjoint pair
+  have the same Poincaré constant, provided `γ ≤ 1`.  The monograph proves this
+  from equality of the nonzero spectra of `AB` and `BA`; here it is one
+  Cauchy–Schwarz step, and `exists_adjoint_gap_not_swap` shows the `γ ≤ 1` side
+  condition is necessary rather than an artefact.
 * `Techniques.Transport` — μ-almost-everywhere agreement of chains, and
   transport of the whole `L²` theory along an injective embedding of state
   spaces.
@@ -163,6 +168,7 @@ import Arlib.MarkovChains.Techniques.MixingTime
 import Arlib.MarkovChains.Techniques.LevelVariance
 import Arlib.MarkovChains.Techniques.LocalToGlobal
 import Arlib.MarkovChains.Techniques.LinkRestriction
+import Arlib.MarkovChains.Techniques.UpDownDownUp
 import Arlib.MarkovChains.Techniques.Transport
 import Arlib.MarkovChains.Techniques.EntropyVariational
 import Arlib.MarkovChains.Techniques.PsdOrder
