@@ -102,7 +102,8 @@ Three directories, mirroring the shape of the argument.
 | `AffinePerms` | the Wegman–Carter family `x ↦ ax+b`, bijectivity, `|𝒫| = (q−1)q`, and exact pairwise independence | **done** — discharges I3 |
 | `Imported` | I1 and I1′ as `structure`s carrying explicit bounds | **done** |
 | `ClaimPerm` | the probabilistic argument producing a good permutation (Chebyshev) | see §3, gap G2 |
-| `Lifting` | Step 2 and `thm: fixed_to_best`: the protocol simulation | |
+| `Pullback` | protocol simulation as a rectangle pullback along a substitution | **done** |
+| `Lifting` | Step 2 (adding permutations) and the assembly of `thm: fixed_to_best` | needs `ClaimPerm` |
 | `Separation` | `thm: main`, `thm: sep`, `thm: union`, `thm: ex` | conditional on I1, I4 |
 
 ---
