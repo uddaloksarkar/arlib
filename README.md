@@ -56,7 +56,7 @@ across several projects but are not in Mathlib under an obvious name.
 
 ### `Arlib.MarkovChains` — finite Markov chains
 
-25 modules, ~8.0k LOC, split by a load-bearing design principle: `Techniques/` holds
+34 modules, ~13.0k LOC, split by a load-bearing design principle: `Techniques/` holds
 machinery valid for *any* finite chain, `Chains/` holds the analysis of *specific* chains,
 and every general definition is instantiated against a concrete chain that keeps it honest.
 Following the Chen–Štefankovič–Vigoda monograph on spectral independence (`source/main.tex`).
@@ -84,6 +84,12 @@ here by an elementary variational, discriminant, or adjointness argument.
 | `Techniques.Comparison` | Comparison of Dirichlet forms and transfer of the spectral gap; off-diagonal domination suffices; the absolute bound for iterates. |
 | `Techniques.Conductance` | Ergodic flow, cut, conductance; `ℰ_P(1_A) = cut`; the easy direction of Cheeger's inequality. |
 | `Techniques.Coupling` | Couplings, the coupling inequality, and the maximal coupling — so TV distance *is* the minimum disagreement probability. |
+| `Techniques.LevelVariance` | The law of total variance for a bare kernel — no hypotheses — and hence the local-to-global step `Var_{π_{k+1}}(g) = Var_{π_k}(Ug) + ℰ_{downUp}(g)` as an *identity*. |
+| `Techniques.LocalToGlobal` | Telescoping that identity down the levels: `Var_{π_n}(f) = Σ_{k<n} ℰ_{downUp_k}(f^{(k+1)})`, exactly — `π_0` is a point mass, so there is no leading term. Includes the guarded link distribution the sum needs. |
+| `Techniques.Transport` | μ-almost-everywhere agreement of chains, and transport of the whole `L²` theory along an injective embedding of state spaces. Rows of weight zero are invisible; the range carries all the mass. |
+| `Techniques.EntropyVariational` | Young's inequality for entropy, the Gibbs variational principle, `Ent ≤ Var/E`, and hence `KL ≤ χ²`. |
+| `Techniques.PsdOrder` | Quadratic forms of a plain `ι → ι → ℝ` and the PSD ordering `PsdLe`. No `Matrix`, no spectrum, no eigenvalues. |
+| `Techniques.SpectralIndependence` | The covariance form with `quadForm (Cov μ) a = Var μ (fun σ => ∑ v, a (v, σ v))`, so PSD-ness of `Cov` is a corollary of `Var_nonneg`; spectral independence **defined** as the ordering `Cov ⪯ η·diag(marg)` — the eigenvalue-free equivalent of `λ_max(Ψ) ≤ η`. |
 | `Chains.Metropolis` | Metropolis–Hastings: manufacturing a chain reversible with respect to a prescribed target. |
 | `Chains.TwoState` | The two-state chain computed exactly — gap, contraction factor and Dirichlet form as identities — then plugged back into the general predicates, and used to audit the Cheeger bound. |
 | `Chains.IndependentSampler` | The `P(x,y) = μ(y)` chain: Dirichlet form = variance, gap exactly `1`, mixes in one step. The library's best case. |
@@ -93,6 +99,9 @@ here by an elementary variational, discriminant, or adjointness argument.
 | `Chains.BlockDynamics` | Heat-bath block dynamics; reversibility and PSD for a single block, inherited by the mixture; Glauber is the singleton-block case. |
 | `Chains.GlauberTensorization` | The Dirichlet form of the Glauber dynamics as a mean conditional variance, and approximate tensorization of variance as an equivalent of the spectral gap. |
 | `Chains.LevelEncoding` | Spin systems as weighted complexes; the down-up walk at the top level *is* the Glauber dynamics. |
+| `Chains.GlauberViaLevels` | Transporting that encoding back: PSD-ness of the Glauber dynamics derived a third time, now from adjointness, and the Poincaré inequality transferred in both directions. |
+| `Chains.PinnedGlauber` | Conditioning does not leave the category: pinned marginals, `π_{η,1}`, and the local walk `Q_η` — shown to be the complex-side `localWalk` entry for entry. |
+| `Chains.HardCore` | The monograph's two running examples. Hard-core, whose weight can vanish, with the exact `Zloc` trichotomy and the `λ/(1+λ)` update; and Ising, whose weight cannot, so `0 < Z` needs no hypothesis at all. |
 
 ### `Arlib.Prelude`
 
