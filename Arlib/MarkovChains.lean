@@ -203,6 +203,9 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
 * `Chains.SpectralIndependenceMixing` — **the monograph's central theorem**:
   spectral independence at every pinning gives the Glauber dynamics a spectral
   gap, with an explicit constant that is exactly `1/n` at `η = 1`.
+* `Chains.SpectralIndependenceMixingSharp` — the same theorem through the sharp
+  factor, under `η ≤ 2` rather than `η ≤ 3/2`, with the old conclusion derived
+  from it on the overlap.  Still exactly `1/n` at `η = 1`.
 * `Chains.ProductSpectralIndependence` — the first instance of that theorem: a
   product weight is pairwise independent, pinning preserves the property, and
   the resulting `γ ≥ 1/n` is *the same proposition* `ProductMeasure` proves by
@@ -267,5 +270,6 @@ import Arlib.MarkovChains.Chains.ProductOptimalMixing
 import Arlib.MarkovChains.Chains.OptimalMixingTV
 import Arlib.MarkovChains.Chains.SpectralIndependenceMixing
 import Arlib.MarkovChains.Chains.ProductSpectralIndependence
+import Arlib.MarkovChains.Chains.SpectralIndependenceMixingSharp
 import Arlib.MarkovChains.Chains.UniformComplex
 import Arlib.MarkovChains.Chains.BernoulliLaplace
