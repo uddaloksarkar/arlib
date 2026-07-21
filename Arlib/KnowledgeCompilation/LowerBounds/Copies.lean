@@ -200,6 +200,54 @@ theorem exists_copyTerm_sat [NeZero m] {t : Finset (Lit ι)} {α : ι × Fin m �
     have hci : collapse α i = false := h (i, false) (mem_negPart.mp hi)
     simpa using collapse_eq_false.mp hci j
 
+/-! ## Towards unambiguity -/
+
+/-- **A satisfied derived term determines its choice function.**
+
+If `α` satisfies the terms derived from `t` by two choice functions, those
+functions agree wherever it matters — on the positive part of `t`, which is the
+only place `copyTerm` reads them.
+
+This is the crux of the paper's unambiguity argument (line 415, "it is therefore
+easy to see that `C = C'`"): a term of `ψ^∨` derived from `t` is *determined* by
+its choice function, so two satisfied ones must coincide.  Note that no one-hot
+hypothesis is needed — the derived term supplies its own, since it explicitly
+switches every unselected copy off. -/
+theorem choice_eq_on_posPart {t : Finset (Lit ι)} {c c' : ι → Fin m}
+    {α : ι × Fin m → Bool} (h : Term.Sat (copyTerm t c) α)
+    (h' : Term.Sat (copyTerm t c') α) {i : ι} (hi : i ∈ posPart t) :
+    c i = c' i := by
+  -- `α` switches on the copy `c i`, since that is what the first term demands
+  have hon : α (i, c i) = true := by
+    have := h ((i, c i), decide (c i = c i)) (mem_copyTerm.mpr (Or.inl ⟨hi, rfl⟩))
+    simpa using this
+  -- but the second term demands that copy be on only if `c'` also selects it
+  have := h' ((i, c i), decide (c i = c' i)) (mem_copyTerm.mpr (Or.inl ⟨hi, rfl⟩))
+  rw [hon] at this
+  exact of_decide_eq_true this.symm
+
+/-- Two choice functions agreeing on the positive part of `t` derive the *same*
+term, so `choice_eq_on_posPart` really does identify derived terms. -/
+theorem copyTerm_congr {t : Finset (Lit ι)} {c c' : ι → Fin m}
+    (h : ∀ i ∈ posPart t, c i = c' i) : copyTerm t c = copyTerm t c' := by
+  ext ⟨⟨i, j⟩, b⟩
+  rw [mem_copyTerm, mem_copyTerm]
+  constructor
+  · rintro (⟨hi, rfl⟩ | ⟨hi, rfl⟩)
+    · exact Or.inl ⟨hi, by rw [h i hi]⟩
+    · exact Or.inr ⟨hi, rfl⟩
+  · rintro (⟨hi, rfl⟩ | ⟨hi, rfl⟩)
+    · exact Or.inl ⟨hi, by rw [h i hi]⟩
+    · exact Or.inr ⟨hi, rfl⟩
+
+/-- **Derived terms are unambiguous among themselves.**  Two choice functions
+whose derived terms are both satisfied by `α` derive the same term — the paper's
+`C = C'`. -/
+theorem copyTerm_eq_of_sat {t : Finset (Lit ι)} {c c' : ι → Fin m}
+    {α : ι × Fin m → Bool} (h : Term.Sat (copyTerm t c) α)
+    (h' : Term.Sat (copyTerm t c') α) : copyTerm t c = copyTerm t c' :=
+  copyTerm_congr (fun _ hi => choice_eq_on_posPart h h' hi)
+
 /-- The two directions together, on the one-hot region: the derived terms
 capture exactly the original term. -/
 theorem sat_copyTerm_iff [NeZero m] {t : Finset (Lit ι)} {α : ι × Fin m → Bool}

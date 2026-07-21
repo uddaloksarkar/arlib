@@ -97,7 +97,7 @@ Three directories, mirroring the shape of the argument.
 | --- | --- | --- |
 | `BalancedCut` | the v-tree separator, and the balanced partition it induces | **done** — first half of §4 |
 | `RectangleLemma` | d-SDNNF of size `s` ⟹ `Par₁(f) ≤ s`; SDNNF of size `s` ⟹ `Cov₁(f) ≤ s` | the crown jewel — see §4 |
-| `Copies` | Step 1: `copyTerm`, `collapse`, `OneHot`, soundness + one-hot completeness — **done**; unambiguity of `ψ^∨` and the term count still to do | partial |
+| `Copies` | Step 1: `copyTerm`, `collapse`, `OneHot`, soundness + one-hot completeness, and `copyTerm_eq_of_sat` (the crux of unambiguity) — **done**; assembling `ψ^∨` as a `DNF` and counting its terms still to do | partial |
 | `AffinePerms` | the Wegman–Carter family `x ↦ ax+b` over `𝔽_{2ᵗ}`, and its pairwise independence | reuse `Probability.PolyHash` |
 | `ClaimPerm` | the probabilistic argument producing a good permutation (Chebyshev) | see §3, gap G2 |
 | `Lifting` | Step 2 and `thm: fixed_to_best`: the protocol simulation | |
