@@ -264,8 +264,25 @@ Definition `def: PSSD`, where the intended reading is the product `pᵢ × sᵢ`
 an SDNNF of size `s`, then `Cov₁(f) ≤ s`.*
 *Deps:* D12, D19, D21. Attributed to Pipatsrisawat–Darwiche and Bova et al.
 **This is the single highest-value target in the area** — it is the only statement joining
-`Circuits/` to `Communication/`, and it is self-contained. See `ROADMAP.md` §4 for the
-proof sketch and for why it should not remain a hypothesis.
+`Circuits/` to `Communication/`, and it is self-contained. See `ROADMAP.md` §4.
+
+It splits into two independent halves.
+*Half 1 — the balanced partition.* **Done**, in `LowerBounds/BalancedCut.lean`. A v-tree on
+`≥ 2` variables has a node carrying between a third and two thirds of them
+(`VTree.exists_balanced_subtree`); cutting there gives a balanced `VarPartition`
+(`VTree.exists_balanced_cut`). The `2 ≤ |Z|` hypothesis is necessary, not an artefact: no
+partition of a one-element set is balanced, since one block is empty.
+*Half 2 — the rectangles.* Open. Needs proof trees: for a **deterministic** circuit each
+satisfying assignment has a unique certificate, and that uniqueness is exactly what turns a
+rectangle *cover* into a rectangle *partition*, i.e. `Cov₁` into `Par₁`. No proof-tree
+machinery exists yet; build it node-indexed, per `ROADMAP.md` §1.2.
+
+*Lean note, learned while writing half 1:* `VTree.WellFormed` is a recursive `def` into
+`Prop` with no `Decidable` instance, so `by decide` will not discharge it even on a
+concrete tree — destructure it instead (`⟨trivial, ⟨trivial, trivial, by decide⟩, by decide⟩`).
+`VTree.vars` by contrast is a structural recursion and *does* reduce, so `decide` works on
+anything phrased in terms of it. This is the opposite of the situation on the circuit side
+(gap G4).
 
 ---
 

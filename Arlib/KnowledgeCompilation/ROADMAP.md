@@ -95,6 +95,7 @@ Three directories, mirroring the shape of the argument.
 
 | Module | Contents | Status |
 | --- | --- | --- |
+| `BalancedCut` | the v-tree separator, and the balanced partition it induces | **done** — first half of §4 |
 | `RectangleLemma` | d-SDNNF of size `s` ⟹ `Par₁(f) ≤ s`; SDNNF of size `s` ⟹ `Cov₁(f) ≤ s` | the crown jewel — see §4 |
 | `Copies` | Step 1: `copyTerm`, `collapse`, `OneHot`, soundness + one-hot completeness — **done**; unambiguity of `ψ^∨` and the term count still to do | partial |
 | `AffinePerms` | the Wegman–Carter family `x ↦ ax+b` over `𝔽_{2ᵗ}`, and its pairwise independence | reuse `Probability.PolyHash` |
@@ -154,6 +155,21 @@ with determinism upgrading the cover to a partition.
 Everything else in `LowerBounds/` can be developed against its statement before it is
 proved, so it need not block progress — but it should not stay a hypothesis
 indefinitely. Treat it as the area's main open obligation.
+
+**Status: the first half is done.** The two halves are independent, and they split cleanly:
+
+1. *Produce the balanced partition.* `LowerBounds/BalancedCut.lean` — **proved**. Every
+   v-tree on `≥ 2` variables has a node carrying between a third and two thirds of them
+   (`exists_balanced_subtree`, by descent into the heavier child), and cutting there gives
+   a balanced `VarPartition` (`exists_balanced_cut`). This also discharges the existence
+   gap recorded when `Communication/Measures` was written, and it is reusable by anything
+   needing "a balanced partition compatible with the v-tree".
+2. *Produce the rectangles.* Still open, and this is where the remaining difficulty is. It
+   needs the certificate machinery — for a **deterministic** circuit each satisfying
+   assignment has a *unique* proof tree, which is what upgrades a rectangle *cover* to a
+   rectangle *partition* and hence `Cov₁` to `Par₁`. Nothing in the area builds proof trees
+   yet; that is the next substantial piece of infrastructure, and it should be designed
+   node-indexed like everything else (§1.2).
 
 ---
 

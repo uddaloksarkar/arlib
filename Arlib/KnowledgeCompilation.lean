@@ -70,6 +70,10 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
   the collapse of an assignment on copies, and the fact that the construction is
   faithful exactly on the *one-hot* region — soundness unconditionally, its
   converse only there.
+* `LowerBounds.BalancedCut` — the first half of the rectangle lemma: every
+  v-tree on at least two variables has a node carrying between a third and two
+  thirds of them, so cutting there induces a *balanced* partition.  This is what
+  supplies the partition that a best-partition measure is minimised over.
 -/
 
 import Arlib.KnowledgeCompilation.Circuits.NNF
@@ -78,3 +82,4 @@ import Arlib.KnowledgeCompilation.Circuits.DNF
 import Arlib.KnowledgeCompilation.Communication.Rectangle
 import Arlib.KnowledgeCompilation.Communication.Measures
 import Arlib.KnowledgeCompilation.LowerBounds.Copies
+import Arlib.KnowledgeCompilation.LowerBounds.BalancedCut
