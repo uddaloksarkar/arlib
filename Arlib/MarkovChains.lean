@@ -123,6 +123,10 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
 * `Techniques.Entropy` — `Ent`, entropy production, the modified log-Sobolev
   inequality, `klDiv`.  Also `NaiveModLogSobolev`, retained as a documented
   warning: it is vacuous, because its two sides scale differently.
+* `Techniques.EntropyDecay` — `EntropyContraction`, the hypothesis that actually
+  gives geometric decay of entropy, and the mixing bound in relative entropy it
+  yields: `Θ(ρ⁻¹ log log(1/μ_min))`.  Also `exists_modLogSobolev_not_entropyContraction`,
+  proving a modified log-Sobolev inequality does **not** suffice.
 * `Techniques.EntropyVariational` — Young's inequality for entropy, the Gibbs
   variational principle, `Ent ≤ Var / E`, and hence `KL ≤ χ²`.
 
@@ -207,6 +211,7 @@ import Arlib.MarkovChains.Techniques.FirstStep
 import Arlib.MarkovChains.Techniques.ImprovedRandomWalk
 import Arlib.MarkovChains.Techniques.MultiStep
 import Arlib.MarkovChains.Techniques.LocalWalkBridge
+import Arlib.MarkovChains.Techniques.EntropyDecay
 import Arlib.MarkovChains.Techniques.Transport
 import Arlib.MarkovChains.Techniques.EntropyVariational
 import Arlib.MarkovChains.Techniques.PsdOrder

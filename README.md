@@ -56,7 +56,7 @@ across several projects but are not in Mathlib under an obvious name.
 
 ### `Arlib.MarkovChains` — finite Markov chains
 
-46 modules, ~20.9k LOC, split by a load-bearing design principle: `Techniques/` holds
+47 modules, ~21.8k LOC, split by a load-bearing design principle: `Techniques/` holds
 machinery valid for *any* finite chain, `Chains/` holds the analysis of *specific* chains,
 and every general definition is instantiated against a concrete chain that keeps it honest.
 Following the Chen–Štefankovič–Vigoda monograph on spectral independence (`source/main.tex`).
@@ -93,6 +93,7 @@ here by an elementary variational, discriminant, or adjointness argument.
 | `Techniques.MultiStep` | `Adjoint.comp` — adjointness composes, with the order reversed on one side — hence multi-step operators between any two levels, `lem:diff-var` for general `i > j`, and the multi-level `eqn:RW-improved-general`. `multiDownUp_succ` audits the orientation against `Levels.downUp`. |
 | `Techniques.UpDownDownUp` | Equal Poincaré constants for the two composites of an adjoint pair (`lem:updown-downup`), where the monograph uses equality of the nonzero spectra of `AB` and `BA`. The `γ ≤ 1` side condition is *necessary* — a point-mass source satisfies every Poincaré inequality vacuously — and the counterexample is formalized. |
 | `Techniques.Transport` | μ-almost-everywhere agreement of chains, and transport of the whole `L²` theory along an injective embedding of state spaces. Rows of weight zero are invisible; the range carries all the mass. |
+| `Techniques.EntropyDecay` | `EntropyContraction` — the right hypothesis for geometric entropy decay — giving `D_KL ≤ ε` after `Θ(ρ⁻¹ log log(1/μ_min))` steps, against the χ² route's `Θ(γ⁻¹ log(1/μ_min))`. And the refutation: an MLSI does *not* imply decay (`exists_modLogSobolev_not_entropyContraction`; the deterministic swap on `Bool` has `ρ = 1` and constant entropy), because `Ent(f) − Ent(Pf) ≥ ℰ(f, log f)` forces `Pf = f`. |
 | `Techniques.EntropyVariational` | Young's inequality for entropy, the Gibbs variational principle, `Ent ≤ Var/E`, and hence `KL ≤ χ²`. |
 | `Techniques.PsdOrder` | Quadratic forms of a plain `ι → ι → ℝ` and the PSD ordering `PsdLe`. No `Matrix`, no spectrum, no eigenvalues. |
 | `Techniques.SpectralIndependence` | The covariance form with `quadForm (Cov μ) a = Var μ (fun σ => ∑ v, a (v, σ v))`, so PSD-ness of `Cov` is a corollary of `Var_nonneg`; spectral independence **defined** as the ordering `Cov ⪯ η·diag(marg)` — the eigenvalue-free equivalent of `λ_max(Ψ) ≤ η`. |
