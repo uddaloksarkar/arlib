@@ -133,8 +133,15 @@ hypotheses; I4 is used only by `cor: ACsep`, which is not formalized (§7).
 Two of the six were not on the original list of four. I5 surfaced when `thm: sep` was
 assembled; I6 surfaced when `cor: add` was, and then dissolved.
 
-**I1 — Göös–Jain–Watson-style fixed-partition hardness** (`thm: fixed_part`, line 311; and
-`thm: fixed_or`, line 671). *For every `k` there is `m = k^O(1)`, a function
+**I1 — fixed-partition hardness** (`thm: fixed_part`, line 311; and `thm: fixed_or`,
+line 671), from Göös–Kiefer–Yuan, *Lower bounds for unambiguous automata via communication
+complexity*, ICALP 2022, building on Göös–Lovett–Meka–Watson–Zuckerman (*Rectangles are
+nonnegative juntas*, SICOMP 2016) and Balodis–Ben-David–Göös–Jain–Kothari (*Unambiguous DNFs
+and Alon–Saks–Seymour*, FOCS 2021). Note that neither bound is a *theorem statement* of the
+cited paper: line 309 says `thm: fixed_part` "is shown in the proof of [Theorem 1]" and
+line 669 says the same of [Theorem 2]. They are extracted from proofs and restated by
+Vinall-Smeeth, which is a further reason to carry them as hypotheses rather than chase them.
+*For every `k` there is `m = k^O(1)`, a function
 `g : {0,1}^m → {0,1}` with an unambiguous `k`-DNF of `2^Õ(k)` terms, and a balanced `Π`
 with `NCC₀^Π(g) = Ω̃(k²)`.* This is the sole source of quantitative hardness in the whole
 paper. It will be a `structure FixedPartitionHard` bundling the data and the two

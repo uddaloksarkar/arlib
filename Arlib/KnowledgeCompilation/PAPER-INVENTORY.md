@@ -351,7 +351,8 @@ anything phrased in terms of it. This is the opposite of the situation on the ci
 *For every `k ∈ ℕ` there exist `m = k^{O(1)}`, a Boolean function `g : {0,1}^m → {0,1}`,
 and a balanced partition `Π` of the inputs of `g`, such that (1) `g` is equivalent to an
 unambiguous `k`-DNF `ψ` with `2^{Õ(k)}` terms, and (2) `NCC₀^Π(g) = Ω̃(k²)`.*
-From Göös et al., building on GLMWZ and Balodis et al. **Not to be proved here.**
+From Göös–Kiefer–Yuan (ICALP 2022), building on GLMWZ and Balodis et al., and shown *inside*
+the proof of their Theorem 1 rather than stated as one (line 309). **Not to be proved here.**
 **In Lean** as `Imported.FixedPartitionHard`, a `structure` carrying explicit `termBound`
 and `coverBound` parameters rather than `Õ`/`Ω̃`; clause (2) is stated on `Cov₀^Π` directly
 (D20). `FixedPartitionHard.not_hasCover` is the consumable form.
@@ -546,7 +547,8 @@ would mean a `d`-th root in `ℕ` and a rounding convention chosen for no reason
 **T10. Fixed-partition hardness for unions. [IMPORTED — I1']** (`thm: fixed_or`, line 671)
 *For every `k` there are `n = k^{O(1)}`, functions `f, g : {0,1}^n → {0,1}` and a balanced
 `Π` such that `f, g` have equivalent unambiguous `k`-DNFs with `2^{Õ(k)}` terms and
-`UCC₁^Π(f ∪ g) = Ω̃(k²)`.* From Göös et al., Theorem 2. Same status as T2. **In Lean** as `Imported.UnionHard`, with
+`UCC₁^Π(f ∪ g) = Ω̃(k²)`.* From Göös–Kiefer–Yuan (ICALP 2022), shown inside the proof of
+their Theorem 2 rather than stated as one (line 669). Same status as T2. **In Lean** as `Imported.UnionHard`, with
 clause (2) on `Par₁^Π` directly, and `UnionHard.not_hasPartition` the consumable form.
 
 **T11. Disjunction.** (`thm: union`, line 471; proof line 682)

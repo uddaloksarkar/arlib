@@ -71,8 +71,11 @@ namespace Imported
 variable {ι : Type} [DecidableEq ι]
 
 /-- **I1 — fixed-partition hardness** (`thm: fixed_part`,
-`source/kc/arXiv.tex:311`), from Göös et al., building on GLMWZ and Balodis et
-al.
+`source/kc/arXiv.tex:311`), from Göös–Kiefer–Yuan, *Lower bounds for unambiguous
+automata via communication complexity*, ICALP 2022 — extracted from the *proof*
+of their Theorem 1 rather than quoted from a statement (`:309`) — building on
+Göös–Lovett–Meka–Watson–Zuckerman and Balodis–Ben-David–Göös–Jain–Kothari; see
+`ROADMAP.md` §3.
 
 The data: a function on variables `Z`, presented as an unambiguous `k`-DNF `ψ`
 with at most `termBound` terms, together with a *balanced* partition `P` under
@@ -115,8 +118,9 @@ theorem not_hasCover (H : FixedPartitionHard Z k termBound coverBound) {j : ℕ}
 end FixedPartitionHard
 
 /-- **I1′ — fixed-partition hardness for unions** (`thm: fixed_or`,
-`source/kc/arXiv.tex:671`), from Göös et al., Theorem 2.  Same provenance and
-same status as `FixedPartitionHard`; used only for `thm: union` and hence for
+`source/kc/arXiv.tex:671`), from the same paper — Göös–Kiefer–Yuan, ICALP 2022 —
+and again from inside a proof, this time of their Theorem 2 (`:669`).  Same
+provenance and same status as `FixedPartitionHard`; used only for `thm: union` and hence for
 the disjunction and existential-quantification results.
 
 Two differences from I1.  The hardness is about the *union* `f ∪ g` rather than
