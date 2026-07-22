@@ -163,6 +163,32 @@ conditional on is visible in the statement.
 | `LowerBounds.Arithmetic` | `cor: add`: dSD-`AC` is not closed under addition. `thm: union` read through `φ`, with the paper's sixth imported result shown to be *unnecessary* — its only job is to make `supp = sat` available, and determinism already does that. So Part D is conditional on `UnionHard` alone. |
 | `LowerBounds.Imported`, `UnionDerived` | The results the paper genuinely imports, as named bundles of data and hypotheses rather than axioms — every downstream theorem takes one as a parameter. `UnionDerived` then *derives* `UnionHard` from the two results Göös–Kiefer–Yuan themselves import, rather than assuming it. |
 
+### `Arlib.Algorithms` — analyses of specific algorithms
+
+Randomised algorithms and estimators. Each entry carries only the *generic* half
+of its analysis — the law of a counter, the arithmetic of a run-count schedule,
+a termination argument. The *problem-specific* half — exhibiting the structure
+the algorithm needs for one particular counting or sampling problem — stays in
+the project that uses it. An entry that cannot be stated without naming a
+problem is a sign the split has not been found yet.
+
+Unlike `MarkovChains`, whose subdirectories are organisational and share one
+namespace, each algorithm gets its own directory *and* namespace
+`Arlib.Algorithms.<Name>`: the entries are independent, and their names would
+otherwise collide.
+
+| Module | Content |
+| --- | --- |
+| `TPA.Count` | The Tootsie Pop Algorithm (Huber, 2010). The closed form `tpaTail` for `P(U₁ ⋯ U_m > c)`, its one-dimensional integral recursion, the resulting Poisson law for the number of contractions, and almost-sure termination. |
+| `TPA.UniformProduct` | The identification of `tpaTail` with the probability it is named for: on the product of `m` copies of `Uniform(0,1)` the event `{U₁ ⋯ U_m > c}` really does have measure `tpaTail m c` (for `0 < c < 1`), and consecutive differences are the Poisson masses `poissonPMF (ln(1/c))`. |
+| `TPA.TwoPhase` | The arithmetic of the two-phase run-count schedule: the exact phase-one threshold, the phase-two budget inequalities (which force `1 ≤ A`), and the passage from additive log accuracy to relative accuracy. |
+
+TPA estimates a ratio `μ(B)/μ(B')` for a centre `B'` inside a shell `B`, given a
+nested family interpolating between them. It replaces the classical
+self-reducibility product estimator, whose output is a product of scaled
+binomials, by a single Poisson random variable — which is why its analysis is
+sharp, and why it is worth having as reusable infrastructure.
+
 ### `Arlib.Prelude`
 
 Small shared notation, currently the multiplicative **relative-error interval**
