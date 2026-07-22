@@ -243,28 +243,66 @@ every function the paper considers.
 ## A.4 Arithmetic circuits (§5, from line 509)
 
 **D22. AC.** (`def: AC`, line 511) As NNF but with fan-in-two `+` and `×` internal nodes;
-leaves labelled `0`, `1`, `x` or `¬x`. On input `x`, a positive variable contributes
-`x(v)` and a negative one `1 - x(v)`; `f_C : {0,1}^{dom(C)} → ℝ`.
-*Lean note:* the shared structure with `NNF` is real. Consider generalizing `Gate` over a
-semiring and an interpretation of the two internal labels, so `NNF` and `AC` are two
-instantiations — but only do so once `Circuits/` is otherwise complete; premature
-generalization here will make every `NNF` proof harder to read for no gain.
+leaves labelled by a real constant, `x` or `¬x`. On input `x`, a positive variable
+contributes `x(v)` and a negative one `1 - x(v)`; `f_C : {0,1}^{dom(C)} → ℝ`.
+**In Lean** as `AGate`, `AC`, with `valAt`, `eval`, `varsAt`, `vars`, `valAt_congr`, and the
+`Reaches`/`child_lt` apparatus mirroring `NNF`.
+
+> **The definition as printed is inconsistent with the section built on it, and is not what
+> is formalized.** `def: AC` restricts leaf constants to `0` and `1`. Under that reading:
+> `AC_m` ("every constant non-negative", D23) is no restriction, so `AC_m = AC` and the strict
+> containment `AC_m ⊊ AC_p` the section rests on fails; `φ` ("non-zero constants become `1`",
+> D25) is the identity on leaves; and the paper's own figure (line 560) shows an AC with leaf
+> constants `a`, `b`, `3` and `φ` sending the `3` to `1`.
+> The prose immediately above the definition — "any real number may be a constant" — and the
+> **commented-out earlier draft still present in the source at line 512** ("labelled by a real
+> number, a variable `x` or a negated variable `¬x`") agree with each other and with the rest
+> of §5. `AGate.const` therefore carries an `ℝ`.
+
+*Lean note, resolved:* the shared structure with `NNF` is real, and generalizing `Gate` over a
+semiring was considered and **rejected** — it would rewrite every proof in `Circuits/` and
+`LowerBounds/` to save one file. What the shared *shape* buys is that `φ` and `ψ` reuse
+`size`, `child_lt` and `root` verbatim, so every transfer lemma is an induction that never
+touches the graph. Constants are `ℝ` rather than a general ordered ring: the paper says `ℝ`,
+nothing downstream varies the ring, and polymorphism would only cost the reader instance
+resolution at every statement.
 
 **D23. Positive AC (`AC_p`), monotone AC (`AC_m`).** (line 519) Positive = outputs a
 non-negative polynomial; monotone = *syntactically* every constant is non-negative.
 Monotone ⊆ positive, and the containment is strict.
+**In Lean** as `AC.IsMonotone` (relativized to reachable nodes, as every syntactic condition
+in the area is) and `AC.IsPositive`, with the containment as `IsMonotone.isPositive` via
+`AC.valAt_nonneg`.
 
 **D24. `supp(C)`.** (line 532) The set of inputs on which `f_C` is non-zero.
+**In Lean** as `AC.Supp`, a `Prop` (`C.eval α ≠ 0`), so no `DecidableEq ℝ` is needed.
 
 **D25. The relabelling `φ`.** (line 521) `φ(C)` has the same underlying graph as `C`;
 leaves labelled by a variable, a negated variable, or `0` are unchanged, every other leaf
 becomes `1`; `+` becomes `∨` and `×` becomes `∧`.
 *Key property (line 601):* `supp(C) = sat(φ(C))`. This is the only reason `φ` exists, and
-it should be the lemma proved about it.
+it is the lemma proved about it. **In Lean** as `AGate.toGate`, `AC.toNNF`, and — twice —
+`AC.supp_iff_sat_toNNF` and `AC.supp_iff_sat_toNNF_of_deterministic`.
+
+Everything turns on the `+` case: can `a + b` vanish while `a` or `b` does not? Two
+independent hypotheses answer it, and **both are needed by this development**.
+*Monotonicity* (the paper's) rules out cancellation between non-zero summands; it is the right
+hypothesis for the paper's figure, whose circuit is monotone and not deterministic.
+*Determinism* makes at most one summand non-zero, so there is nothing to cancel; it needs no
+condition on the constants at all, and it is what Part D consumes — see T15.
+The `×` case needs neither: `ℝ` has no zero divisors.
+
+The converse `ψ` (`∨ ↦ +`, `∧ ↦ ×`) is `NNF.toAC`, with `φ ∘ ψ = id` on the nose
+(`NNF.toNNF_toAC`). `NNF.toAC_valAt` — that `ψ(C)` is `{0,1}`-valued — carries **determinism**
+as a hypothesis and genuinely needs it: at a non-deterministic `∨`-node the sum is `2`.
 
 **D26. dSD-`AC_m`.** (line 532) Deterministic, structured, decomposable monotone AC — the
 AC analogue of d-SDNNF, obtained by replacing `∧` by `×`, `∨` by `+` and `sat` by `supp`
 in D7, D8, D12.
+**In Lean** as `AC.Decomposable`, `AC.Deterministic`, `AC.Respects` and `AC.IsdSDAC`, the
+last built on `AC.IsdSD` — the three conditions with *no* fragment attached. Splitting the
+core out is load-bearing rather than tidy: `cor: add` uses neither `AC_m` nor `AC_p`, so the
+theorem is stated over `IsdSD` and `IsdSDACp` (dSD-`AC_p`) is a specialization. See T15.
 
 **D27. `X` p-decomposition.** (`def: p-decomp`, line 606) For `f : {0,1}^X → ℝ⁺` with
 `f = Σᵢ αᵢ × (pᵢ(X) + sᵢ(Y))`, each `αᵢ > 0` and `Σᵢ αᵢ = 1`: a p-decomposition when
@@ -554,24 +592,51 @@ would have made this step real work rather than a rewrite.
 
 # PART D — ARITHMETIC CIRCUITS (§5)
 
-**T13. de Colnet–Mengel. [IMPORTED — I4]** (`lem: AC`, line 527)
+**T13. de Colnet–Mengel. [IMPORTED — I4] NOT FORMALIZED.** (`lem: AC`, line 527)
 *For sets `𝖢₁, 𝖢₂` of `AC_m`: `𝖢₁ ≤ 𝖢₂` implies `φ(𝖢₁) ≤ φ(𝖢₂)`.*
-*Deps:* D15, D25. **Read the paper's footnote at line 119**: the cited source states this
-as an iff, but only one direction holds. Formalize the stated direction; record the other
-as false rather than omitting it silently.
+*Deps:* D15, D25. Consumed by exactly one statement, T14, which is not formalized — so there
+is no bundle for it in `Imported.lean`. Adding one would assert that something is being
+imported when nothing is being proved from it. **Read the paper's footnote at line 119**: the
+cited source states this as an iff, but only one direction holds.
 
-**T14. dSD-`AC_m` `<` PSDD.** (`cor: ACsep`, line 632; proof line 636)
+**T14. dSD-`AC_m` `<` PSDD. NOT FORMALIZED — a judgement, see `ROADMAP.md` §7.5.**
+(`cor: ACsep`, line 632; proof line 636)
 *Deps:* T9, T13, D26, D28. Proof: `φ(dSD-AC_m) = d-SDNNF`; `φ(PSDD) ≥ SDD` (propagating
 away parameter constants from `φ(C)` yields an equivalent, smaller SDD); chain with T9.
-*Lean note:* the `φ(PSDD) ≥ SDD` step is a constant-propagation construction, not a
-one-liner — it is the only real content in this proof.
+Three obstacles, of which the last is the wall the whole area stops at: PSDD is an arithmetic
+re-run of `Circuits/SDD.lean` including `IsChain`; `φ(PSDD) ≥ SDD` is a constant-propagation
+*surgery on the DAG* (delete each `1 ∧ Z`, renumber `Fin size`, rebuild `child_lt`, re-derive
+`IsSDDAt`) on the scale of `DNFtoCircuit`; and `<` between classes needs `≤` (D15) plus
+`thm: sep` restated asymptotically, which is G6.
+*Also worth recording:* the paper's proof establishes only one of the two halves of `<`. It
+shows `φ(dSD-AC_m) < φ(PSDD)` and concludes by `lem: AC`; `dSD-AC_m ≤ PSDD` is never argued.
 
-**T15. Addition.** (`cor: add`, line 642; proof line 646)
+**T15. Addition. IN LEAN.** (`cor: add`, line 642; proof line 646)
 *For every `n` there are positive polynomials `f, g` each admitting a dSD-`AC_m` of size
 `n` such that any dSD-`AC_p` equivalent to `f + g` has size `n^{Ω̃(log n)}`.*
-*Deps:* T11, T13, plus de Colnet–Mengel Lemma 10 (flipping the sign of every negative
-constant in a positive AC yields an equivalent monotone AC) — a **sixth imported result**,
-used only here.
+*Deps:* T11 and **nothing else**. **In Lean** as `Separation.cor_add` and
+`Separation.cor_add_positive`, with `Instance.cor_add_instance` discharging the parameters.
+`n^{Ω̃(log n)}` is `partBound`, as everywhere; see `ROADMAP.md` §5.
+
+> **The sixth imported result is not needed.** The paper's proof cites de Colnet–Mengel
+> Lemma 10 (flipping the sign of every negative constant in a positive AC yields an equivalent
+> monotone AC) to turn the given dSD-`AC_p` into a dSD-`AC_m`. Its *only* purpose is to make
+> `supp = sat` available. But `supp = sat` also follows from **determinism** (D25 above), which
+> dSD-`AC_p` has by definition — at a `+`-node of a deterministic AC at most one child is
+> non-zero, so the cancellation non-negativity was ruling out cannot occur. So `φ` applies to
+> the original circuit and the conversion step disappears. See `LowerBounds/Arithmetic.lean`
+> and `ROADMAP.md` §3, I6.
+>
+> Consequently Part D is conditional on `UnionHard` alone, and the lower bound is **stronger
+> than the paper's**: it holds for every deterministic structured decomposable AC, with no
+> fragment condition. `cor_add_positive` specializes back to the paper's dSD-`AC_p` so the two
+> can be read side by side.
+
+*Two further deviations, both in the direction of strength.* Clause (1) gives a dSD-`AC_m`
+respecting **any** prescribed well-formed v-tree over the variables, not merely some v-tree —
+inherited from `thm: union`. And the upper-bound circuits come from `NNF.toAC` applied to the
+d-SDNNFs of `thm: union`, so the size bound is literally the same numeral, for the fourth
+time in the development.
 
 ---
 
@@ -586,6 +651,11 @@ For the record, so that nobody re-derives these decisions:
 2. **Logarithms.** Everything is stated with `Cov`/`Par` in `ℕ`. See D20.
 3. **`⟨C⟩`, the expansion of a circuit to a formula.** Used only for exposition; every
    statement about it is a statement about `f_C`. See D6.
-4. **The three genuinely external theorems** T2/T10 (Göös et al.), T5 in its
-   published form (Wegman–Carter — but see I3, it is within reach), T13 and the SDD- and
-   AC-complementation facts. These are hypotheses, never axioms; see `ROADMAP.md` §1.3.
+4. **The genuinely external theorems.** T2/T10 (Göös et al.) and the SDD complementation
+   fact (Darwiche) are hypotheses, never axioms; see `ROADMAP.md` §1.3. T5 in its published
+   form (Wegman–Carter) turned out to be within reach and is **proved** (I3). T13 is neither:
+   it has no consumer here, since T14 is not formalized, so it is recorded and not bundled.
+   The AC-monotonization fact (de Colnet–Mengel Lemma 10) is not needed at all — see T15.
+5. **PSDD, `X` p-decomposition, and succinctness `≤`/`<`** (D15, D27, D28). Needed only to
+   *state* T14, which is not formalized; see `ROADMAP.md` §7.5 for the three obstacles and
+   why the third of them is the same one blocking the asymptotic form of `thm: main`.

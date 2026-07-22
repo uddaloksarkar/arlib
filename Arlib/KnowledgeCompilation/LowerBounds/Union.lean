@@ -90,7 +90,7 @@ theorem partBound_le_size_of_computes_union
     {rep : F × F → Zι → Bool} (hrep : Function.Injective rep)
     (hm : 6 * Fintype.card ι < m) (hz : 8 * Fintype.card Zι ≤ Fintype.card F)
     {T : VTree (F ⊕ Zι)} {C : NNF (F ⊕ Zι)} (hT : T.WellFormed)
-    (hR : C.Respects T) (hdet : C.Deterministic) (hCT : C.vars ⊆ T.vars)
+    (hR : C.Respects T) (hdet : C.Deterministic)
     (hC : C.Computes (fun α => DNF.eval (permDNF e rep H.ψ) α ||
       DNF.eval (permDNF e rep H.φ) α)) :
     partBound ≤ C.size := by
@@ -102,7 +102,9 @@ theorem partBound_le_size_of_computes_union
   replace hT'vars : T'.vars = (Finset.univ : Finset (F ⊕ Zι)) := by
     rw [hT'vars]
     exact Finset.eq_univ_of_forall fun x => Finset.mem_union_right _ (Finset.mem_univ x)
-  have hCT' : C.vars ⊆ T'.vars := hCT.trans hsub.vars_subset
+  -- the grafted tree spans *every* variable, so the rectangle lemma's
+  -- `var(C) ⊆ var(T)` is free rather than a hypothesis
+  have hCT' : C.vars ⊆ T'.vars := by rw [hT'vars]; exact Finset.subset_univ _
   -- a field has at least two elements, so the v-tree has at least two variables
   have hcard2 : 2 ≤ T'.vars.card := by
     rw [hT'vars, Finset.card_univ, Fintype.card_sum]
@@ -151,14 +153,14 @@ theorem thm_union
             * (2 * (Fintype.card Zι + k * m) + 2) + 1)) ∧
       -- (2) their disjunction has no small d-SDNNF
       (∀ (T : VTree (F ⊕ Zι)) (C : NNF (F ⊕ Zι)), T.WellFormed →
-        C.Respects T → C.Deterministic → C.vars ⊆ T.vars →
+        C.Respects T → C.Deterministic →
         C.Computes (fun α => DNF.eval ψ' α || DNF.eval φ' α) →
           partBound ≤ C.size) := by
   refine ⟨permDNF e rep H.ψ, permDNF e rep H.φ, fun T hT hTvars => ⟨?_, ?_⟩, ?_⟩
   · exact exists_isdSDNNF_permDNF hrep H.isKDNF.1 H.unambiguous.1 H.numTerms_le.1 T hT hTvars
   · exact exists_isdSDNNF_permDNF hrep H.isKDNF.2 H.unambiguous.2 H.numTerms_le.2 T hT hTvars
-  · exact fun T C hT hR hdet hCT hC =>
-      partBound_le_size_of_computes_union H he hrep hm hz hT hR hdet hCT hC
+  · exact fun T C hT hR hdet hC =>
+      partBound_le_size_of_computes_union H he hrep hm hz hT hR hdet hC
 
 end Union
 
@@ -237,7 +239,7 @@ theorem thm_ex
             * (2 * (Fintype.card Zι + k * m + 1) + 2) + 1) ∧
       -- (2) but `∃x f` does not
       (∀ (T : VTree (F ⊕ Zι)) (C : NNF (F ⊕ Zι)), T.WellFormed →
-        C.Respects T → C.Deterministic → C.vars ⊆ T.vars →
+        C.Respects T → C.Deterministic →
         C.Computes (existsFresh (DNF.eval f)) → partBound ≤ C.size) := by
   classical
   set ψ' := permDNF e rep H.ψ with hψ'
@@ -268,8 +270,8 @@ theorem thm_ex
     exact Nat.add_le_add_right
       (Nat.mul_le_mul_right _ (by omega)) 1
   · -- (2) `∃x` of the mux is the union, so this *is* `thm: union`'s lower bound
-    intro T C hT hR hdet hCT hC
-    refine partBound_le_size_of_computes_union H he hrep hm hz hT hR hdet hCT ?_
+    intro T C hT hR hdet hC
+    refine partBound_le_size_of_computes_union H he hrep hm hz hT hR hdet ?_
     intro α
     rw [hC α, existsFresh_eval_muxDNF]
 

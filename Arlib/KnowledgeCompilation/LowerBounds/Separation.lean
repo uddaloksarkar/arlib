@@ -198,7 +198,7 @@ theorem coverBound_le_size_of_computes_not
     {rep : F × F → Zι → Bool} (hrep : Function.Injective rep)
     (hm : 6 * Fintype.card ι < m) (hz : 8 * Fintype.card Zι ≤ Fintype.card F)
     {T : VTree (F ⊕ Zι)} {C : NNF (F ⊕ Zι)} (hT : T.WellFormed)
-    (hR : C.Respects T) (hCT : C.vars ⊆ T.vars)
+    (hR : C.Respects T)
     (hC : C.Computes (fun α => !(DNF.eval (permDNF e rep H.ψ) α))) :
     coverBound ≤ C.size := by
   by_contra hlt
@@ -209,7 +209,9 @@ theorem coverBound_le_size_of_computes_not
   replace hT'vars : T'.vars = (Finset.univ : Finset (F ⊕ Zι)) := by
     rw [hT'vars]
     exact Finset.eq_univ_of_forall fun x => Finset.mem_union_right _ (Finset.mem_univ x)
-  have hCT' : C.vars ⊆ T'.vars := hCT.trans hsub.vars_subset
+  -- the grafted tree spans *every* variable, so the rectangle lemma's
+  -- `var(C) ⊆ var(T)` is free rather than a hypothesis
+  have hCT' : C.vars ⊆ T'.vars := by rw [hT'vars]; exact Finset.subset_univ _
   -- the v-tree has at least two variables, since a field has at least two elements
   have hcard2 : 2 ≤ T'.vars.card := by
     rw [hT'vars, Finset.card_univ, Fintype.card_sum]
@@ -255,14 +257,14 @@ theorem thm_main
           C.size ≤ (maps F).card * (termBound * m ^ k)
             * (2 * (Fintype.card Zι + k * m) + 2) + 1) ∧
       (∀ (T : VTree (F ⊕ Zι)) (C : NNF (F ⊕ Zι)), T.WellFormed →
-        C.Respects T → C.vars ⊆ T.vars → C.Computes (fun α => !(DNF.eval ψ' α)) →
+        C.Respects T → C.Computes (fun α => !(DNF.eval ψ' α)) →
           coverBound ≤ C.size) := by
   refine ⟨permDNF e rep H.ψ,
     unambiguous_permDNF (fun _ _ _ _ h => hrep h) H.unambiguous,
     fun T hT hTvars => exists_isdSDNNF_permDNF hrep H.isKDNF H.unambiguous H.numTerms_le
       T hT hTvars,
-    fun T C hT hR hCT hC =>
-      coverBound_le_size_of_computes_not H he hrep hm hz hT hR hCT hC⟩
+    fun T C hT hR hC =>
+      coverBound_le_size_of_computes_not H he hrep hm hz hT hR hC⟩
 
 /-- **`thm: sep`** (`source/kc/arXiv.tex:107`, proof at `:465`): *there is a
 function with a small d-SDNNF and no small SDD*.
@@ -299,9 +301,8 @@ theorem thm_sep {c d : ℕ}
   -- exactly what `Respects` asks for
   have hR' : C'.Respects T :=
     NNF.IsSDDAt.respectsFrom T (VTree.IsSubtree.refl T) C'.root hSDD'
-  have hCT' : C'.vars ⊆ T.vars := NNF.IsSDDAt.varsAt_subset T C'.root hSDD'
   exact le_trans
-    (coverBound_le_size_of_computes_not H he hrep hm hz hT hR' hCT' hC') hsize
+    (coverBound_le_size_of_computes_not H he hrep hm hz hT hR' hC') hsize
 
 end Main
 

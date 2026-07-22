@@ -78,6 +78,7 @@ declines.  Nothing in this file blocks it; it is simply a different piece of wor
 -/
 import Arlib.KnowledgeCompilation.LowerBounds.Separation
 import Arlib.KnowledgeCompilation.LowerBounds.Union
+import Arlib.KnowledgeCompilation.LowerBounds.Arithmetic
 import Mathlib.FieldTheory.Finite.GaloisField
 
 namespace Arlib.KnowledgeCompilation
@@ -267,7 +268,7 @@ theorem thm_main_instance (n k termBound coverBound : ℕ)
           C.size ≤ (2 ^ exponent n - 1) * 2 ^ exponent n * (termBound * copies n ^ k)
             * (2 * (2 * exponent n + k * copies n) + 2) + 1) ∧
       (∀ (T : VTree (Fld n ⊕ Zid n)) (C : NNF (Fld n ⊕ Zid n)), T.WellFormed →
-        C.Respects T → C.vars ⊆ T.vars →
+        C.Respects T →
         C.Computes (fun α => !(DNF.eval ψ' α)) → coverBound ≤ C.size) := by
   obtain ⟨e, he⟩ := exists_e n
   obtain ⟨rep, hrep⟩ := exists_rep n
@@ -326,7 +327,7 @@ theorem thm_union_instance (n k termBound partBound : ℕ)
           C.size ≤ (2 ^ exponent n - 1) * 2 ^ exponent n * (termBound * copies n ^ k)
             * (2 * (2 * exponent n + k * copies n) + 2) + 1)) ∧
       (∀ (T : VTree (Fld n ⊕ Zid n)) (C : NNF (Fld n ⊕ Zid n)), T.WellFormed →
-        C.Respects T → C.Deterministic → C.vars ⊆ T.vars →
+        C.Respects T → C.Deterministic →
         C.Computes (fun α => DNF.eval ψ' α || DNF.eval φ' α) → partBound ≤ C.size) := by
   obtain ⟨e, he⟩ := exists_e n
   obtain ⟨rep, hrep⟩ := exists_rep n
@@ -338,6 +339,40 @@ theorem thm_union_instance (n k termBound partBound : ℕ)
     rw [card_maps, card_Fld]
   exact ⟨⟨C, h1, h2, h3, h4.trans (le_of_eq (by rw [hcard, card_Zid]))⟩,
     ⟨D, g1, g2, g3, g4.trans (le_of_eq (by rw [hcard, card_Zid]))⟩⟩
+
+/-- **`cor: add` with its parameters discharged** (`source/kc/arXiv.tex:642`).
+
+The arithmetic corollary at the same concrete parameters as the three Boolean
+ones.  Nothing new is discharged here — `cor: add` is `thm: union` read through
+`φ`, and `φ` does not touch the variable type — so the same `exists_e`,
+`exists_rep` and cardinality facts serve, and the size bound is the same numeral
+for the fourth time.
+
+Clause (2) is the paper's: every dSD-`AC_p` for `f + g` is large.  It is
+conditional on `UnionHard` alone; see `LowerBounds/Arithmetic.lean` for why the
+sixth import the paper uses here does not appear. -/
+theorem cor_add_instance (n k termBound partBound : ℕ)
+    (H : Imported.UnionHard (Finset.univ : Finset (Fin n)) k termBound partBound) :
+    ∃ f g : (Fld n ⊕ Zid n → Bool) → ℝ,
+      (∀ T : VTree (Fld n ⊕ Zid n), T.WellFormed → T.vars = Finset.univ →
+        (∃ A : AC (Fld n ⊕ Zid n), A.Computes f ∧ A.Respects T ∧ A.IsdSDAC ∧
+          A.size ≤ (2 ^ exponent n - 1) * 2 ^ exponent n * (termBound * copies n ^ k)
+            * (2 * (2 * exponent n + k * copies n) + 2) + 1) ∧
+        (∃ A : AC (Fld n ⊕ Zid n), A.Computes g ∧ A.Respects T ∧ A.IsdSDAC ∧
+          A.size ≤ (2 ^ exponent n - 1) * 2 ^ exponent n * (termBound * copies n ^ k)
+            * (2 * (2 * exponent n + k * copies n) + 2) + 1)) ∧
+      (∀ A : AC (Fld n ⊕ Zid n), A.IsdSDACp →
+        A.Computes (fun α => f α + g α) → partBound ≤ A.size) := by
+  obtain ⟨e, he⟩ := exists_e n
+  obtain ⟨rep, hrep⟩ := exists_rep n
+  obtain ⟨f, g, hup, hlow⟩ :=
+    Separation.cor_add_positive H he hrep (six_mul_lt_copies n) (eight_mul_card_Zid_le n)
+  refine ⟨f, g, fun T hT hTv => ?_, hlow⟩
+  obtain ⟨⟨A, h1, h2, h3, h4⟩, ⟨B, g1, g2, g3, g4⟩⟩ := hup T hT hTv
+  have hcard : (maps (Fld n)).card = (2 ^ exponent n - 1) * 2 ^ exponent n := by
+    rw [card_maps, card_Fld]
+  exact ⟨⟨A, h1, h2, h3, h4.trans (le_of_eq (by rw [hcard, card_Zid]))⟩,
+    ⟨B, g1, g2, g3, g4.trans (le_of_eq (by rw [hcard, card_Zid]))⟩⟩
 
 end Instance
 end Arlib.KnowledgeCompilation

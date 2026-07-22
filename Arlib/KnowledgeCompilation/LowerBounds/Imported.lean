@@ -38,9 +38,23 @@ once, at the very last step.
 
 ## What is *not* here
 
-De Colnet–Mengel (used only by the arithmetic-circuit section) is deliberately
-absent: it needs vocabulary — the relabelling `φ` — that does not exist yet.  It
-belongs here once it does.
+**Neither de Colnet–Mengel result is here, and for two different reasons.**  This
+paragraph used to say they were waiting on vocabulary — the relabelling `φ` —
+that did not yet exist.  `Circuits/Arithmetic.lean` now supplies it, and the
+answer in both cases turned out to be that no bundle is warranted.
+
+*Lemma 10* (flip the sign of every negative constant in a positive AC to get an
+equivalent monotone one) is cited by the proof of `cor: add` to convert a
+dSD-`AC_p` into a dSD-`AC_m`.  Its sole purpose there is to make
+`supp(C) = sat(φ(C))` available — and that identity also follows from
+*determinism*, which dSD-`AC_p` has by definition.  So the conversion step is
+unnecessary and `LowerBounds/Arithmetic.lean` is conditional on `UnionHard`
+alone.  See `ROADMAP.md` §3, I6.
+
+*Proposition 2* (`lem: AC`) is consumed by exactly one statement, `cor: ACsep`,
+which is not formalized (`ROADMAP.md` §7.5).  A bundle with no consumer would
+assert that something is being imported when nothing is being proved from it,
+which is the opposite of what this file is for.
 
 `SDD` closed under polynomial-time complementation (used only by `thm: sep`,
 `source/kc/arXiv.tex:465`) was in the same position and is now here, as

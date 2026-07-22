@@ -95,7 +95,7 @@ Three directories, mirroring the shape of the argument.
 | `DNF` | terms, width, `IsKDNF`, `Unambiguous` | **done** |
 | `DNFtoCircuit` | the DNF-to-d-SDNNF construction, `size ≤ ℓ·(2k+2) + 1` | **done** |
 | `DNFMux` | `muxDNF`, `existsFresh`, `∃x f_C ≡ f ∨ g` — the upper-bound ingredients of `thm: ex`, muxed at the DNF level rather than by gluing circuits | **done** |
-| `Arithmetic` | AC, monotone/positive AC, `supp`, the relabelling `φ`, p-decomposition, PSDD | last |
+| `Arithmetic` | AC, monotone/positive AC, `supp`, the relabelling `φ` and its converse `ψ`, `supp(C) = sat(φ(C))` proved twice | **done** — PSDD and p-decomposition deliberately absent, see §7 |
 
 ### `Communication/` — the tool
 
@@ -118,16 +118,20 @@ Three directories, mirroring the shape of the argument.
 | `Lifting` | the canonical choice-function enumeration and the counting unambiguity of `ψ^∨`; Step 2 (`zBlock`, `permTerm`, `permDNF`) with its term count, width and unambiguity; and `thm: fixed_to_best` as a `PartitionMap` | **done** |
 | `Separation` | `thm: main` and `thm: sep`, with both bounds explicit | **done** — `thm: main` conditional on I1, `thm: sep` on I1 and I5 |
 | `Union` | `thm: union` and `thm: ex`, the same assembly at `Par₁` rather than `Cov₀` | **done** — both conditional on I1′ and nothing else |
+| `Arithmetic` | `cor: add`, i.e. `thm: union` read through `φ` | **done** — conditional on I1′ and nothing else; I6 turned out not to be needed |
+| `Instance` | concrete witnesses for every parameter, and the four headline theorems applied to them | **done** — closes the non-vacuity half of G6 |
 
 ---
 
 ## 3. Imported results
 
-Five results are used but not proved by the paper. Two of them, I2 and I3, turned out to be
-within reach and are now **proved** here (see below and §4), so they are no longer imports. The
-remaining three — I1, I4, I5 — each become an explicit hypothesis. I5 was not on the original
-list of four: it surfaced only when `thm: sep` was actually assembled, and it is used nowhere
-else.
+Six results are used but not proved by the paper. Three of them turn out not to be needed as
+imports at all: I2 and I3 are within reach and are **proved** here (see below and §4), and I6
+is **not required** by the argument it appears in. Of the rest, I1 and I5 become explicit
+hypotheses; I4 is used only by `cor: ACsep`, which is not formalized (§7).
+
+Two of the six were not on the original list of four. I5 surfaced when `thm: sep` was
+assembled; I6 surfaced when `cor: add` was, and then dissolved.
 
 **I1 — Göös–Jain–Watson-style fixed-partition hardness** (`thm: fixed_part`, line 311; and
 `thm: fixed_or`, line 671). *For every `k` there is `m = k^O(1)`, a function
@@ -161,10 +165,26 @@ things are pinned down that the paper leaves implicit and that a consumer needs:
 circuit has no unreachable nodes — the latter only because `Respects`/`Deterministic` quantify
 over all node indices while `IsSDDAt` constrains only what is below the source, i.e. gap G1.
 
-**I4 — de Colnet–Mengel, Proposition 2** (`lem: AC`, line 527). Needed only for the
-arithmetic-circuit section. Note the paper's own footnote (line 119): the cited source
-states it as an iff, but only one direction actually holds. Formalize the direction that
-is used, and record the other as false rather than silently omitting it.
+**I4 — de Colnet–Mengel, Proposition 2** (`lem: AC`, line 527). *For sets of `AC_m`,
+`𝖢₁ ≤ 𝖢₂` implies `φ(𝖢₁) ≤ φ(𝖢₂)`.* Used by exactly one statement, `cor: ACsep`, which is not
+formalized — see §7. So it is **not** in `Imported.lean`: adding a bundle with no consumer
+would assert that something is being imported when nothing is being proved from it. Note the
+paper's own footnote (line 119): the cited source states this as an iff, but only one
+direction holds.
+
+**I6 — de Colnet–Mengel, Lemma 10** (used at line 649, inside the proof of `cor: add`).
+*Flipping the sign of every negative constant in a positive AC yields an equivalent monotone
+AC.* **No longer an import: not needed.** It is invoked to convert a dSD-`AC_p` into a
+dSD-`AC_m`, and the only thing monotonicity is subsequently used for is `supp(C) = sat(φ(C))`.
+That identity has a second proof, from **determinism** rather than monotonicity: at a `+`-node
+of a deterministic AC at most one child is non-zero, so the cancellation that non-negativity
+was ruling out cannot occur. Determinism is part of the definition of dSD-`AC_p`, so the
+conversion step is unnecessary and `φ` applies to the original circuit.
+
+Two things follow, both visible in the statements. Part D is conditional on I1′ alone, the
+same bundle as `thm: union`. And `cor: add`'s lower bound holds for *every* deterministic
+structured decomposable AC — `AC.IsdSD`, no fragment condition — which is strictly stronger
+than the paper's dSD-`AC_p` statement; `cor_add_positive` specializes back for comparison.
 
 ---
 
@@ -424,10 +444,39 @@ remains, in the order it is worth doing:
    straight-line programs that the area needs nowhere else. Quantifying `∃x` away lands back
    in the original variable type, so clause (2) is literally `thm: union`'s clause (2) and no
    partition is transported between types.
-3. **Gap G1** — restate `Decomposable`/`Deterministic`/`Respects` over reachable nodes. This
-   deletes a field of `Imported.SDDComplementation` and a hypothesis of `IsSDD.isdSDNNF`.
-4. **Gap G5** — remove the `var(T) = var(ψ')` hypothesis of the lower bounds, if it is worth it.
-5. `Circuits/Arithmetic` and Part D.
+3. ~~**Gap G1**~~ and ~~**Gap G5**~~ — both closed; see §6. G5 left behind a residual
+   `var(C) ⊆ var(T)` on the lower bounds, and that is now gone too: the graft targets
+   `Finset.univ`, so over a `Fintype` of variables the inclusion is `Finset.subset_univ` and
+   never needed to be a hypothesis. Removed from `thm_main`, `thm_sep`, `thm_union`,
+   `thm_ex` and their instances.
+4. ~~**Part D**~~ — *done* for `Circuits/Arithmetic` and `cor: add` (T15), the last of the
+   paper's four transformation results. Two things are worth recording.
+
+   *The paper's `def: AC` is inconsistent with the section built on it.* It restricts leaf
+   constants to `0` and `1`, which would make `AC_m = AC`, make `φ` the identity on leaves,
+   and contradict the paper's own figure (constants `a`, `b`, `3`). The prose one line above,
+   and a commented-out earlier draft still in the source, both say "any real number". We
+   follow those.
+
+   *The sixth import dissolved.* See I6 in §3. `cor: add` is conditional on `UnionHard` alone,
+   and its lower bound holds without any fragment condition on the circuit.
+
+5. **`cor: ACsep`** (T14) — *not* formalized, and unlike the items above this is a judgement
+   rather than a gap left for lack of time. Three things stand in the way, and the third is
+   the same wall everything else in this area stops at:
+
+   * **PSDD** would be an arithmetic re-run of `Circuits/SDD.lean`, `IsChain` and all — the
+     single largest cost in `Circuits/` — with parameters `αᵢ` summing to `1` added on top.
+   * **`φ(PSDD) ≥ SDD`** is the proof's only real content, and it is a *constant-propagation
+     surgery on the DAG*: delete each `1 ∧ Z` node, renumber `Fin size`, rebuild `child_lt`,
+     re-derive `IsSDDAt`. That is a construction on the scale of `DNFtoCircuit`.
+   * **`<` between succinctness classes** (D15) needs the polynomial-simulation layer, and
+     then the *negative* half — `PSDD ≰ dSD-AC_m` — needs `thm: sep` restated asymptotically.
+     That is item 1 above, the one remaining blocker in the whole area.
+
+   Worth noting for whoever picks it up: the paper's proof of `cor: ACsep` establishes only
+   one of the two halves of `<`. It shows `φ(dSD-AC_m) < φ(PSDD)` and concludes by `lem: AC`;
+   the direction `dSD-AC_m ≤ PSDD` is not argued.
 
 When you add a language to `Circuits/`, add the containment lemma that places it in the
 hierarchy (SDD ⊆ d-SDNNF ⊆ d-DNNF ⊆ NNF). The containments are what make a lower bound for

@@ -72,6 +72,12 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
   `∃x f_C ≡ f ∨ g`.  These are the upper-bound ingredients of `thm: ex`; the
   paper glues two circuits instead, and the module docstring records why we do
   not.
+* `Circuits.Arithmetic` — arithmetic circuits, the relabelling `φ` sending an AC
+  to an NNF on the same graph, and its converse `ψ`.  The one theorem is
+  `supp(C) = sat(φ(C))`, proved twice: once from monotonicity, which is the
+  paper's hypothesis, and once from *determinism*, which is the version Part D
+  uses and the reason Part D imports nothing.  Records that the paper's
+  `def: AC` contradicts the section built on it.
 
 ### Communication
 
@@ -118,6 +124,11 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
   `thm: ex` then sits on `Circuits.DNFMux`, and its lower-bound clause is
   literally `thm: union`'s — quantifying the fresh variable away returns a
   function of the original variables.
+* `LowerBounds.Arithmetic` — `cor: add`: dSD-`AC` is not closed under addition.
+  `thm: union` read through `φ`, with the paper's sixth imported result (de
+  Colnet–Mengel Lemma 10, used to turn a positive AC into a monotone one) shown
+  to be unnecessary: its only job is to make `supp = sat` available, and
+  determinism already does that.  So Part D is conditional on `UnionHard` alone.
 * `LowerBounds.ClaimPerm` — the probabilistic heart of the lifting, which the
   paper proves only by citation: some affine permutation places, for every
   original variable and every side of the partition, at least one copy on that
@@ -142,6 +153,7 @@ import Arlib.KnowledgeCompilation.Circuits.SDD
 import Arlib.KnowledgeCompilation.Circuits.DNF
 import Arlib.KnowledgeCompilation.Circuits.DNFtoCircuit
 import Arlib.KnowledgeCompilation.Circuits.DNFMux
+import Arlib.KnowledgeCompilation.Circuits.Arithmetic
 import Arlib.KnowledgeCompilation.Circuits.Figure1
 import Arlib.KnowledgeCompilation.Communication.Rectangle
 import Arlib.KnowledgeCompilation.Communication.Measures
@@ -152,6 +164,7 @@ import Arlib.KnowledgeCompilation.LowerBounds.ClaimPerm
 import Arlib.KnowledgeCompilation.LowerBounds.Lifting
 import Arlib.KnowledgeCompilation.LowerBounds.Separation
 import Arlib.KnowledgeCompilation.LowerBounds.Union
+import Arlib.KnowledgeCompilation.LowerBounds.Arithmetic
 import Arlib.KnowledgeCompilation.LowerBounds.Instance
 import Arlib.KnowledgeCompilation.LowerBounds.Pullback
 import Arlib.KnowledgeCompilation.LowerBounds.AffinePerms
