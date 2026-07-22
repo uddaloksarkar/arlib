@@ -231,10 +231,10 @@ out: doing it needs a family of fields `F` of order `2^t`, and nothing here buil
 
 ## 6. Recorded gaps
 
-Deferred obligations, and the record of what closing them taught. G1, G2, G3 and G6 are
-**closed**; G4 is partly closed; G5 remains. Entries are kept after closure because several
-of them were wrong in instructive ways, and the corrections are worth more than the
-original statements.
+Deferred obligations, and the record of what closing them taught. **All six are now closed
+or moot** — G6 in the non-vacuity sense that mattered, with its asymptotic tail noted below.
+Entries are kept after closure because several of them were wrong in instructive ways, and
+the corrections are worth more than the original statements.
 
 **G1 — the conditions must be relativized to reachable nodes. CLOSED.**
 `Decomposable`, `Deterministic` and `Respects` used to quantify over *all* node indices,
@@ -308,6 +308,31 @@ representation `rep : 𝒫 → (Zι → Bool)` as a parameter whose only require
 shows such a `rep` exists as soon as `|F|² ≤ 2^{|Zι|}`, which for `|F| = 2^t` is the paper's own
 `|Zι| = 2t`. The variables of `ψ'` outside the image of the copies are exactly the paper's
 padding, and they cost nothing.
+
+**G4 — no concrete circuit instantiates the definitions. CLOSED.** Two things closed it,
+and they check different things.
+
+`Circuits/DNFtoCircuit` instantiates `Respects`, `Deterministic` and `IsdSDNNF` for an
+infinite family, with the witnessing v-tree node genuinely varying per `∧`-node — so the
+`∃t ∀g` misreading of `Respects` would not support it. That removed the vacuity worry.
+
+`Circuits/Figure1` does the other half: the paper's own Figure 1
+(`source/kc/arXiv.tex:160–240`), 15 nodes built by hand and checked against the formula its
+**caption** states independently of the drawing. `eval_eq_caption` is therefore a check and
+not a restatement — it is the only thing in the area that tests the *encoding* rather than
+the reasoning about it. The caption and the drawing agree.
+
+What it cost, since this entry used to warn about exactly this:
+
+- `decide` works for `child_lt` (purely syntactic in `gate`) and for nothing semantic:
+  `valAt`/`varsAt` are well-founded recursions and `WellFounded.fix` does not reduce in the
+  kernel. Every value goes through the unfolding lemmas.
+- `fin_cases` does **not** fire on `i : Fin C.size`, because `C.size` is not a numeral. The
+  trick that makes the whole thing tractable is to state the inversion lemmas on the raw
+  `G : Fin 15 → Gate Var 15`, where it does fire, and cross to `C.gate` by `rfl`.
+- Case-split on the node index **only**; the children are then determined by the hypothesis
+  via injection. Splitting on all three indices is `15³` cases and hangs — which is what
+  killed a first attempt.
 
 **G5 — the v-tree of a lower-bound circuit must span every variable. CLOSED.** The lower
 bounds used to carry `T.vars = univ`, so a circuit whose v-tree omitted a variable of `ψ'`
