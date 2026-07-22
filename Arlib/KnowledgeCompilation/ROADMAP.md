@@ -160,7 +160,7 @@ links, most of which are theorems here:
 | hardness of `¬` for approximate conical juntas — GJPW18, Lemma 8 | **imported** (paper not in repo) |
 | `∨` at least as hard as `¬` — GKY, Lemma 14 | **proved**, `Communication/ConicalJunta.lean` |
 | weak LP duality — certificate ⟹ no approximation | **proved**, same file |
-| strong LP duality — no approximation ⟹ certificate | **not proved**; see below |
+| strong LP duality — no approximation ⟹ certificate | **proved**, `Communication/ConicalJunta.lean` |
 | lifting `deg⁺` to nonnegative rank — GLMWZ16, Kothari21 | **imported** (papers not in repo) |
 | `Par₁ ≥ rk⁺` | **proved**, `Communication/NonnegRank.lean` |
 | `deg⁺(f) ≤ UC₁(f)` | **proved**, `Communication/ConicalJunta.lean` |
@@ -178,14 +178,25 @@ bounds `rk⁺` of a *composed* function, and getting from there to a statement a
 exists here. So this work does not yet discharge anything; it replaces one citation by a
 proof plus two more primitive citations.
 
-**On strong duality.** The two claims of Lemma 14 sit on opposite sides of the LP: Claim 15
-is about dual certificates and builds one, Claim 16 is about primal approximations and builds
-one. Composing them requires turning "no good approximation" back into "a certificate exists",
-and the source says so outright. That is Farkas for a finitely generated cone — a textbook
-fact, not something specific to any of these papers — and it is the only step in the chain
-that is neither proved nor attributable to a citation. It is *not* assumed globally: nothing
-in `ConicalJunta.lean` depends on it, and it will appear as an explicit hypothesis at the one
-place that needs it.
+**On strong duality — proved, and Farkas is not needed.** The two claims of Lemma 14 sit on
+opposite sides of the LP: Claim 15 is about dual certificates and builds one, Claim 16 is
+about primal approximations and builds one. Composing them means turning "no good
+approximation" back into "a certificate exists", which the source dispatches with "by strong
+LP duality".
+
+The expected route is Farkas, which needs a finitely generated cone to be closed, and Mathlib
+has no theory of polyhedral cones. That route turns out to be unnecessary. The separation is
+between the cone of conical `d`-juntas and the sup-norm ball of radius `ε` about `f`, and
+**the ball is open**; `geometric_hahn_banach_open` requires openness of only one of the two
+sets, so the cone needs to be convex and nothing more. Convexity is immediate from
+`IsConical.add` and `IsConical.smul`.
+
+The price is a margin that shrinks by an arbitrarily small amount — the conclusion is a
+certificate at any `ε' < ε`, not at `ε` itself. That is precisely the boundary openness gives
+up, and it costs nothing downstream, where every constant has slack.
+
+With this, **Lemma 14 is a complete theorem** (`not_hasConicalApprox_orExt`) rather than two
+claims that cannot be composed.
 
 **I2 — the rectangle lemma** (`lem: rectangle`, line 299). **No longer an import: proved**,
 in `LowerBounds/RectangleLemma.lean`. See §4.

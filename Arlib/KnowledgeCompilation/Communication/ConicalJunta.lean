@@ -81,6 +81,8 @@ generality is not vacuous.
 import Arlib.KnowledgeCompilation.Circuits.DNF
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Analysis.SpecialFunctions.Exp
+import Mathlib.Analysis.NormedSpace.HahnBanach.Separation
+import Mathlib.Analysis.Convex.Normed
 
 namespace Arlib.KnowledgeCompilation
 namespace ConicalJunta
@@ -680,6 +682,193 @@ theorem hasConicalApprox_of_unambiguous {k : ℕ} {ψ : DNF V} (hk : DNF.IsKDNF 
     (hu : DNF.Unambiguous ψ) :
     HasConicalApprox k 0 (fun α => if DNF.eval ψ α then (1 : ℝ) else 0) :=
   HasConicalApprox.of_isConical (le_refl 0) (isConical_of_unambiguous hk hu)
+
+/-! ## Strong duality
+
+The converse of `Separates.not_hasConicalApprox`: if no conical `d`-junta
+`ε`-approximates `f`, a certificate exists.  The source invokes this in one
+clause — "by strong LP duality, `deg⁺_δ(f) > d` iff there exists a feasible
+solution `Φ`" — and it is what lets Claims 15 and 16, which live on opposite
+sides of the LP, be composed into Lemma 14.
+
+**It is proved here, not assumed.**  The usual route is Farkas, which needs a
+finitely generated cone to be closed, and Mathlib has no theory of polyhedral
+cones.  That route is unnecessary: the *other* set in the separation is a ball in
+the sup norm, which is **open**, and `geometric_hahn_banach_open` asks for
+openness of only one of the two sets.  So the cone needs to be convex and
+nothing more.
+
+The price is a margin that shrinks by an arbitrarily small amount: the conclusion
+is a certificate at any `ε' < ε`, not at `ε` itself.  That is exactly the
+boundary that openness gives up, and it costs nothing downstream, where every
+constant has slack. -/
+
+section Duality
+
+/-- The conical `d`-juntas as a set, for the convexity argument. -/
+def conicalSet (d : ℕ) : Set ((V → Bool) → ℝ) := {g | IsConical d g}
+
+theorem convex_conicalSet (d : ℕ) : Convex ℝ (conicalSet (V := V) d) := by
+  intro g hg h hh a b ha hb _
+  exact ((IsConical.smul ha hg).add (IsConical.smul hb hh)).congr (fun α => rfl)
+
+/-- **Strong duality.**  No `ε`-approximation by conical `d`-juntas yields a
+certificate with any margin below `ε`.
+
+The separating functional is turned into a certificate in three steps.  It is
+non-negative on the cone because the cone is closed under positive scaling and
+`0` lies in it, which pins the separating constant `u` to `u ≤ 0`.  Its `ℓ¹`
+norm is positive because otherwise the functional would vanish, contradicting
+`Φ f < u ≤ 0`.  And evaluating it at the point `f + ε'·sign(ψ)` of the ball —
+the worst point for `Φ`, which is what makes `ε'` appear — gives the margin. -/
+theorem exists_separates_of_not_hasConicalApprox {d : ℕ} {ε ε' : ℝ}
+    {f : (V → Bool) → ℝ} (hε' : 0 < ε') (hlt : ε' < ε)
+    (h : ¬ HasConicalApprox d ε f) :
+    ∃ Φ, Separates Φ d ε' f := by
+  classical
+  have hεpos : (0 : ℝ) < ε := lt_trans hε' hlt
+  -- the open ball of radius `ε` about `f` misses the cone
+  have hdisj : Disjoint (Metric.ball f ε) (conicalSet (V := V) d) := by
+    rw [Set.disjoint_left]
+    intro g hg hgK
+    refine h ⟨g, hgK, fun α => ?_⟩
+    have hd := (dist_pi_lt_iff hεpos).mp (Metric.mem_ball.mp hg) α
+    rw [Real.dist_eq] at hd
+    rw [abs_sub_comm]
+    exact hd.le
+  obtain ⟨Φ, u, hball, hcone⟩ :=
+    geometric_hahn_banach_open (convex_ball f ε) Metric.isOpen_ball
+      (convex_conicalSet (V := V) d) hdisj
+  -- the coefficient vector of `Φ`
+  set ψ : (V → Bool) → ℝ := fun α => Φ (Pi.single α 1) with hψ
+  have hexp : ∀ g : (V → Bool) → ℝ, Φ g = ∑ α : V → Bool, g α * ψ α := by
+    intro g
+    conv_lhs => rw [← Finset.univ_sum_single g]
+    rw [map_sum]
+    refine Finset.sum_congr rfl fun α _ => ?_
+    have hsingle : Pi.single α (g α) = g α • (Pi.single α 1 : (V → Bool) → ℝ) := by
+      funext β
+      by_cases hb : β = α <;> simp [Pi.single_apply, hb]
+    rw [hsingle, map_smul, smul_eq_mul, hψ]
+  -- `u ≤ 0`, since `0` lies in the cone
+  have hu : u ≤ 0 := by simpa using hcone 0 (IsConical.zero d)
+  -- `Φ` is non-negative on the cone, since the cone is closed under scaling
+  have hnn : ∀ g, IsConical d g → 0 ≤ Φ g := by
+    intro g hg
+    by_contra hneg
+    push_neg at hneg
+    have hcpos : 0 < (u - 1) / Φ g := div_pos_iff.mpr (Or.inr ⟨by linarith, hneg⟩)
+    have hmem : IsConical d (fun α => ((u - 1) / Φ g) * g α) := hg.smul hcpos.le
+    have hle := hcone (((u - 1) / Φ g) • g) (hmem.congr (fun α => rfl))
+    rw [map_smul, smul_eq_mul, div_mul_cancel₀ _ (ne_of_lt hneg)] at hle
+    linarith
+  have hΦf : Φ f < u := hball f (Metric.mem_ball_self hεpos)
+  set N : ℝ := ∑ α : V → Bool, |ψ α| with hN
+  have hNnn : 0 ≤ N := Finset.sum_nonneg fun α _ => abs_nonneg _
+  -- the worst point of the ball for `Φ`, which is what makes `ε'` appear
+  have hsgnabs : ∀ α, (if 0 ≤ ψ α then (1 : ℝ) else -1) * ψ α = |ψ α| := by
+    intro α
+    by_cases hp : 0 ≤ ψ α
+    · rw [if_pos hp, one_mul, abs_of_nonneg hp]
+    · rw [if_neg hp, abs_of_neg (not_le.mp hp)]; ring
+  have hsgnone : ∀ α, |(if 0 ≤ ψ α then (1 : ℝ) else -1)| = 1 := by
+    intro α; by_cases hp : 0 ≤ ψ α <;> simp [hp]
+  have hpt : (fun α => f α + ε' * (if 0 ≤ ψ α then (1 : ℝ) else -1)) ∈ Metric.ball f ε := by
+    rw [Metric.mem_ball, dist_pi_lt_iff hεpos]
+    intro α
+    rw [Real.dist_eq, show f α + ε' * (if 0 ≤ ψ α then (1 : ℝ) else -1) - f α
+        = ε' * (if 0 ≤ ψ α then (1 : ℝ) else -1) by ring,
+      abs_mul, abs_of_pos hε', hsgnone α, mul_one]
+    exact hlt
+  have hkey : Φ f + ε' * N < u := by
+    have hb := hball _ hpt
+    rw [hexp] at hb
+    have hsplit : ∑ α : V → Bool,
+        (f α + ε' * (if 0 ≤ ψ α then (1 : ℝ) else -1)) * ψ α
+        = (∑ α : V → Bool, f α * ψ α) + ε' * N := by
+      rw [hN, Finset.mul_sum, ← Finset.sum_add_distrib]
+      exact Finset.sum_congr rfl fun α _ => by rw [← hsgnabs α]; ring
+    rw [hsplit, ← hexp] at hb
+    exact hb
+  have hNpos : 0 < N := by
+    rcases lt_or_eq_of_le hNnn with hp | hz
+    · exact hp
+    · exfalso
+      have hzero : ∀ α : V → Bool, ψ α = 0 := by
+        intro α
+        exact abs_eq_zero.mp ((Finset.sum_eq_zero_iff_of_nonneg
+          (fun α _ => abs_nonneg (ψ α))).mp hz.symm α (Finset.mem_univ α))
+      have : Φ f = 0 := by rw [hexp]; simp [hzero]
+      linarith
+  -- normalize `−ψ`
+  refine ⟨fun α => -ψ α / N, ?_, ?_, ?_⟩
+  · have hnorm : ∑ α : V → Bool, |(-ψ α) / N| = N / N := by
+      rw [hN, Finset.sum_div]
+      exact Finset.sum_congr rfl fun α _ => by
+        rw [abs_div, abs_neg, abs_of_pos hNpos]
+    rw [hnorm, div_self (ne_of_gt hNpos)]
+  · intro t ht
+    have hind : IsConical d (ind t) :=
+      (IsConical.term 1 zero_le_one t ht).congr (fun α => by ring)
+    have h0 := hnn _ hind
+    rw [hexp] at h0
+    have hrw : ∑ α : V → Bool, (-ψ α / N) * ind t α
+        = (-(∑ α : V → Bool, ind t α * ψ α)) / N := by
+      rw [← Finset.sum_neg_distrib, Finset.sum_div]
+      exact Finset.sum_congr rfl fun α _ => by ring
+    rw [hrw]
+    exact div_nonpos_of_nonpos_of_nonneg (neg_nonpos.mpr h0) hNnn
+  · have hsum : ∑ α : V → Bool, (-ψ α / N) * f α = (-(Φ f)) / N := by
+      rw [hexp, ← Finset.sum_neg_distrib, Finset.sum_div]
+      exact Finset.sum_congr rfl fun α _ => by ring
+    rw [hsum, lt_div_iff₀ hNpos]
+    linarith
+
+/-! ## Lemma 14: `∨` is at least as hard as `¬`
+
+`source/kc/goos/parts/union.tex`, Lemma `neg_to_or`.  Claims 15 and 16 composed
+across the LP, which is what strong duality above makes possible.
+
+The source states it as `deg⁺_{ε²}(f^∨) ≥ Ω(deg⁺_δ(¬f))` with
+`ε = ln(1+δ)/⌈log_{3/4} δ⌉`.  Here the parameters stay explicit and the `Ω` is
+the factor `k`: from "no conical `(k·d)`-junta `δ`-approximates `¬f`" one gets
+"no conical `d`-junta `ε''`-approximates `f^∨`" for every `ε'' ≤ ε'²` with
+`ε' < ε`. -/
+
+/-- **Lemma 14 of the source.**  Hardness of negating `f` transfers to hardness
+of the doubled disjunction `f^∨`, with the degree divided by `k` and the error
+squared.
+
+Reading the proof forwards: Claim 16 turns the hypothesis into a statement about
+`1 + ¬f = 2 − f`; strong duality turns that into a certificate; Claim 15 turns
+that certificate into one for `f^∨`; and weak duality turns *that* back into a
+non-approximability statement. -/
+theorem not_hasConicalApprox_orExt {f : (V → Bool) → ℝ} (hf : ∀ α, f α = 0 ∨ f α = 1)
+    {d k : ℕ} {ε ε' δ : ℝ} (hε : 0 < ε) (hε4 : ε ≤ 1 / 4)
+    (hk1 : (3 / 4 : ℝ) ^ k ≤ δ) (hk2 : (1 + ε) ^ k ≤ 1 + δ)
+    (hε'0 : 0 < ε') (hε'lt : ε' < ε)
+    (h : ¬ HasConicalApprox (k * d) δ (fun α => 1 - f α)) :
+    ¬ HasConicalApprox d (ε' ^ 2) (orExt f) := by
+  -- Claim 16, contrapositively: no `ε`-approximation of `2 − f`
+  have hneg : ∀ α, (1 - f α) = 0 ∨ (1 - f α) = 1 := by
+    intro α; rcases hf α with h0 | h1
+    · right; rw [h0]; ring
+    · left; rw [h1]; ring
+  have h2f : ¬ HasConicalApprox d ε (fun α => 2 - f α) := by
+    intro hcontra
+    refine h (hasConicalApprox_of_one_add hneg hε hε4 hk1 hk2 ?_)
+    obtain ⟨g, hg, happ⟩ := hcontra
+    refine ⟨g, hg, fun α => ?_⟩
+    have hx : |2 - f α - g α| ≤ ε := happ α
+    show |1 + (1 - f α) - g α| ≤ ε
+    rw [show (1 : ℝ) + (1 - f α) - g α = 2 - f α - g α by ring]
+    exact hx
+  -- strong duality: a certificate for `2 − f` at margin `ε'`
+  obtain ⟨Φ, hΦ⟩ := exists_separates_of_not_hasConicalApprox hε'0 hε'lt h2f
+  -- Claim 15: a certificate for `f^∨`
+  exact (separates_orExt hε'0.le hΦ).not_hasConicalApprox
+
+end Duality
 
 end ConicalJunta
 end Arlib.KnowledgeCompilation
