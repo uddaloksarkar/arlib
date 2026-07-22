@@ -148,6 +148,45 @@ paper. It will be a `structure FixedPartitionHard` bundling the data and the two
 properties, and every downstream theorem takes it as a parameter. **Not to be proved
 here** — it is a substantial paper in its own right.
 
+### Unwinding I1′: what is behind `UnionHard`
+
+`UnionHard` is Vinall-Smeeth's `thm: fixed_or`, extracted from the proof of Theorem 2 of
+Göös–Kiefer–Yuan. That proof is itself a chain, and the source is now in the repo at
+`source/kc/goos/`, so it can be unwound. Doing so splits one opaque hypothesis into named
+links, most of which are theorems here:
+
+| link | status |
+| --- | --- |
+| hardness of `¬` for approximate conical juntas — GJPW18, Lemma 8 | **imported** (paper not in repo) |
+| `∨` at least as hard as `¬` — GKY, Lemma 14 | **proved**, `Communication/ConicalJunta.lean` |
+| weak LP duality — certificate ⟹ no approximation | **proved**, same file |
+| strong LP duality — no approximation ⟹ certificate | **not proved**; see below |
+| lifting `deg⁺` to nonnegative rank — GLMWZ16, Kothari21 | **imported** (papers not in repo) |
+| `Par₁ ≥ rk⁺` | **proved**, `Communication/NonnegRank.lean` |
+| `deg⁺(f) ≤ UC₁(f)` | **proved**, `Communication/ConicalJunta.lean` |
+| the gadget composition `F = f ∘ gⁿ` and the width-`2bm` upper bound on `F` | **not built** |
+
+Lemma 14 is the one link Göös–Kiefer–Yuan prove themselves — their §4 opens by saying "there
+is no existing result showing that the `∨`-operation is hard for unambiguous DNFs and/or
+conical juntas; we show a result of this type" — and it is fully checked, both claims, with
+the source's logarithmic parameters replaced by the three inequalities its proof actually
+uses (`exists_powering_params` then exhibits a valid triple, so nothing is lost).
+
+**`UnionHard` is still a hypothesis.** The last row of the table is why: the chain above
+bounds `rk⁺` of a *composed* function, and getting from there to a statement about a
+`k`-DNF over `F ⊕ Zι` needs the gadget and the composition upper bound, neither of which
+exists here. So this work does not yet discharge anything; it replaces one citation by a
+proof plus two more primitive citations.
+
+**On strong duality.** The two claims of Lemma 14 sit on opposite sides of the LP: Claim 15
+is about dual certificates and builds one, Claim 16 is about primal approximations and builds
+one. Composing them requires turning "no good approximation" back into "a certificate exists",
+and the source says so outright. That is Farkas for a finitely generated cone — a textbook
+fact, not something specific to any of these papers — and it is the only step in the chain
+that is neither proved nor attributable to a citation. It is *not* assumed globally: nothing
+in `ConicalJunta.lean` depends on it, and it will appear as an explicit hypothesis at the one
+place that needs it.
+
 **I2 — the rectangle lemma** (`lem: rectangle`, line 299). **No longer an import: proved**,
 in `LowerBounds/RectangleLemma.lean`. See §4.
 

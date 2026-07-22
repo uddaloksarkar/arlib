@@ -87,6 +87,18 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
 * `Communication.Measures` — `fixedCov`/`fixedPar` and their best-partition
   counterparts, together with the per-partition unfolded form in which a lower
   bound is actually consumed.
+* `Communication.NonnegRank` — nonnegative rank, and `Par₁(F) ≥ rk⁺(F)`: a
+  rectangular *partition* of `F⁻¹(1)` is a decomposition of `F` into that many
+  non-negative rank-one pieces.  Both halves of `Partitions` are needed, which is
+  why the inequality is about `Par₁` and not `Cov₁`.
+* `Communication.ConicalJunta` — the one *new* theorem in the chain behind
+  `Imported.UnionHard`, proved rather than cited: Göös–Kiefer–Yuan's Lemma 14,
+  that `∨` is at least as hard as `¬` for approximate conical juntas.  Contains
+  conical juntas and their closure properties, dual certificates and **weak
+  duality** (proved), the negated tensor product of their Claim 15, and the
+  powering trick of their Claim 16 — the latter with the source's logarithmic
+  parameters replaced by the three inequalities its proof actually uses.  Also
+  `deg⁺(f) ≤ UC₁(f)`, linking the file to `Circuits.DNF`.
 
 ### LowerBounds
 
@@ -157,6 +169,8 @@ import Arlib.KnowledgeCompilation.Circuits.Arithmetic
 import Arlib.KnowledgeCompilation.Circuits.Figure1
 import Arlib.KnowledgeCompilation.Communication.Rectangle
 import Arlib.KnowledgeCompilation.Communication.Measures
+import Arlib.KnowledgeCompilation.Communication.NonnegRank
+import Arlib.KnowledgeCompilation.Communication.ConicalJunta
 import Arlib.KnowledgeCompilation.LowerBounds.Copies
 import Arlib.KnowledgeCompilation.LowerBounds.BalancedCut
 import Arlib.KnowledgeCompilation.LowerBounds.RectangleLemma
