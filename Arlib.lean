@@ -28,6 +28,9 @@ aggregation of area roots — put content in the area modules, not here.
   the Dirichlet form and the Poincaré inequality, decay of variance and of
   χ²-divergence, total variation and mixing time, and analyses of specific
   chains.
+* `Arlib.KnowledgeCompilation` — representation languages for Boolean functions
+  (NNF and its decomposable / deterministic / structured fragments), the
+  communication-complexity measures they are bounded by, and size lower bounds.
 -/
 
 import Arlib.Prelude
@@ -36,3 +39,4 @@ import Arlib.Combinatorics
 import Arlib.GameTheory
 import Arlib.InformationTheory
 import Arlib.MarkovChains
+import Arlib.KnowledgeCompilation
