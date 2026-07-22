@@ -56,6 +56,9 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
   SDD predicate `IsSDDAt` by recursion on the v-tree, and the containment
   SDD ⊆ d-SDNNF (unconditional — the conditions are relativized to reachable
   nodes in `Circuits.NNF`, which is what the paper actually asks for).
+* `Circuits.Figure1` — the paper's own Figure 1, built by hand and checked
+  against the formula its caption states independently.  Nothing else in the
+  area checks the *encoding* rather than the reasoning about it.
 * `Circuits.DNFtoCircuit` — the upper-bound half of `thm: main`: an unambiguous
   `k`-DNF with `ℓ` terms admits a d-SDNNF respecting *any* given v-tree, of size
   at most `ℓ·(2k+2) + 1`.  Determinism comes exactly from unambiguity.
@@ -123,6 +126,7 @@ import Arlib.KnowledgeCompilation.Circuits.VTree
 import Arlib.KnowledgeCompilation.Circuits.SDD
 import Arlib.KnowledgeCompilation.Circuits.DNF
 import Arlib.KnowledgeCompilation.Circuits.DNFtoCircuit
+import Arlib.KnowledgeCompilation.Circuits.Figure1
 import Arlib.KnowledgeCompilation.Communication.Rectangle
 import Arlib.KnowledgeCompilation.Communication.Measures
 import Arlib.KnowledgeCompilation.LowerBounds.Copies
