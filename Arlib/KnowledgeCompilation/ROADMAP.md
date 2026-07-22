@@ -117,7 +117,7 @@ Three directories, mirroring the shape of the argument.
 | `Pullback` | protocol simulation as a rectangle pullback along a substitution | **done** |
 | `Lifting` | the canonical choice-function enumeration and the counting unambiguity of `ψ^∨`; Step 2 (`zBlock`, `permTerm`, `permDNF`) with its term count, width and unambiguity; and `thm: fixed_to_best` as a `PartitionMap` | **done** |
 | `Separation` | `thm: main` and `thm: sep`, with both bounds explicit | **done** — `thm: main` conditional on I1, `thm: sep` on I1 and I5 |
-| `Union` | `thm: union`, the same assembly at `Par₁` rather than `Cov₀` | **done** — conditional on I1′; `thm: ex` still to do |
+| `Union` | `thm: union` and `thm: ex`, the same assembly at `Par₁` rather than `Cov₀` | **done** — both conditional on I1′ and nothing else |
 
 ---
 
@@ -418,11 +418,12 @@ remains, in the order it is worth doing:
    draw two unrelated permutations from Claim `perm`, and the pair of conclusions would say
    nothing about the union. The construction never looked at a formula in the first place, so
    this cost nothing.
-   **`thm: ex`** (T12) is next. Note the paper's proof glues two *circuits*; we do the mux at
-   the *DNF* level instead and reuse `exists_isdSDNNF_of_unambiguous_kDNF`, which avoids
-   index-shifting machinery for straight-line programs that the area needs nowhere else.
-   Quantifying `∃x` away lands back in the original variable type, so no partition-transfer
-   step is required either.
+   ~~**`thm: ex`**~~ (T12) — *done* too, `Separation.thm_ex`, on `Circuits/DNFMux`. The paper
+   glues two *circuits*; we do the mux at the *DNF* level and reuse
+   `exists_isdSDNNF_of_unambiguous_kDNF`, which avoids index-shifting machinery for
+   straight-line programs that the area needs nowhere else. Quantifying `∃x` away lands back
+   in the original variable type, so clause (2) is literally `thm: union`'s clause (2) and no
+   partition is transported between types.
 3. **Gap G1** — restate `Decomposable`/`Deterministic`/`Respects` over reachable nodes. This
    deletes a field of `Imported.SDDComplementation` and a hypothesis of `IsSDD.isdSDNNF`.
 4. **Gap G5** — remove the `var(T) = var(ψ')` hypothesis of the lower bounds, if it is worth it.

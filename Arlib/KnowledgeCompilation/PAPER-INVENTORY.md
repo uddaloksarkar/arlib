@@ -542,7 +542,13 @@ target once `Circuits/VTree` exists, and it exercises the v-tree machinery prope
 `Circuits/DNFtoCircuit`, which already respects a prescribed v-tree. `existsFresh` is D3's
 clause 2 and `existsFresh_eval_muxDNF` is `∃x f_C ≡ f ∨ g`. Gluing two circuit DAGs would
 need index-shifting machinery nothing else in the area uses; that deviation and its
-justification are recorded in the module docstring. The lower-bound half still needs T11.
+justification are recorded in the module docstring.
+The two halves are assembled as `Separation.thm_ex` (`LowerBounds/Union.lean`). Clause (2)
+is *literally* T11's clause (2): `existsFresh` sends a function of `(F ⊕ Zι) ⊕ Unit` to a
+function of `F ⊕ Zι`, so quantification lands back in the original variable type and no
+partition has to be transported between types. That is why the fresh variable is a
+`Sum` summand rather than a distinguished element of the same type — the alternative
+would have made this step real work rather than a rewrite.
 
 ---
 

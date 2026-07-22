@@ -109,12 +109,15 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
   explicit bounds and conditional only on the imported hardness.  The
   lower-bound halves hold for *any* v-tree the circuit respects, not only one
   spanning every variable — omitted variables are grafted on.
-* `LowerBounds.Union` — `thm: union`: d-SDNNF is not closed under disjunction.
-  Every component was built for `thm: main`; this is the same composition run at
-  the *partition* half of each rather than the *cover* half.  Determinism turns
-  from a non-hypothesis into a hypothesis, which is the paper's own footnote:
-  unambiguous communication needs disjoint rectangles, and only determinism
-  supplies them.
+* `LowerBounds.Union` — `thm: union` and `thm: ex`: d-SDNNF is closed under
+  neither disjunction nor existential quantification.  Every component was built
+  for `thm: main`; this is the same composition run at the *partition* half of
+  each rather than the *cover* half.  Determinism turns from a non-hypothesis
+  into a hypothesis, which is the paper's own footnote: unambiguous
+  communication needs disjoint rectangles, and only determinism supplies them.
+  `thm: ex` then sits on `Circuits.DNFMux`, and its lower-bound clause is
+  literally `thm: union`'s — quantifying the fresh variable away returns a
+  function of the original variables.
 * `LowerBounds.ClaimPerm` — the probabilistic heart of the lifting, which the
   paper proves only by citation: some affine permutation places, for every
   original variable and every side of the partition, at least one copy on that

@@ -345,18 +345,25 @@ the fresh variable is `f ∨ g`.
 
 The paper obtains a circuit of size `O(n)` by gluing two circuits of size `n`;
 we obtain one of size linear in the two term counts by compiling the muxed DNF.
-The two agree on everything `thm: union` reads off. -/
+The two agree on everything `thm: union` reads off.
+
+**`Computes` is part of the conclusion and must stay there.** Without it the
+statement would assert only that *some* small circuit respects `T` — which is
+true of any small circuit and says nothing about `ψ` or `φ`. It is what makes
+clause (1) of `thm: ex` a statement about the intended function rather than an
+existence claim about circuits in general. -/
 theorem exists_isdSDNNF_muxDNF (T : VTree (V ⊕ Unit)) (hT : T.WellFormed) {k : ℕ}
     (hkψ : DNF.IsKDNF k ψ) (hkφ : DNF.IsKDNF k φ)
     (hψ : DNF.Unambiguous ψ) (hφ : DNF.Unambiguous φ)
     (hvars : ∀ w ∈ muxDNF ψ φ, Term.vars w ⊆ T.vars) :
-    ∃ C : NNF (V ⊕ Unit), C.Respects T ∧ C.IsdSDNNF ∧
+    ∃ C : NNF (V ⊕ Unit), C.Computes (DNF.eval (muxDNF ψ φ)) ∧
+      C.Respects T ∧ C.IsdSDNNF ∧
       C.size ≤ (ψ.numTerms + φ.numTerms) * (2 * (k + 1) + 2) + 1 ∧
       existsFresh C.eval = fun α => DNF.eval ψ α || DNF.eval φ α := by
   obtain ⟨C, hcomp, hresp, hd, hsize⟩ :=
     exists_isdSDNNF_of_unambiguous_kDNF T hT (muxDNF ψ φ) (k + 1)
       (isKDNF_muxDNF hkψ hkφ) (unambiguous_muxDNF hψ hφ) hvars
-  refine ⟨C, hresp, hd, by rwa [numTerms_muxDNF] at hsize, ?_⟩
+  refine ⟨C, hcomp, hresp, hd, by rwa [numTerms_muxDNF] at hsize, ?_⟩
   rw [show C.eval = DNF.eval (muxDNF ψ φ) from funext hcomp, existsFresh_eval_muxDNF]
 
 end Circuit

@@ -58,6 +58,7 @@ any `T` at all rather than having to unfold an existential to find out which one
 the proof happened to produce.
 -/
 import Arlib.KnowledgeCompilation.LowerBounds.Separation
+import Arlib.KnowledgeCompilation.Circuits.DNFMux
 
 namespace Arlib.KnowledgeCompilation
 namespace Separation
@@ -160,6 +161,119 @@ theorem thm_union
       partBound_le_size_of_computes_union H he hrep hm hz hT hR hdet hCT hC
 
 end Union
+
+/-! ## `thm: ex` — d-SDNNF is not closed under existential quantification
+
+The paper's Corollary `thm: ex` (`source/kc/arXiv.tex:493`), deduced from
+`thm: union` exactly as the paper deduces it, but with a different construction
+in the middle.
+
+*The paper's route.*  Take the two circuits `C_f`, `C_g` of `thm: union`, a fresh
+variable `x`, and glue: `⟨C⟩ = (x ∧ ⟨C_f⟩) ∨ (¬x ∧ ⟨C_g⟩)`.  The new source is
+deterministic because the two branches disagree on `x`, and the v-tree is
+extended by a fresh root whose children are `x` and the old root.  Then
+`∃x f_C ≡ f ∨ g`, and `thm: union` applies.
+
+*Ours.*  We perform the same mux one level earlier, on the **DNFs** rather than
+on the circuits, and then compile (`Circuits/DNFMux.lean`).  The reason is
+mechanical and worth stating: gluing two straight-line-program DAGs means
+concatenating their gate lists and shifting every child index of the second by
+the length of the first, then proving that `valAt` is unchanged by the shift.
+That machinery is needed nowhere else in the area.  Muxing the DNFs costs a
+`Finset.insert` per term, and the existing compiler
+(`exists_isdSDNNF_of_unambiguous_kDNF`) already produces a d-SDNNF respecting any
+prescribed v-tree — including determinism, which it derives from unambiguity
+rather than from a hand-checked argument about `x`.
+
+Both routes yield a d-SDNNF respecting a v-tree, of size linear in the inputs,
+whose existential quantification is `f ∨ g`; that is everything `thm: union`
+reads off.
+
+*Where `∃x` lands.*  `existsFresh` maps a function of `(F ⊕ Zι) ⊕ Unit` to a
+function of `F ⊕ Zι` — quantification *removes* the variable rather than fixing
+it.  So clause (2) below is a statement about circuits over the original variable
+type and is literally an instance of `thm_union`'s clause (2), with no transfer
+of partitions between variable types.  Had `∃x f` been left as a function of the
+larger type that step would have been real work, and it is the reason the fresh
+variable is a summand rather than a distinguished element. -/
+
+section Ex
+
+open DNFMux
+
+variable {ι : Type} [Fintype ι] [DecidableEq ι] {m : ℕ} [NeZero m]
+variable {F : Type} [Field F] [Fintype F] [DecidableEq F]
+variable {Zι : Type} [Fintype Zι] [DecidableEq Zι]
+variable {k termBound partBound : ℕ}
+
+/-- **`thm: ex`** (`source/kc/arXiv.tex:493`): *there is a function with a small
+d-SDNNF, one of whose variables cannot be existentially quantified away without
+the size blowing up.*
+
+The function is `mux(ψ', φ')` — the two lifted hard formulas selected between by
+a fresh variable — and quantifying that variable away returns `ψ' ∨ φ'`, whose
+hardness is `thm: union`.
+
+* **upper** `|C| ≤ 2·|𝒫|·(termBound·m^k)·(2(|Zι| + km + 1) + 2) + 1`, for a
+  d-SDNNF computing the function and respecting any prescribed v-tree;
+* **lower** `partBound ≤ |C|`, for every deterministic structured DNNF computing
+  `∃x` of it.
+
+The size on the upper side is twice the `thm: union` bound in the term count and
+one wider in the term width — the mux concatenates two DNFs and adds one literal
+to each term.  That is the analogue of the paper's `O(n)` where it had `n`, and
+it is absorbed on the other side exactly as the paper absorbs it. -/
+theorem thm_ex
+    (H : Imported.UnionHard (Finset.univ : Finset ι) k termBound partBound)
+    {e : ι × Fin m → F} (he : Function.Injective e)
+    {rep : F × F → Zι → Bool} (hrep : Function.Injective rep)
+    (hm : 6 * Fintype.card ι < m) (hz : 8 * Fintype.card Zι ≤ Fintype.card F) :
+    ∃ f : DNF ((F ⊕ Zι) ⊕ Unit),
+      -- (1) `f` has a small d-SDNNF respecting any prescribed v-tree
+      (∀ T : VTree ((F ⊕ Zι) ⊕ Unit), T.WellFormed → T.vars = Finset.univ →
+        ∃ C : NNF ((F ⊕ Zι) ⊕ Unit), C.Computes (DNF.eval f) ∧ C.Respects T ∧
+          C.IsdSDNNF ∧
+          C.size ≤ 2 * ((maps F).card * (termBound * m ^ k))
+            * (2 * (Fintype.card Zι + k * m + 1) + 2) + 1) ∧
+      -- (2) but `∃x f` does not
+      (∀ (T : VTree (F ⊕ Zι)) (C : NNF (F ⊕ Zι)), T.WellFormed →
+        C.Respects T → C.Deterministic → C.vars ⊆ T.vars →
+        C.Computes (existsFresh (DNF.eval f)) → partBound ≤ C.size) := by
+  classical
+  set ψ' := permDNF e rep H.ψ with hψ'
+  set φ' := permDNF e rep H.φ with hφ'
+  have hrep' : Set.InjOn rep (maps F) := fun _ _ _ _ h => hrep h
+  have hmpos : 0 < m := Nat.pos_of_ne_zero (NeZero.ne m)
+  -- the two lifted formulas are unambiguous `(|Zι| + km)`-DNFs with few terms
+  have hkψ : DNF.IsKDNF (Fintype.card Zι + k * m) ψ' := isKDNF_permDNF H.isKDNF.1
+  have hkφ : DNF.IsKDNF (Fintype.card Zι + k * m) φ' := isKDNF_permDNF H.isKDNF.2
+  have hunψ : DNF.Unambiguous ψ' := unambiguous_permDNF hrep' H.unambiguous.1
+  have hunφ : DNF.Unambiguous φ' := unambiguous_permDNF hrep' H.unambiguous.2
+  have hnψ : ψ'.numTerms ≤ (maps F).card * (termBound * m ^ k) :=
+    numTerms_permDNF_le H.isKDNF.1 H.numTerms_le.1 hmpos
+  have hnφ : φ'.numTerms ≤ (maps F).card * (termBound * m ^ k) :=
+    numTerms_permDNF_le H.isKDNF.2 H.numTerms_le.2 hmpos
+  refine ⟨muxDNF ψ' φ', fun T hT hTvars => ?_, ?_⟩
+  · -- (1) compile the mux against the prescribed v-tree
+    have hvars : ∀ w ∈ muxDNF ψ' φ', Term.vars w ⊆ T.vars := by
+      intro w _
+      rw [hTvars]
+      exact fun x _ => Finset.mem_univ x
+    -- the last component (`existsFresh C.eval = ψ' ∨ φ'`) is clause (2)'s business,
+    -- not clause (1)'s; bind it rather than clearing it, since `rcases`' `-` tries
+    -- to substitute an equation between functions and fails
+    obtain ⟨C, hcomp, hresp, hd, hsize, _⟩ :=
+      exists_isdSDNNF_muxDNF T hT hkψ hkφ hunψ hunφ hvars
+    refine ⟨C, hcomp, hresp, hd, hsize.trans ?_⟩
+    exact Nat.add_le_add_right
+      (Nat.mul_le_mul_right _ (by omega)) 1
+  · -- (2) `∃x` of the mux is the union, so this *is* `thm: union`'s lower bound
+    intro T C hT hR hdet hCT hC
+    refine partBound_le_size_of_computes_union H he hrep hm hz hT hR hdet hCT ?_
+    intro α
+    rw [hC α, existsFresh_eval_muxDNF]
+
+end Ex
 
 end Separation
 end Arlib.KnowledgeCompilation
