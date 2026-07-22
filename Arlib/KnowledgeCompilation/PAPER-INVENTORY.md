@@ -548,7 +548,15 @@ would mean a `d`-th root in `ℕ` and a rounding convention chosen for no reason
 *For every `k` there are `n = k^{O(1)}`, functions `f, g : {0,1}^n → {0,1}` and a balanced
 `Π` such that `f, g` have equivalent unambiguous `k`-DNFs with `2^{Õ(k)}` terms and
 `UCC₁^Π(f ∪ g) = Ω̃(k²)`.* From Göös–Kiefer–Yuan (ICALP 2022), shown inside the proof of
-their Theorem 2 rather than stated as one (line 669). Same status as T2. **In Lean** as `Imported.UnionHard`, with
+their Theorem 2 rather than stated as one (line 669).
+
+> **No longer imported: derived.** With the source paper in `source/kc/goos/`, its proof of
+> Theorem 2 is unwound in `LowerBounds/UnionDerived.lean`. `unionHard_of_imports` produces
+> this bundle from the two results Göös–Kiefer–Yuan themselves import — GJPW18 Lemma 8 and
+> the GLMWZ16/Kothari lifting theorem — with everything between them proved, including their
+> own Lemma 14 and the strong-duality step that composes its two halves. See `ROADMAP.md` §3,
+> "Unwinding I1′", for the link-by-link status, and `thm_union_of_primitive_imports` for the
+> end-to-end statement with the composed bounds written out. **In Lean** as `Imported.UnionHard`, with
 clause (2) on `Par₁^Π` directly, and `UnionHard.not_hasPartition` the consumable form.
 
 **T11. Disjunction.** (`thm: union`, line 471; proof line 682)

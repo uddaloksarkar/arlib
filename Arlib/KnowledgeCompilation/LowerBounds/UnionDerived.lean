@@ -48,6 +48,7 @@ only in whether the gadget for the outer variable `i` is placed at `Sum.inl i` o
 and it matches the source, where `L₁` and `L₂` are two copies of one language.
 -/
 import Arlib.KnowledgeCompilation.LowerBounds.Imported
+import Arlib.KnowledgeCompilation.LowerBounds.Union
 import Arlib.KnowledgeCompilation.Circuits.DNFSubst
 import Arlib.KnowledgeCompilation.Circuits.DNFMap
 
@@ -265,6 +266,48 @@ noncomputable def unionHard_of_imports
     push_neg at hlt
     exact hpart _ hlt (Nat.sInf_mem (partitionable_of_dependsOn _
       (dependsOn_univ _) true))
+
+/-! ## End to end
+
+`thm: union` with no `UnionHard` hypothesis anywhere.  This is not new
+mathematics — it is `Separation.thm_union` applied to `unionHard_of_imports` —
+but writing the composed bounds out is the point: it is the only place where one
+can read off, in one statement, what the disjunction theorem actually costs in
+terms of the two primitive imports.
+
+The upper bound is the compiler's `|𝒫|·(ℓ·m^k)·(2(|Zι| + km) + 2) + 1` with
+`k = m₀·2b` the composed width and `ℓ = |ψ|·(2^{2b})^{m₀}` the composed term
+count; the lower bound is the lifting theorem's `liftBound d` verbatim. -/
+theorem thm_union_of_primitive_imports
+    {ι₀ : Type} [Fintype ι₀] [DecidableEq ι₀] {b m₀ degBound : ℕ} {δ : ℝ}
+    (H : Imported.HardnessOfNegation ι₀ m₀ degBound δ)
+    {k d : ℕ} {ε ε' εrank : ℝ} {liftBound : ℕ → ℕ}
+    (L : Imported.NonnegLifting (ι₀ ⊕ ι₀) b εrank (ε' ^ 2) liftBound)
+    (hε : 0 < ε) (hε4 : ε ≤ 1 / 4)
+    (hk1 : (3 / 4 : ℝ) ^ k ≤ δ) (hk2 : (1 + ε) ^ k ≤ 1 + δ)
+    (hε'0 : 0 < ε') (hε'lt : ε' < ε) (hrank : 0 ≤ εrank) (hd : k * d < degBound)
+    {m : ℕ} [NeZero m] {F : Type} [Field F] [Fintype F] [DecidableEq F]
+    {Zι : Type} [Fintype Zι] [DecidableEq Zι]
+    {e : Gadget.Var (ι₀ ⊕ ι₀) b × Fin m → F} (he : Function.Injective e)
+    {rep : F × F → Zι → Bool} (hrep : Function.Injective rep)
+    (hm : 6 * Fintype.card (Gadget.Var (ι₀ ⊕ ι₀) b) < m)
+    (hz : 8 * Fintype.card Zι ≤ Fintype.card F) :
+    ∃ ψ' φ' : DNF (F ⊕ Zι),
+      (∀ T : VTree (F ⊕ Zι), T.WellFormed → T.vars = Finset.univ →
+        (∃ C : NNF (F ⊕ Zι), C.Computes (DNF.eval ψ') ∧ C.Respects T ∧ C.IsdSDNNF ∧
+          C.size ≤ (AffinePerms.maps F).card
+            * ((H.f.numTerms * (2 ^ (2 * b)) ^ m₀) * m ^ (m₀ * (2 * b)))
+            * (2 * (Fintype.card Zι + (m₀ * (2 * b)) * m) + 2) + 1) ∧
+        (∃ C : NNF (F ⊕ Zι), C.Computes (DNF.eval φ') ∧ C.Respects T ∧ C.IsdSDNNF ∧
+          C.size ≤ (AffinePerms.maps F).card
+            * ((H.f.numTerms * (2 ^ (2 * b)) ^ m₀) * m ^ (m₀ * (2 * b)))
+            * (2 * (Fintype.card Zι + (m₀ * (2 * b)) * m) + 2) + 1)) ∧
+      (∀ (T : VTree (F ⊕ Zι)) (C : NNF (F ⊕ Zι)), T.WellFormed →
+        C.Respects T → C.Deterministic →
+        C.Computes (fun α => DNF.eval ψ' α || DNF.eval φ' α) →
+          liftBound d ≤ C.size) :=
+  Separation.thm_union
+    (unionHard_of_imports H L hε hε4 hk1 hk2 hε'0 hε'lt hrank hd) he hrep hm hz
 
 end Assembly
 
