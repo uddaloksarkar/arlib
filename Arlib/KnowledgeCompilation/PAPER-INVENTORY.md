@@ -528,6 +528,12 @@ disagree on `x`; extend `T` to `T'` by a fresh root with children `x` and the ol
 Then `∃x f_C ≡ f ∨ g`.
 **This proof is short, complete, and entirely formalizable given T11** — it is a good
 target once `Circuits/VTree` exists, and it exercises the v-tree machinery properly.
+**In Lean** the upper-bound half is `Circuits/DNFMux`: `muxDNF` performs the mux on the
+*DNFs* rather than on the circuits, and `exists_isdSDNNF_muxDNF` compiles the result with
+`Circuits/DNFtoCircuit`, which already respects a prescribed v-tree. `existsFresh` is D3's
+clause 2 and `existsFresh_eval_muxDNF` is `∃x f_C ≡ f ∨ g`. Gluing two circuit DAGs would
+need index-shifting machinery nothing else in the area uses; that deviation and its
+justification are recorded in the module docstring. The lower-bound half still needs T11.
 
 ---
 
