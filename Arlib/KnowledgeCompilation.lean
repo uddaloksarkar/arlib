@@ -66,6 +66,11 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
   lists of terms, `IsKDNF`, and `Unambiguous` in its counting form.  This is the
   shape in which every imported hardness result arrives, and the object the
   copy-and-permute construction transforms.
+* `Circuits.DNFMap` — renaming the variables of a DNF, which preserves the
+  computed function, the width, the term count and unambiguity.  Needed to place
+  a gadget's minterm expansion at one coordinate of a composed function; the
+  module docstring records why no injectivity hypothesis is required, which was
+  not the expected answer.
 * `Circuits.DNFMux` — the mux `(x ∧ ψ) ∨ (¬x ∧ φ)` over a fresh variable
   `Sum.inr ()`, performed on DNFs and then compiled by `Circuits.DNFtoCircuit`,
   together with the projection `existsFresh` and the identity
@@ -169,6 +174,7 @@ import Arlib.KnowledgeCompilation.Circuits.VTree
 import Arlib.KnowledgeCompilation.Circuits.SDD
 import Arlib.KnowledgeCompilation.Circuits.DNF
 import Arlib.KnowledgeCompilation.Circuits.DNFtoCircuit
+import Arlib.KnowledgeCompilation.Circuits.DNFMap
 import Arlib.KnowledgeCompilation.Circuits.DNFMux
 import Arlib.KnowledgeCompilation.Circuits.Arithmetic
 import Arlib.KnowledgeCompilation.Circuits.Figure1
