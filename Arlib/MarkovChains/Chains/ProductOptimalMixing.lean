@@ -93,12 +93,22 @@ Two honesty notes, in the direction that costs us:
   point 1 is unaffected.
 * The conclusions are in **different distances**: `MixesWithin` is a
   total-variation statement, and everything proved here is in relative entropy.
-  Pinsker's inequality would convert `D_KL ≤ 2ε²` into `‖·‖_TV ≤ ε` at the cost
-  of a constant inside a logarithm, leaving the `O(n log(n/ε))` conclusion
-  intact — but this development does not have Pinsker's inequality
-  (`tvDist_sq_le_chiSq` is the χ² analogue and does not help), so **no
-  total-variation bound at rate `O(n log n)` is claimed or proved here**.  The
-  results below are exactly what they say: bounds on `D_KL`.
+  Nothing *below* converts one into the other — the results in this file are
+  exactly what they say, bounds on `D_KL`.  `Techniques/Pinsker.lean` and
+  `Chains/OptimalMixingTV.lean` now do the conversion, and it is worth recording
+  what it actually costs, because the obvious guess is wrong.  The cost is *not*
+  "a constant inside a logarithm".  Pinsker turns `D_KL ≤ 2δ²` into
+  `‖·‖_TV ≤ δ`, and it is the **squaring `δ ↦ δ²`** that is paid for: `klDiv`
+  decays like `(1 − ρ)^t`, so the total variation decays like `(1 − ρ)^{t/2}` —
+  the effective decay rate of the distance one wanted is halved, `ρ ↦ ρ/2`, and
+  the coefficient of `ln(1/δ)` doubles from `n` to `2n`.  Pinsker's sharp
+  constant `2` is the one part of the exchange that is a *gain*: it enters as
+  `−n ln 2`, saving steps rather than costing them.  So the `Θ(n log n)` versus
+  `Θ(n²)` verdict of point 1 survives the conversion, but the comparison is not
+  uniform in `δ`: at fixed `n` and small enough `δ` the variance route wins.  The
+  crossover is exact, and it is
+  `OptimalMixingTV.entropySteps_lt_varianceSteps_iff`: with `L = ln(b/a)`, the
+  entropy route asks for fewer steps precisely when `ln(n·L/δ) < n·L/2`.
 
 ## Main declarations
 

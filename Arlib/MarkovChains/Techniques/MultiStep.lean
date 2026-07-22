@@ -36,10 +36,6 @@ level-`j` functions, and `act_upTo_levelFun` says that action takes `f^{(i)}` to
 
 Main declarations:
 
-* **`Adjoint.comp`** — adjointness composes, with the order reversed on the
-  right.  This is the whole content of the module and belongs in
-  `Techniques.Adjoint`; it is proved here only because that file is not mine to
-  edit.  `adjoint_id` is its unit.
 * `upTo`, `downTo` — the multi-step operators `U_{j,i}` and `D_{i,j}`, defined by
   recursion on the upper index and guarded so as to be total: outside the range
   `j ≤ i ≤ n` they are the identity kernel or repeat, which no statement below
@@ -63,9 +59,10 @@ Main declarations:
 * **`multiDownUp_spectralGapAtLeast`** — `eqn:RW-improved-general`:
   `γ(P^∨_{n,ℓ}) ≥ (∑_{i=ℓ}^{n-1} Γ_i) / (∑_{i=0}^{n-1} Γ_i)`.
 
-**Two lemmas are proved here that belong elsewhere** and are flagged as such in
-their docstrings: `Adjoint.comp` and `adjoint_id`, both of which are
-`Techniques.Adjoint`'s business and neither of which mentions a complex.
+The engine of the multi-step adjointness is `Techniques.Adjoint.Adjoint.comp` —
+adjointness composes, with the order reversed on the right — together with its
+unit `adjoint_id`.  Neither mentions a complex; both live in
+`Techniques.Adjoint`.
 
 Everything here is proved from first principles with no `sorry`; in particular
 no eigenvalue, and no spectral theorem, appears anywhere.
@@ -76,60 +73,6 @@ namespace Arlib.MarkovChains
 
 open scoped BigOperators
 open Finset
-
-/-! ## Adjointness composes
-
-The one piece of mathematics in this module.  Note the asymmetry: the up
-operators compose in the order they are applied, the down operators in the
-opposite order, exactly as for a composite of linear maps and its adjoint. -/
-
-section Comp
-
-variable {α β γ : Type*} [Fintype α] [Fintype β] [Fintype γ]
-
-/-- **Adjointness composes.**  If `K : α → β` and `L : β → α` are mutually
-adjoint for `μ, ν`, and `K' : β → γ` and `L' : γ → β` are mutually adjoint for
-`ν, ρ`, then `K ∘ₖ K'` and `L' ∘ₖ L` are mutually adjoint for `μ, ρ`.
-
-The order is **reversed** on the right: the adjoint of a composite is the
-composite of the adjoints in the opposite order, and here that is visible in the
-matrices rather than in an abstract `L²` argument.  The proof is one chain of
-rewrites inside a sum over the intermediate space: `μ(x)K(x,y)` becomes
-`ν(y)L(y,x)`, then `ν(y)K'(y,z)` becomes `ρ(z)L'(z,y)`, and the two `L`s are
-left over in the right order.
-
-This lemma is not about levels of a complex and belongs in
-`Techniques.Adjoint`; it is proved here only because that file is currently
-owned by another development. -/
-theorem Adjoint.comp {μ : FinDist α} {ν : FinDist β} {ρ : FinDist γ}
-    {K : FinKernel α β} {L : FinKernel β α} {K' : FinKernel β γ} {L' : FinKernel γ β}
-    (h : Adjoint μ ν K L) (h' : Adjoint ν ρ K' L') :
-    Adjoint μ ρ (K ∘ₖ K') (L' ∘ₖ L) := by
-  intro x z
-  rw [FinKernel.comp_apply, FinKernel.comp_apply, Finset.mul_sum, Finset.mul_sum]
-  refine Finset.sum_congr rfl fun y _ => ?_
-  calc μ x * (K x y * K' y z) = μ x * K x y * K' y z := by ring
-    _ = ν y * L y x * K' y z := by rw [h x y]
-    _ = ν y * K' y z * L y x := by ring
-    _ = ρ z * L' z y * L y x := by rw [h' y z]
-    _ = ρ z * (L' z y * L y x) := by ring
-
-end Comp
-
-section Id
-
-variable {α : Type*} [Fintype α] [DecidableEq α]
-
-/-- The unit of `Adjoint.comp`: the identity kernel is self-adjoint with respect
-to every distribution.  (Also `Techniques.Adjoint`'s business.) -/
-theorem adjoint_id (μ : FinDist α) : Adjoint μ μ (FinKernel.id α) (FinKernel.id α) := by
-  intro x y
-  by_cases h : x = y
-  · rw [h]
-  · simp only [FinKernel.id]
-    rw [if_neg h, if_neg (Ne.symm h), mul_zero, mul_zero]
-
-end Id
 
 /-! ## The multi-step operators
 

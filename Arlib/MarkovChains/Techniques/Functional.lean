@@ -71,6 +71,12 @@ theorem Ex_sub (μ : FinDist Ω) (f g : Ω → ℝ) :
   simp only [Ex, ← Finset.sum_sub_distrib]
   exact Finset.sum_congr rfl fun x _ => by ring
 
+/-- Expectation commutes with a finite sum. -/
+theorem Ex_sum {ι : Type*} [Fintype ι] (μ : FinDist Ω) (g : ι → Ω → ℝ) :
+    Ex μ (fun x => ∑ i, g i x) = ∑ i, Ex μ (g i) := by
+  simp only [Ex_apply, Finset.mul_sum]
+  exact Finset.sum_comm
+
 theorem Ex_smul (μ : FinDist Ω) (c : ℝ) (f : Ω → ℝ) :
     Ex μ (fun x => c * f x) = c * Ex μ f := by
   simp only [Ex, Finset.mul_sum]
@@ -130,6 +136,15 @@ theorem Ex_congr_ae {μ : FinDist Ω} {f g : Ω → ℝ} (h : ∀ x, μ x ≠ 0 
   by_cases hx : μ x = 0
   · rw [hx, zero_mul, zero_mul]
   · rw [h x hx]
+
+/-- **Expectation is invariant under a measure-preserving relabelling**:
+`μ(g ∘ e) = μ(g)` for `e` an equivalence preserving `μ`. -/
+theorem Ex_comp_equiv {μ : FinDist Ω} (e : Ω ≃ Ω) (he : ∀ x, μ (e x) = μ x) (g : Ω → ℝ) :
+    Ex μ (fun x => g (e x)) = Ex μ g := by
+  simp only [Ex_apply]
+  calc ∑ x, μ x * g (e x) = ∑ x, μ (e x) * g (e x) :=
+        Finset.sum_congr rfl fun x _ => by rw [he x]
+    _ = ∑ y, μ y * g y := Equiv.sum_comp e (fun y => μ y * g y)
 
 /-- Stationarity says exactly that the chain preserves expectations. -/
 theorem Ex_act_of_stationary {μ : FinDist Ω} {P : FinChain Ω} (h : Stationary μ P)
@@ -346,6 +361,13 @@ end Push
 where `μ` vanishes. -/
 noncomputable def relDensity (ν μ : FinDist Ω) : Ω → ℝ :=
   fun x => if μ x = 0 then 0 else ν x / μ x
+
+/-- The relative density is nonnegative. -/
+theorem relDensity_nonneg (ν μ : FinDist Ω) (x : Ω) : 0 ≤ relDensity ν μ x := by
+  by_cases hx : μ x = 0
+  · simp [relDensity, hx]
+  · simp only [relDensity, if_neg hx]
+    exact div_nonneg (ν.coe_nonneg x) (μ.coe_nonneg x)
 
 /-- The χ²-divergence `D_{χ²}(ν ‖ μ) = Var_μ(ν/μ)`. -/
 noncomputable def chiSq (ν μ : FinDist Ω) : ℝ := Var μ (relDensity ν μ)

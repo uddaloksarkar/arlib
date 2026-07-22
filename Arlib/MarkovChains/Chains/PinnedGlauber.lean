@@ -428,7 +428,7 @@ theorem siteMarginal_pinWeight_of_mem (w : (V → S) → ℝ) (hw : ∀ σ, 0 �
   · rw [if_neg hs, key s hs]
 
 /-- **The one-site marginal is the mass of the one-site-larger pinning.**  This
-is the spin-system form of `LocalWalk.mu_linkWeight` at a single extra element:
+is the spin-system form of `LocalWalk.mu_starWeight` at a single extra element:
 extending the pinning `η` on `Λ` by `v ↦ s` has partition function
 `siteMass (pinWeight w Λ η) v s`.  It is what identifies `π_{η,1}` below with
 the monograph's distribution "one level above `η`". -/

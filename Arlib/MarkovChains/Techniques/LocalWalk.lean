@@ -4,53 +4,72 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kuldeep S. Meel
 -/
 /-
-# Links of faces, and the local walk
+# Stars of faces, and the local walk
 
 The local-to-global technique (§5.1 of the monograph) is an induction on the
 levels of a weighted complex in which the inductive step is applied not to the
 complex itself but to the *link* of a face: the complex obtained by conditioning
-on containing a fixed face `τ`.  This module makes that step available.
+on containing a fixed face `τ`.  This module makes that step available, and it is
+where the standing caveat of the area lives, so it is stated first.
 
-The point of the module is a triviality that is worth stating precisely, because
-it is what removes all the work: the link of `τ` is *again a weighted complex on
-the same ground set and of the same dimension*, with top-level weight
-`linkWeight w τ = fun σ => if τ ⊆ σ then w σ else 0`.  This is exactly what
+**What is built here is the star of `τ`, not its link.**  `starWeight w τ` is `w`
+restricted to the faces *containing* `τ`, on the same ground set and at the same
+dimension `n`.  Its faces at level `j` are all `j`-subsets of the top faces
+through `τ` — **including subsets that meet `τ`** — so `starPi w n j τ` charges
+faces `ρ ⊆ τ`, which the monograph's `π_{τ,j}` must not
+(`LinkRestriction.starPi_apply_of_subset`).  The link proper has dimension
+`n − |τ|` and its faces are disjoint from `τ`; that is
+`Techniques.LinkRestriction.linkShift`, and `linkShiftPi` is `π_{τ,j}`.
+
+**The two agree at level one, and level one is all this module's downstream
+consumers use.**  `linkDist` below is the honest `π_{τ,1}` — it is defined
+directly, gives mass `0` to elements of `τ`, and is audited against the link's
+own level-one distribution by `LinkRestriction.linkShiftPi_one_singleton`.  So
+`localWalk`, its reversibility, and the `Q_η` bridge in `Chains.PinnedGlauber`
+are unaffected by the star/link distinction.  It is `starPi` at `j ≥ 2` that is
+not a link distribution, and nothing in the development consumes it there.
+
+With that said, the star is a genuinely useful object, and the reason is a
+triviality worth stating precisely: the star of `τ` is *again a weighted complex
+on the same ground set and of the same dimension*.  This is exactly what
 `Chains.Pinning` found for conditional Gibbs measures — **conditioning does not
 leave the category** — so no new theory is needed and every result of
-`Techniques.Levels` applies to the link verbatim.  The only bookkeeping is a
-normalisation: `linkWeight w τ` sums to `mu w τ` rather than to `1`, so the
-distributions of the link are built from the normalised weight
-`linkWeightNorm w τ = linkWeight w τ / mu w τ`.  The operators `up`, `down`,
+`Techniques.Levels` applies to it verbatim.  The only bookkeeping is a
+normalisation: `starWeight w τ` sums to `mu w τ` rather than to `1`, so the
+distributions are built from the normalised weight
+`starWeightNorm w τ = starWeight w τ / mu w τ`.  The operators `up`, `down`,
 `upDown`, `downUp` need no normalisation at all, since `Levels` never asks them
 for `hsum`.
 
-The workhorse is `mu_linkWeight`: the derived weights of the link are the
-derived weights of the original complex, shifted by `τ`.  Together with
-`linkWeight_union` — links compose — it is what lets the local-to-global
+The workhorse is `mu_starWeight`: the derived weights of the star are the derived
+weights of the original complex, shifted by `τ`.  Together with
+`starWeight_union` — stars compose — it is what lets the local-to-global
 induction descend one level at a time.
 
-* `linkWeight`, `linkWeight_nonneg`, `linkWeight_supp`, `linkWeight_empty`,
-  `linkWeight_top`, `sum_linkWeight` — the link weight and its elementary
-  properties.  `sum_linkWeight` is the partition function of the link:
-  `∑ σ, linkWeight w τ σ = mu w τ`.
-* `mu_linkWeight` — **the workhorse**: `mu (linkWeight w τ) ρ = mu w (τ ∪ ρ)`.
+* `starWeight`, `starWeight_nonneg`, `starWeight_supp`, `starWeight_empty`,
+  `starWeight_top`, `sum_starWeight` — the star weight and its elementary
+  properties.  `sum_starWeight` is its partition function:
+  `∑ σ, starWeight w τ σ = mu w τ`.
+* `mu_starWeight` — **the workhorse**: `mu (starWeight w τ) ρ = mu w (τ ∪ ρ)`.
   Both sides are `∑ σ, if τ ∪ ρ ⊆ σ then w σ else 0` by `Finset.union_subset_iff`.
-* `linkWeight_union` — **links compose**:
-  `linkWeight (linkWeight w τ) ρ = linkWeight w (τ ∪ ρ)`.
-* `linkWeightNorm` and `linkWeightNorm_nonneg`, `linkWeightNorm_supp`,
-  `sum_linkWeightNorm`, `mu_linkWeightNorm` — the normalised link weight
+* `starWeight_union` — **stars compose**:
+  `starWeight (starWeight w τ) ρ = starWeight w (τ ∪ ρ)`.
+* `starWeightNorm` and `starWeightNorm_nonneg`, `starWeightNorm_supp`,
+  `sum_starWeightNorm`, `mu_starWeightNorm` — the normalised star weight
   satisfies *all three* hypotheses of `Levels`.
-* `linkPi`, `linkUp`, `linkDown`, `linkUpDown`, `linkDownUp` — the level
-  distributions and the four operators of the link, together with
-  `link_up_down_adjoint`, `linkUpDown_reversible`, `linkUpDown_nonnegDefinite`,
-  `linkDownUp_reversible`, `linkDownUp_nonnegDefinite`, … .  **This is the real
-  deliverable**: the local-to-global inductive step is "apply `Levels` to the
-  link", and each of these is one line.
+* `starPi`, `starUp`, `starDown`, `starUpDown`, `starDownUp` — the level
+  distributions and the four operators of the star complex, together with
+  `star_up_down_adjoint`, `starUpDown_reversible`, `starUpDown_nonnegDefinite`,
+  `starDownUp_reversible`, `starDownUp_nonnegDefinite`, … .  Each is one line:
+  "apply `Levels` to the star".  Read `starPi w n j τ` as the level-`j`
+  distribution of the *star*, and use `LinkRestriction.linkShiftPi` when the
+  monograph's `π_{τ,j}` is wanted.
 * `linkDist` — the paper's `π_{τ,1}`, the distribution one level above `τ` on
-  ground-set elements: mass `mu w (insert e τ) / ((n - k) · mu w τ)` at `e ∉ τ`.
-  It is a distribution by `Levels.sum_insert_mu`, which exists for exactly this
-  purpose.  The monograph only ever uses `j = 1`, so no general `π_{τ,j}` is
-  built.
+  ground-set elements: mass `mu w (insert e τ) / ((n - k) · mu w τ)` at `e ∉ τ`,
+  and `0` at `e ∈ τ`.  This *is* the link's level-one distribution, transported
+  along `e ↦ {e}`; it is not built from `starWeight`.  It is a distribution by
+  `Levels.sum_insert_mu`, which exists for exactly this purpose.  The monograph
+  only ever uses `j = 1`, so no general `π_{τ,j}` is built here.
 * `linkDistOf` — the **guarded** variant of `linkDist`, added beside it rather
   than in place of it: total in `τ`, so that it can appear inside an average over
   a whole level, at the price of a `[Nonempty E]` instance for its junk value.
@@ -62,13 +81,14 @@ induction descend one level at a time.
   **`localWalk_reversible`**, `localWalk_stationary`.
 
 **Two deliberate choices.**  First, `localWalk` is defined directly rather than
-as a walk of the link complex.  The tempting route — "`Q_τ` is `downUp` of the
-link at the bottom level" — is not available: `downUp _ n 0` first steps
-deterministically down to `∅` and then goes up, so it is the *independent
-sampler* for the level-`1` distribution and does not depend on its current
-state, whereas `Q_τ` does.  The walk that is genuinely built from the operators
-is `upDown` at level `1`, and the monograph's own computation (`rem:local-downup`)
-shows that this is `(Q_τ + I)/(k+1)`-shaped, not `Q_τ`.  Second, `Q_τ` is *not*
+as a walk of the star complex.  The tempting route — "`Q_τ` is `downUp` at the
+bottom level" — is not available: `downUp _ n 0` first steps deterministically
+down to `∅` and then goes up, so it is the *independent sampler* for the level-`1`
+distribution and does not depend on its current state, whereas `Q_τ` does.  The
+walk that is genuinely built from the operators is `upDown` at level `1`, and the
+monograph's own computation (`rem:local-downup`) shows that this is
+`(Q_τ + I)/(k+1)`-shaped, not `Q_τ`.  `Techniques.LocalWalkBridge` carries that
+computation out, for the *link* rather than the star.  Second, `Q_τ` is *not*
 asserted to be positive semidefinite, and indeed it is not: it is the
 non-backtracking walk, and the monograph records `-1/(n-k-1)` in its spectrum.
 Positive semidefiniteness in this development belongs to the up-down and down-up
@@ -85,60 +105,65 @@ open Finset
 
 variable {E : Type*} [DecidableEq E]
 
-/-! ## The weight of a link
+/-! ## The star weight
 
 Conditioning a weighted complex on containing a face `τ` restricts the top-level
-weight to the star of `τ`.  The result is a weight on the same ground set,
-supported on the same level `n`; only the normalisation changes. -/
+weight to the **star** of `τ` — the faces containing `τ`.  The result is a weight
+on the same ground set, supported on the same level `n`; only the normalisation
+changes.  It is *not* the link, whose dimension is `n − |τ|`; see
+`Techniques.LinkRestriction` and the module docstring. -/
 
-/-- The **link weight** of a face `τ`: the top-level weight `w` restricted to the
-faces containing `τ`.  This is the top-level weight of the link complex, which
-lives on the same ground set and has the same dimension as the original. -/
-def linkWeight (w : Finset E → ℝ) (τ : Finset E) : Finset E → ℝ :=
+/-- The **star weight** of a face `τ`: the top-level weight `w` restricted to the
+faces containing `τ`.  This is the top-level weight of the star complex, which
+lives on the same ground set and has the same dimension as the original.
+
+This is **not** the link of `τ`, which lives one dimension lower and whose faces
+are disjoint from `τ`; that is `LinkRestriction.linkShift`. -/
+def starWeight (w : Finset E → ℝ) (τ : Finset E) : Finset E → ℝ :=
   fun σ => if τ ⊆ σ then w σ else 0
 
-/-- The defining formula for `linkWeight`. -/
-theorem linkWeight_apply (w : Finset E → ℝ) (τ σ : Finset E) :
-    linkWeight w τ σ = if τ ⊆ σ then w σ else 0 := rfl
+/-- The defining formula for `starWeight`. -/
+theorem starWeight_apply (w : Finset E → ℝ) (τ σ : Finset E) :
+    starWeight w τ σ = if τ ⊆ σ then w σ else 0 := rfl
 
-/-- The link weight is nonnegative: hypothesis `hw` of `Levels` survives. -/
-theorem linkWeight_nonneg {w : Finset E → ℝ} (hw : ∀ σ : Finset E, 0 ≤ w σ) (τ : Finset E) :
-    ∀ σ : Finset E, 0 ≤ linkWeight w τ σ := by
+/-- The star weight is nonnegative: hypothesis `hw` of `Levels` survives. -/
+theorem starWeight_nonneg {w : Finset E → ℝ} (hw : ∀ σ : Finset E, 0 ≤ w σ) (τ : Finset E) :
+    ∀ σ : Finset E, 0 ≤ starWeight w τ σ := by
   intro σ
-  rw [linkWeight_apply]
+  rw [starWeight_apply]
   split
   exacts [hw σ, le_rfl]
 
-/-- The link weight is still supported on the top level: hypothesis `hsupp` of
+/-- The star weight is still supported on the top level: hypothesis `hsupp` of
 `Levels` survives, with the *same* dimension `n`. -/
-theorem linkWeight_supp {w : Finset E → ℝ} {n : ℕ}
+theorem starWeight_supp {w : Finset E → ℝ} {n : ℕ}
     (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0) (τ : Finset E) :
-    ∀ σ : Finset E, σ.card ≠ n → linkWeight w τ σ = 0 := by
+    ∀ σ : Finset E, σ.card ≠ n → starWeight w τ σ = 0 := by
   intro σ hσ
-  rw [linkWeight_apply]
+  rw [starWeight_apply]
   split
   exacts [hsupp σ hσ, rfl]
 
-/-- The link of the empty face is the complex itself. -/
-theorem linkWeight_empty (w : Finset E → ℝ) : linkWeight w ∅ = w := by
+/-- The star of the empty face is the complex itself. -/
+theorem starWeight_empty (w : Finset E → ℝ) : starWeight w ∅ = w := by
   funext σ
-  rw [linkWeight_apply, if_pos (Finset.empty_subset σ)]
+  rw [starWeight_apply, if_pos (Finset.empty_subset σ)]
 
-/-- **Links compose**: the link of `ρ` inside the link of `τ` is the link of
+/-- **Stars compose**: the star of `ρ` inside the star of `τ` is the star of
 `τ ∪ ρ`.  This is what lets the local-to-global induction descend one level at a
 time without ever leaving the category of weighted complexes. -/
-theorem linkWeight_union (w : Finset E → ℝ) (τ ρ : Finset E) :
-    linkWeight (linkWeight w τ) ρ = linkWeight w (τ ∪ ρ) := by
+theorem starWeight_union (w : Finset E → ℝ) (τ ρ : Finset E) :
+    starWeight (starWeight w τ) ρ = starWeight w (τ ∪ ρ) := by
   funext σ
-  simp only [linkWeight_apply, Finset.union_subset_iff]
+  simp only [starWeight_apply, Finset.union_subset_iff]
   by_cases hτ : τ ⊆ σ <;> by_cases hρ : ρ ⊆ σ <;> simp [hτ, hρ]
 
-/-- The link of a *top-level* face is a point mass at that face: conditioning on
+/-- The star of a *top-level* face is a point mass at that face: conditioning on
 a full assignment leaves nothing to be random. -/
-theorem linkWeight_top {w : Finset E → ℝ} {n : ℕ}
+theorem starWeight_top {w : Finset E → ℝ} {n : ℕ}
     (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0) {τ : Finset E} (hτ : τ.card = n)
-    (σ : Finset E) : linkWeight w τ σ = if σ = τ then w τ else 0 := by
-  rw [linkWeight_apply]
+    (σ : Finset E) : starWeight w τ σ = if σ = τ then w τ else 0 := by
+  rw [starWeight_apply]
   by_cases h : σ = τ
   · subst h
     rw [if_pos Finset.Subset.rfl, if_pos rfl]
@@ -153,193 +178,197 @@ section Fintype
 
 variable [Fintype E]
 
-/-- **The derived weights of a link are the derived weights of the complex,
-shifted by `τ`**: `mu (linkWeight w τ) ρ = mu w (τ ∪ ρ)`.
+/-- **The derived weights of a star are the derived weights of the complex,
+shifted by `τ`**: `mu (starWeight w τ) ρ = mu w (τ ∪ ρ)`.
 
 Both sides are `∑ σ, if τ ∪ ρ ⊆ σ then w σ else 0`, by `Finset.union_subset_iff`.
-Every quantitative statement about the link is obtained from this one identity. -/
-theorem mu_linkWeight (w : Finset E → ℝ) (τ ρ : Finset E) :
-    mu (linkWeight w τ) ρ = mu w (τ ∪ ρ) := by
-  simp only [mu_apply, linkWeight_apply, Finset.union_subset_iff]
+Every quantitative statement about the star is obtained from this one identity. -/
+theorem mu_starWeight (w : Finset E → ℝ) (τ ρ : Finset E) :
+    mu (starWeight w τ) ρ = mu w (τ ∪ ρ) := by
+  simp only [mu_apply, starWeight_apply, Finset.union_subset_iff]
   refine Finset.sum_congr rfl fun σ _ => ?_
   by_cases hτ : τ ⊆ σ <;> by_cases hρ : ρ ⊆ σ <;> simp [hτ, hρ]
 
-/-- The partition function of the link is the derived weight of `τ`:
-`∑ σ, linkWeight w τ σ = mu w τ`.  This is the only thing that stops
-`linkWeight` from being a weight in the sense of `Levels`, and the reason for
-`linkWeightNorm` below. -/
-theorem sum_linkWeight (w : Finset E → ℝ) (τ : Finset E) :
-    ∑ σ : Finset E, linkWeight w τ σ = mu w τ := rfl
+/-- The partition function of the star is the derived weight of `τ`:
+`∑ σ, starWeight w τ σ = mu w τ`.  This is the only thing that stops
+`starWeight` from being a weight in the sense of `Levels`, and the reason for
+`starWeightNorm` below. -/
+theorem sum_starWeight (w : Finset E → ℝ) (τ : Finset E) :
+    ∑ σ : Finset E, starWeight w τ σ = mu w τ := rfl
 
-/-! ## The normalised link weight
+/-! ## The normalised star weight
 
 `Levels.pi` needs a weight of total mass `1`; dividing by `mu w τ` supplies it.
 The operators `up`, `down`, `upDown`, `downUp` do not need the normalisation,
 but it costs nothing to use the same weight throughout. -/
 
-/-- The **normalised link weight**, `linkWeight w τ / mu w τ`.  This is the
-top-level weight of the link as a *probability*-weighted complex: it satisfies
+/-- The **normalised star weight**, `starWeight w τ / mu w τ`.  This is the
+top-level weight of the star as a *probability*-weighted complex: it satisfies
 all three hypotheses `hw`, `hsupp`, `hsum` of `Techniques.Levels`. -/
-noncomputable def linkWeightNorm (w : Finset E → ℝ) (τ : Finset E) : Finset E → ℝ :=
-  fun σ => linkWeight w τ σ / mu w τ
+noncomputable def starWeightNorm (w : Finset E → ℝ) (τ : Finset E) : Finset E → ℝ :=
+  fun σ => starWeight w τ σ / mu w τ
 
-/-- The defining formula for `linkWeightNorm`. -/
-theorem linkWeightNorm_apply (w : Finset E → ℝ) (τ σ : Finset E) :
-    linkWeightNorm w τ σ = linkWeight w τ σ / mu w τ := rfl
+/-- The defining formula for `starWeightNorm`. -/
+theorem starWeightNorm_apply (w : Finset E → ℝ) (τ σ : Finset E) :
+    starWeightNorm w τ σ = starWeight w τ σ / mu w τ := rfl
 
-/-- Hypothesis `hw` for the link. -/
-theorem linkWeightNorm_nonneg {w : Finset E → ℝ} (hw : ∀ σ : Finset E, 0 ≤ w σ) (τ : Finset E) :
-    ∀ σ : Finset E, 0 ≤ linkWeightNorm w τ σ :=
-  fun σ => div_nonneg (linkWeight_nonneg hw τ σ) (mu_nonneg hw τ)
+/-- Hypothesis `hw` for the star. -/
+theorem starWeightNorm_nonneg {w : Finset E → ℝ} (hw : ∀ σ : Finset E, 0 ≤ w σ) (τ : Finset E) :
+    ∀ σ : Finset E, 0 ≤ starWeightNorm w τ σ :=
+  fun σ => div_nonneg (starWeight_nonneg hw τ σ) (mu_nonneg hw τ)
 
-/-- Hypothesis `hsupp` for the link: the link has the same dimension `n`. -/
-theorem linkWeightNorm_supp {w : Finset E → ℝ} {n : ℕ}
+/-- Hypothesis `hsupp` for the star: the star has the same dimension `n`. -/
+theorem starWeightNorm_supp {w : Finset E → ℝ} {n : ℕ}
     (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0) (τ : Finset E) :
-    ∀ σ : Finset E, σ.card ≠ n → linkWeightNorm w τ σ = 0 := by
+    ∀ σ : Finset E, σ.card ≠ n → starWeightNorm w τ σ = 0 := by
   intro σ hσ
-  rw [linkWeightNorm_apply, linkWeight_supp hsupp τ σ hσ, zero_div]
+  rw [starWeightNorm_apply, starWeight_supp hsupp τ σ hσ, zero_div]
 
-/-- Hypothesis `hsum` for the link: the normalised link weight is a probability
+/-- Hypothesis `hsum` for the star: the normalised star weight is a probability
 weight, provided `τ` is not a null face. -/
-theorem sum_linkWeightNorm (w : Finset E → ℝ) (τ : Finset E) (hpos : 0 < mu w τ) :
-    ∑ σ : Finset E, linkWeightNorm w τ σ = 1 := by
-  have h : ∀ σ : Finset E, linkWeightNorm w τ σ = linkWeight w τ σ / mu w τ :=
+theorem sum_starWeightNorm (w : Finset E → ℝ) (τ : Finset E) (hpos : 0 < mu w τ) :
+    ∑ σ : Finset E, starWeightNorm w τ σ = 1 := by
+  have h : ∀ σ : Finset E, starWeightNorm w τ σ = starWeight w τ σ / mu w τ :=
     fun σ => rfl
-  rw [Finset.sum_congr rfl fun σ _ => h σ, ← Finset.sum_div, sum_linkWeight,
+  rw [Finset.sum_congr rfl fun σ _ => h σ, ← Finset.sum_div, sum_starWeight,
     div_self hpos.ne']
 
-/-- `mu_linkWeight` in normalised form: `mu (linkWeightNorm w τ) ρ` is the
+/-- `mu_starWeight` in normalised form: `mu (starWeightNorm w τ) ρ` is the
 conditional derived weight `mu w (τ ∪ ρ) / mu w τ`. -/
-theorem mu_linkWeightNorm (w : Finset E → ℝ) (τ ρ : Finset E) :
-    mu (linkWeightNorm w τ) ρ = mu w (τ ∪ ρ) / mu w τ := by
+theorem mu_starWeightNorm (w : Finset E → ℝ) (τ ρ : Finset E) :
+    mu (starWeightNorm w τ) ρ = mu w (τ ∪ ρ) / mu w τ := by
   have hstep : ∀ σ : Finset E,
-      (if ρ ⊆ σ then linkWeightNorm w τ σ else 0)
-        = (if ρ ⊆ σ then linkWeight w τ σ else 0) / mu w τ := by
+      (if ρ ⊆ σ then starWeightNorm w τ σ else 0)
+        = (if ρ ⊆ σ then starWeight w τ σ else 0) / mu w τ := by
     intro σ
-    rw [linkWeightNorm_apply]
+    rw [starWeightNorm_apply]
     split
     · rfl
     · rw [zero_div]
   rw [mu_apply, Finset.sum_congr rfl fun σ _ => hstep σ, ← Finset.sum_div,
-    show (∑ σ : Finset E, if ρ ⊆ σ then linkWeight w τ σ else 0) = mu w (τ ∪ ρ) from
-      mu_linkWeight w τ ρ]
+    show (∑ σ : Finset E, if ρ ⊆ σ then starWeight w τ σ else 0) = mu w (τ ∪ ρ) from
+      mu_starWeight w τ ρ]
 
-/-! ## The link is a weighted complex
+/-! ## The star is a weighted complex
 
-Every definition of `Techniques.Levels` instantiates at the link with no work at
+Every definition of `Techniques.Levels` instantiates at the star with no work at
 all.  The definitions below are named purely for readability downstream: each is
-the corresponding `Levels` notion applied to `linkWeightNorm w τ`, and each
+the corresponding `Levels` notion applied to `starWeightNorm w τ`, and each
 theorem is the corresponding `Levels` theorem, verbatim. -/
 
-/-- The **level-`k` distribution of the link of `τ`**: `Levels.pi` applied to the
-normalised link weight. -/
-noncomputable def linkPi (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
+/-- The **level-`k` distribution of the star of `τ`**: `Levels.pi` applied to the
+normalised star weight.
+
+For `k ≥ 2` this is **not** the monograph's `π_{τ,k}`: it charges the `k`-subsets
+of `τ` itself (`LinkRestriction.starPi_apply_of_subset`).  The monograph's
+distribution is `LinkRestriction.linkShiftPi`. -/
+noncomputable def starPi (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
     (hw : ∀ σ : Finset E, 0 ≤ w σ) (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
     (hpos : 0 < mu w τ) (hk : k ≤ n) : FinDist (Finset E) :=
-  pi (linkWeightNorm w τ) n k (linkWeightNorm_nonneg hw τ) (linkWeightNorm_supp hsupp τ)
-    (sum_linkWeightNorm w τ hpos) hk
+  pi (starWeightNorm w τ) n k (starWeightNorm_nonneg hw τ) (starWeightNorm_supp hsupp τ)
+    (sum_starWeightNorm w τ hpos) hk
 
-/-- The level distributions of the link in closed form: mass
+/-- The level distributions of the star in closed form: mass
 `mu w (τ ∪ ρ) / (mu w τ · binom n k)` on the faces of cardinality `k`. -/
-theorem linkPi_apply (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
+theorem starPi_apply (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
     (hw : ∀ σ : Finset E, 0 ≤ w σ) (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
     (hpos : 0 < mu w τ) (hk : k ≤ n) (ρ : Finset E) :
-    linkPi w n k τ hw hsupp hpos hk ρ =
+    starPi w n k τ hw hsupp hpos hk ρ =
       if ρ.card = k then mu w (τ ∪ ρ) / (mu w τ * (n.choose k : ℝ)) else 0 := by
-  rw [linkPi, pi_apply]
+  rw [starPi, pi_apply]
   split
-  · rw [mu_linkWeightNorm, div_div]
+  · rw [mu_starWeightNorm, div_div]
   · rfl
 
-/-- The **up operator of the link**. -/
-noncomputable def linkUp (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
+/-- The **up operator of the star**. -/
+noncomputable def starUp (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
     (hw : ∀ σ : Finset E, 0 ≤ w σ) (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
     (hk : k < n) : FinChain (Finset E) :=
-  up (linkWeightNorm w τ) n k (linkWeightNorm_nonneg hw τ) (linkWeightNorm_supp hsupp τ) hk
+  up (starWeightNorm w τ) n k (starWeightNorm_nonneg hw τ) (starWeightNorm_supp hsupp τ) hk
 
-/-- The **down operator of the link**.  It is literally `Levels.down`: the down
+/-- The **down operator of the star**.  It is literally `Levels.down`: the down
 operator deletes a uniformly random element and never looks at the weight, so
 conditioning cannot change it. -/
-noncomputable def linkDown (k : ℕ) : FinChain (Finset E) := down k
+noncomputable def starDown (k : ℕ) : FinChain (Finset E) := down k
 
-/-- The **up-down walk of the link** on level `k`. -/
-noncomputable def linkUpDown (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
+/-- The **up-down walk of the star** on level `k`. -/
+noncomputable def starUpDown (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
     (hw : ∀ σ : Finset E, 0 ≤ w σ) (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
     (hk : k < n) : FinChain (Finset E) :=
-  upDown (linkWeightNorm w τ) n k (linkWeightNorm_nonneg hw τ) (linkWeightNorm_supp hsupp τ) hk
+  upDown (starWeightNorm w τ) n k (starWeightNorm_nonneg hw τ) (starWeightNorm_supp hsupp τ) hk
 
-/-- The **down-up walk of the link** on level `k + 1`. -/
-noncomputable def linkDownUp (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
+/-- The **down-up walk of the star** on level `k + 1`. -/
+noncomputable def starDownUp (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
     (hw : ∀ σ : Finset E, 0 ≤ w σ) (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
     (hk : k < n) : FinChain (Finset E) :=
-  downUp (linkWeightNorm w τ) n k (linkWeightNorm_nonneg hw τ) (linkWeightNorm_supp hsupp τ) hk
+  downUp (starWeightNorm w τ) n k (starWeightNorm_nonneg hw τ) (starWeightNorm_supp hsupp τ) hk
 
-/-- **The up and down operators of the link are mutually adjoint.**  This is
-`Levels.up_down_adjoint` applied to the link, and it is the entire inductive step
+/-- **The up and down operators of the star are mutually adjoint.**  This is
+`Levels.up_down_adjoint` applied to the star, and it is the entire inductive step
 of the local-to-global argument: everything below follows from it. -/
-theorem link_up_down_adjoint (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
+theorem star_up_down_adjoint (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
     (hw : ∀ σ : Finset E, 0 ≤ w σ) (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
     (hpos : 0 < mu w τ) (hk : k < n) :
-    Adjoint (linkPi w n k τ hw hsupp hpos hk.le) (linkPi w n (k + 1) τ hw hsupp hpos hk)
-      (linkUp w n k τ hw hsupp hk) (linkDown k) :=
-  up_down_adjoint (linkWeightNorm w τ) n k (linkWeightNorm_nonneg hw τ)
-    (linkWeightNorm_supp hsupp τ) (sum_linkWeightNorm w τ hpos) hk
+    Adjoint (starPi w n k τ hw hsupp hpos hk.le) (starPi w n (k + 1) τ hw hsupp hpos hk)
+      (starUp w n k τ hw hsupp hk) (starDown k) :=
+  up_down_adjoint (starWeightNorm w τ) n k (starWeightNorm_nonneg hw τ)
+    (starWeightNorm_supp hsupp τ) (sum_starWeightNorm w τ hpos) hk
 
-/-- The up-down walk of the link is reversible with respect to the link's
+/-- The up-down walk of the star is reversible with respect to the star's
 level-`k` distribution. -/
-theorem linkUpDown_reversible (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
+theorem starUpDown_reversible (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
     (hw : ∀ σ : Finset E, 0 ≤ w σ) (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
     (hpos : 0 < mu w τ) (hk : k < n) :
-    Reversible (linkPi w n k τ hw hsupp hpos hk.le) (linkUpDown w n k τ hw hsupp hk) :=
-  (link_up_down_adjoint w n k τ hw hsupp hpos hk).comp_reversible
+    Reversible (starPi w n k τ hw hsupp hpos hk.le) (starUpDown w n k τ hw hsupp hk) :=
+  (star_up_down_adjoint w n k τ hw hsupp hpos hk).comp_reversible
 
-/-- The link's level-`k` distribution is stationary for the link's up-down walk. -/
-theorem linkUpDown_stationary (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
+/-- The star's level-`k` distribution is stationary for the star's up-down walk. -/
+theorem starUpDown_stationary (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
     (hw : ∀ σ : Finset E, 0 ≤ w σ) (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
     (hpos : 0 < mu w τ) (hk : k < n) :
-    Stationary (linkPi w n k τ hw hsupp hpos hk.le) (linkUpDown w n k τ hw hsupp hk) :=
-  (link_up_down_adjoint w n k τ hw hsupp hpos hk).comp_stationary
+    Stationary (starPi w n k τ hw hsupp hpos hk.le) (starUpDown w n k τ hw hsupp hk) :=
+  (star_up_down_adjoint w n k τ hw hsupp hpos hk).comp_stationary
 
-/-- **The up-down walk of the link is positive semidefinite**, for the same
+/-- **The up-down walk of the star is positive semidefinite**, for the same
 structural reason as in the ambient complex and with no eigenvalue argument. -/
-theorem linkUpDown_nonnegDefinite (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
+theorem starUpDown_nonnegDefinite (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
     (hw : ∀ σ : Finset E, 0 ≤ w σ) (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
     (hpos : 0 < mu w τ) (hk : k < n) :
-    NonnegDefinite (linkPi w n k τ hw hsupp hpos hk.le) (linkUpDown w n k τ hw hsupp hk) :=
-  (link_up_down_adjoint w n k τ hw hsupp hpos hk).comp_nonnegDefinite
+    NonnegDefinite (starPi w n k τ hw hsupp hpos hk.le) (starUpDown w n k τ hw hsupp hk) :=
+  (star_up_down_adjoint w n k τ hw hsupp hpos hk).comp_nonnegDefinite
 
-/-- The down-up walk of the link is reversible with respect to the link's
+/-- The down-up walk of the star is reversible with respect to the star's
 level-`(k+1)` distribution. -/
-theorem linkDownUp_reversible (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
+theorem starDownUp_reversible (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
     (hw : ∀ σ : Finset E, 0 ≤ w σ) (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
     (hpos : 0 < mu w τ) (hk : k < n) :
-    Reversible (linkPi w n (k + 1) τ hw hsupp hpos hk) (linkDownUp w n k τ hw hsupp hk) :=
-  (link_up_down_adjoint w n k τ hw hsupp hpos hk).comp_reversible'
+    Reversible (starPi w n (k + 1) τ hw hsupp hpos hk) (starDownUp w n k τ hw hsupp hk) :=
+  (star_up_down_adjoint w n k τ hw hsupp hpos hk).comp_reversible'
 
-/-- The link's level-`(k+1)` distribution is stationary for the link's down-up
+/-- The star's level-`(k+1)` distribution is stationary for the star's down-up
 walk.  For `k + 1 = n` this is the Glauber dynamics of the conditioned system. -/
-theorem linkDownUp_stationary (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
+theorem starDownUp_stationary (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
     (hw : ∀ σ : Finset E, 0 ≤ w σ) (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
     (hpos : 0 < mu w τ) (hk : k < n) :
-    Stationary (linkPi w n (k + 1) τ hw hsupp hpos hk) (linkDownUp w n k τ hw hsupp hk) :=
-  (link_up_down_adjoint w n k τ hw hsupp hpos hk).comp_reversible'.stationary
+    Stationary (starPi w n (k + 1) τ hw hsupp hpos hk) (starDownUp w n k τ hw hsupp hk) :=
+  (star_up_down_adjoint w n k τ hw hsupp hpos hk).comp_reversible'.stationary
 
-/-- **The down-up walk of the link is positive semidefinite.** -/
-theorem linkDownUp_nonnegDefinite (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
+/-- **The down-up walk of the star is positive semidefinite.** -/
+theorem starDownUp_nonnegDefinite (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
     (hw : ∀ σ : Finset E, 0 ≤ w σ) (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
     (hpos : 0 < mu w τ) (hk : k < n) :
-    NonnegDefinite (linkPi w n (k + 1) τ hw hsupp hpos hk) (linkDownUp w n k τ hw hsupp hk) :=
-  (link_up_down_adjoint w n k τ hw hsupp hpos hk).comp_nonnegDefinite'
+    NonnegDefinite (starPi w n (k + 1) τ hw hsupp hpos hk) (starDownUp w n k τ hw hsupp hk) :=
+  (star_up_down_adjoint w n k τ hw hsupp hpos hk).comp_nonnegDefinite'
 
-/-- The Dirichlet form of the link's up-down walk, in the shape in which it
+/-- The Dirichlet form of the star's up-down walk, in the shape in which it
 enters the local-to-global induction. -/
-theorem linkUpDown_dirichlet (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
+theorem starUpDown_dirichlet (w : Finset E → ℝ) (n k : ℕ) (τ : Finset E)
     (hw : ∀ σ : Finset E, 0 ≤ w σ) (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
     (hpos : 0 < mu w τ) (hk : k < n) (f : Finset E → ℝ) :
-    dirichlet (linkPi w n k τ hw hsupp hpos hk.le) (linkUpDown w n k τ hw hsupp hk) f f
-      = ip (linkPi w n k τ hw hsupp hpos hk.le) f f
-        - ip (linkPi w n (k + 1) τ hw hsupp hpos hk) ((linkDown k).act f) ((linkDown k).act f) :=
-  (link_up_down_adjoint w n k τ hw hsupp hpos hk).dirichlet_comp f
+    dirichlet (starPi w n k τ hw hsupp hpos hk.le) (starUpDown w n k τ hw hsupp hk) f f
+      = ip (starPi w n k τ hw hsupp hpos hk.le) f f
+        - ip (starPi w n (k + 1) τ hw hsupp hpos hk) ((starDown k).act f) ((starDown k).act f) :=
+  (star_up_down_adjoint w n k τ hw hsupp hpos hk).dirichlet_comp f
 
 /-! ## The distribution one level above a face
 
@@ -635,12 +664,12 @@ theorem localWalk_diag (w : Finset E → ℝ) (n : ℕ) (τ : Finset E)
     localWalk w n τ hw hsupp hk e e = 0 := by
   rw [localWalk_apply, if_pos ⟨he, hA⟩, if_neg (fun hc => hc (Finset.mem_insert_self e τ))]
 
-/-- The link of the empty face changes nothing at the level of derived weights:
-`linkWeight w ∅ = w`, so no conditioning has taken place.  Recorded here because
+/-- The star of the empty face changes nothing at the level of derived weights:
+`starWeight w ∅ = w`, so no conditioning has taken place.  Recorded here because
 it is the base case of the local-to-global induction. -/
-theorem mu_linkWeight_empty (w : Finset E → ℝ) (ρ : Finset E) :
-    mu (linkWeight w ∅) ρ = mu w ρ := by
-  rw [mu_linkWeight, Finset.empty_union]
+theorem mu_starWeight_empty (w : Finset E → ℝ) (ρ : Finset E) :
+    mu (starWeight w ∅) ρ = mu w ρ := by
+  rw [mu_starWeight, Finset.empty_union]
 
 end Fintype
 

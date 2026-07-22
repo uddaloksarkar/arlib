@@ -20,7 +20,7 @@ first end-to-end use.
 1. *The link of a uniform complex is a uniform complex.*
    `linkShiftNorm_uniformWeight`: the honest link
    (`Techniques.LinkRestriction.linkShiftNorm`, **not** the star
-   `LocalWalk.linkWeight`) of a face `τ` is `uniformWeightOn τᶜ (n - |τ|)`, the
+   `LocalWalk.starWeight`) of a face `τ` is `uniformWeightOn τᶜ (n - |τ|)`, the
    uniform weight of dimension `n - |τ|` on the complement of `τ`.  So the local
    objects are the same objects one level set down, and every closed form of
    `UniformComplex` transfers.
@@ -155,25 +155,6 @@ theorem linkShiftNorm_uniformWeight {n : ℕ} (hn : n ≤ Fintype.card E) {τ : 
       hd (Finset.disjoint_left.mpr fun x hx hxσ => (Finset.mem_compl.mp (hsub hxσ)) hx)
     rw [if_neg hd, if_neg fun h => hsub h.2, zero_div]
 
-/-! ## A counting lemma for the level-one faces of a face -/
-
-/-- The level-`1` subfaces of a face `η` are its singletons: an indicator sum
-over `Finset E` collapses to a sum over `η`.  This is `Levels.sum_ite_card_one`
-with the extra constraint `ρ ⊆ η`, and it is what evaluates the down operator
-`D_1` at a two-element face. -/
-theorem sum_ite_card_one_subset (η : Finset E) (c : Finset E → ℝ) :
-    ∑ ρ : Finset E, (if ρ.card = 1 ∧ ρ ⊆ η then c ρ else 0) = ∑ x ∈ η, c {x} := by
-  have h : ∀ ρ : Finset E, (if ρ.card = 1 ∧ ρ ⊆ η then c ρ else 0)
-      = if ρ.card = 1 then (if ρ ⊆ η then c ρ else 0) else 0 := by
-    intro ρ
-    by_cases h1 : ρ.card = 1 <;> by_cases h2 : ρ ⊆ η <;> simp [h1, h2]
-  have h2 : ∀ x : E, (if ({x} : Finset E) ⊆ η then c {x} else 0)
-      = if x ∈ η then c {x} else 0 :=
-    fun x => if_congr Finset.singleton_subset_iff rfl rfl
-  rw [Finset.sum_congr rfl fun ρ _ => h ρ,
-    sum_ite_card_one (fun ρ => if ρ ⊆ η then c ρ else 0),
-    Finset.sum_congr rfl fun x _ => h2 x, Finset.sum_ite_mem, Finset.univ_inter]
-
 /-! ## The local walk `Q_τ`, and its Dirichlet form exactly -/
 
 /-- **The Dirichlet form of the local walk of the uniform complex, exactly.**
@@ -301,31 +282,6 @@ theorem uniformLocalWalk_spectralGapAtLeast {n : ℕ} (hn : n ≤ Fintype.card E
   linarith
 
 /-! ## The level-one up-down walk of the link -/
-
-/-- The derived weights of the normalised link vanish off the faces disjoint
-from `τ`.  `Techniques.LinkRestriction` proves this for `linkShift` but not for
-`linkShiftNorm`; the normalised form is what `Levels.up` reads, so it is
-recorded here. -/
-theorem mu_linkShiftNorm_eq_zero_of_not_disjoint (w : Finset E → ℝ) {τ ρ : Finset E}
-    (hd : ¬ Disjoint τ ρ) : mu (linkShiftNorm w τ) ρ = 0 := by
-  rw [show linkShiftNorm w τ = fun σ => linkShift w τ σ / mu w τ from rfl, mu_div,
-    mu_linkShift_eq_zero_of_not_disjoint w hd, zero_div]
-
-/-- The level-`1` faces disjoint from `τ` are the singletons of `τᶜ`: the
-companion of `sum_ite_card_one_subset` for the disjointness guard that the link
-distributions carry. -/
-theorem sum_ite_card_one_disjoint (τ : Finset E) (c : Finset E → ℝ) :
-    ∑ ρ : Finset E, (if ρ.card = 1 ∧ Disjoint τ ρ then c ρ else 0) = ∑ e ∈ τᶜ, c {e} := by
-  have h : ∀ ρ : Finset E, (if ρ.card = 1 ∧ Disjoint τ ρ then c ρ else 0)
-      = if ρ.card = 1 then (if Disjoint τ ρ then c ρ else 0) else 0 := by
-    intro ρ
-    by_cases h1 : ρ.card = 1 <;> by_cases h2 : Disjoint τ ρ <;> simp [h1, h2]
-  have h2 : ∀ e : E, (if Disjoint τ ({e} : Finset E) then c {e} else 0)
-      = if e ∈ τᶜ then c {e} else 0 :=
-    fun e => if_congr (by rw [Finset.disjoint_singleton_right, Finset.mem_compl]) rfl rfl
-  rw [Finset.sum_congr rfl fun ρ _ => h ρ,
-    sum_ite_card_one (fun ρ => if Disjoint τ ρ then c ρ else 0),
-    Finset.sum_congr rfl fun e _ => h2 e, Finset.sum_ite_mem, Finset.univ_inter]
 
 /-- The level-`j` distribution `π_{τ,j}` of the link of a face `τ` of the
 uniform complex: a wrapper for `LinkRestriction.linkShiftPi`. -/

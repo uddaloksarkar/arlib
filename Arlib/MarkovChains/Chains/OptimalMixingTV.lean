@@ -16,16 +16,11 @@ the two step counts can honestly be put beside each other.
 
 ## Where this file sits
 
-The first section is `Techniques`-level: it mentions no state space, no spin
-system and no product measure, and it belongs in `Techniques/` by the rule of
-§1.1 of the roadmap.  It is here because it is the composition of two modules
-neither of which imports the other (`Techniques/EntropyDecay.lean` and
-`Techniques/Pinsker.lean`), so a home for it in `Techniques/` means a *new*
-`Techniques` file plus an edit to `Arlib/MarkovChains.lean` to reach it, and the
-present pass is permitted to create exactly one file.  **The intended final home
-of `EntropyContraction.mixesWithin_of_log_le` is a `Techniques` module** — say
-`Techniques/EntropyMixing.lean` — and moving it there is a pure relocation: its
-statement and proof mention nothing below `Techniques/`.
+The generic composition — entropy contraction plus Pinsker gives a mixing time in
+total variation — mentions no state space, no spin system and no product measure,
+and lives in `Techniques/EntropyMixing.lean` by the rule of §1.1 of the roadmap.
+What is here is the *instance*: that composition applied to the Gibbs sampler of
+a product measure, and the arithmetic of comparing it against the variance route.
 
 ## The composition does not pass through χ²
 
@@ -98,13 +93,10 @@ effect stands unchanged.
 
 ## Main declarations
 
-* **`EntropyContraction.mixesWithin_of_log_le`** — the generic composition, at
-  `Techniques` generality: a reversible chain with fully supported `μ ≥ m` that
-  contracts entropy at rate `ρ ≤ 1` satisfies `MixesWithin P μ δ t` as soon as
-  `t ≥ ρ⁻¹·ln(ln(1/m)/(2δ²))`.  This *verifies* the expression predicted by the
-  closing section of `Techniques/Pinsker.lean`.
-* `EntropyContraction.mixesWithin_of_klDiv_bound` — the same composition with the
-  divergence bound supplied by hand, for callers who have one from another source.
+The generic composition it is built on,
+`Techniques.EntropyMixing.EntropyContraction.mixesWithin_of_log_le`, is not
+restated here.
+
 * **`glauber_mixesWithin_prodWeight_of_entropy`** — the headline instance with an
   abstract lower bound `m` on the Gibbs measure.
 * **`glauber_mixesWithin_prodWeight_of_bounds`** — the headline instance with `m`
@@ -124,82 +116,12 @@ Everything here is proved from first principles with no `sorry`; no eigenvalue,
 and no spectral notion beyond the Dirichlet form, appears anywhere.
 -/
 import Arlib.MarkovChains.Chains.ProductOptimalMixing
-import Arlib.MarkovChains.Techniques.Pinsker
+import Arlib.MarkovChains.Techniques.EntropyMixing
 
 namespace Arlib.MarkovChains
 
 open scoped BigOperators
 open Finset
-
-/-! ## The generic composition
-
-Nothing in this section mentions a state space, a spin system or a product
-measure; it is `Techniques`-level material living in `Chains/` for the reason
-given in the module docstring.
-
-The shape of the composition is forced by the two interfaces.
-`EntropyContraction.klDiv_iter_row_le_of_log_le` produces `D_KL ≤ ε` and
-`mixesWithin_of_klDiv_le_two_mul_sq` consumes `D_KL ≤ 2δ²`, so the composite is
-the first at `ε = 2δ²`, and the `ε` inside the logarithm becomes `2δ²`.  That
-substitution is the whole of Pinsker's cost, and the module docstring accounts
-for it. -/
-
-section Generic
-
-variable {Ω : Type*} [Fintype Ω] [DecidableEq Ω]
-
-/-- **Entropy contraction plus Pinsker is a mixing time in total variation.**
-
-Let `P` be reversible with respect to a fully supported `μ` bounded below by `m`,
-and let `P` contract entropy at rate `ρ ≤ 1`.  Then
-
-  `‖P^t(x, ·) − μ‖_TV ≤ δ`  as soon as  `ln(ln(1/m)/(2δ²)) ≤ ρ·t`,
-
-that is, after `t ≥ ρ⁻¹·ln(ln(1/m)/(2δ²))` steps, from every starting state.
-
-This is the statement the closing section of `Techniques/Pinsker.lean` predicts,
-and it holds exactly as predicted: `EntropyContraction.klDiv_iter_row_le_of_log_le`
-at `ε = 2δ²` fed to `mixesWithin_of_klDiv_le_two_mul_sq`.  The hypotheses are the
-union of the two, with `0 < ε` becoming `0 < δ` and nothing else added.
-
-Two remarks on what the bound is and is not.
-
-* The `μ_min` dependence is `ln ln(1/m)`, not `ln(1/m)`.  That is the point of
-  the entropy route, and it survives Pinsker intact, because Pinsker touches only
-  the accuracy parameter.
-* Pinsker converts a divergence decaying at rate `ρ` into a distance decaying at
-  rate `ρ/2`, so the coefficient of `ln(1/δ)` here is `2ρ⁻¹`, against `γ⁻¹` for
-  the variance route (`MixingTime.mixesWithin_of_log_le`).  This is a genuine
-  loss of a factor two in the `δ`-dependence, not an artefact.
-
-The composition must not be routed through χ²: `EntropyVariational.klDiv_le_chiSq`
-followed by Pinsker is worse than `tvDist_sq_le_chiSq` by `√2`.  It is not routed
-through χ² — the divergence bound consumed here is of entropy origin, from
-`EntropyContraction` alone. -/
-theorem EntropyContraction.mixesWithin_of_log_le {μ : FinDist Ω} {P : FinChain Ω} {ρ : ℝ}
-    (hrev : Reversible μ P) (hpos : ∀ x, 0 < μ x) (h : EntropyContraction μ P ρ)
-    (hρ : ρ ≤ 1) {m δ : ℝ} (hm : 0 < m) (hmin : ∀ x, m ≤ μ x)
-    (hL : 0 < Real.log (1 / m)) (hδ : 0 < δ) {t : ℕ}
-    (ht : Real.log (Real.log (1 / m) / (2 * δ ^ 2)) ≤ ρ * t) :
-    MixesWithin P μ δ t := by
-  refine mixesWithin_of_klDiv_le_two_mul_sq hpos hδ.le fun x => ?_
-  exact h.klDiv_iter_row_le_of_log_le hrev hpos hρ hm hmin hL (by positivity) ht x
-
-/-- **A divergence bound of any provenance is a mixing statement**, provided the
-provenance is not χ².
-
-This is `mixesWithin_of_klDiv_le_two_mul_sq` under its intended name, recorded
-here so that the composition above can be reused by a caller who obtains
-`D_KL(P^t(x,·) ‖ μ) ≤ 2δ²` from something other than `EntropyContraction` — a
-sharper tensorization statement, say.  The warning attached to it is the one in
-`Techniques/Pinsker.lean`: a bound obtained as `klDiv ≤ chiSq` should be sent to
-`tvDist_sq_le_chiSq` instead, which is better by `√2`. -/
-theorem EntropyContraction.mixesWithin_of_klDiv_bound {μ : FinDist Ω} {P : FinChain Ω}
-    {δ : ℝ} {t : ℕ} (hpos : ∀ x, 0 < μ x) (hδ : 0 ≤ δ)
-    (h : ∀ x, klDiv ((P.iter t).row x) μ ≤ 2 * δ ^ 2) : MixesWithin P μ δ t :=
-  mixesWithin_of_klDiv_le_two_mul_sq hpos hδ h
-
-end Generic
 
 /-! ## The headline instance: the Gibbs sampler of a product measure
 

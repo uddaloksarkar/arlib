@@ -97,11 +97,12 @@ independently proved `Chains.ProductMeasure.approxTensorization_prodWeight`.
 
 **Main declarations.**
 
-* `finKernel_ext`, `nonneg_of_spectralIndependence` — two lemmas that belong
-  elsewhere (`Techniques.Chain`, `Techniques.SpectralIndependence`), proved
-  locally because this file may not edit its neighbours.
-  `nonneg_of_spectralIndependence` removes a hypothesis: `0 ≤ η` is *forced* by
-  the definition, since the covariance form annihilates the all-ones vector.
+The assembly runs on two general facts that live upstream: `Chain.finKernel_ext`
+(two kernels with the same entries are equal) and
+`SpectralIndependence.nonneg_of_spectralIndependence`, which removes a hypothesis
+below — `0 ≤ η` is *forced* by the definition, since the covariance form
+annihilates the all-ones vector.
+
 * **`exists_pinGraph_of_mu_pos`** — a charged face of the encoded complex is the
   graph of a pinning.
 * `pinWeight_gibbsWeight`, `Z_pinWeight_gibbsWeight`, **`gibbsPin_gibbsWeight`** —
@@ -134,53 +135,11 @@ namespace Arlib.MarkovChains
 open scoped BigOperators
 open Finset
 
-/-! ## Two lemmas that belong elsewhere
-
-Both are general facts with no reference to this assembly.  `finKernel_ext`
-belongs in `Techniques.Chain` beside `FinDist.ext`; `nonneg_of_spectralIndependence`
-belongs in `Techniques.SpectralIndependence` beside
-`one_sub_marg_le_of_spectralIndependence`, which is the same style of argument at
-a basis vector rather than at the all-ones vector. -/
+/-! ## The faces of the encoded complex are pinnings -/
 
 section Prelim
 
 variable {V : Type*} [Fintype V] [DecidableEq V] {S : Type*} [Fintype S] [DecidableEq S]
-
-/-- Two kernels with the same entries are equal.  Belongs in `Techniques.Chain`
-beside `FinDist.ext`, which is the corresponding statement for distributions. -/
-theorem finKernel_ext {α β : Type*} [Fintype β] {K L : FinKernel α β}
-    (h : ∀ x y, K x y = L x y) : K = L := by
-  cases K; cases L
-  simp only [FinKernel.mk.injEq]
-  funext x y
-  exact h x y
-
-/-- **Spectral independence forces a nonnegative constant.**
-
-Evaluating `Cov μ ⪯ η · diag (marg μ)` at the all-ones vector gives
-`0 ≤ η · |V|`, because the linear statistic of the all-ones vector is the
-constant `|V|` and constants have variance zero, while `∑_p marg μ p = |V|`.
-
-This is worth having because it removes a hypothesis downstream: the side
-condition `γ_j ≤ 2` of the Improved Random Walk Theorem needs `0 ≤ η`, and it is
-free.  Compare `one_sub_marg_le_of_spectralIndependence`, which is the same
-evaluation at a basis vector. -/
-theorem nonneg_of_spectralIndependence [Nonempty V] {μ : FinDist (V → S)} {η : ℝ}
-    (h : SpectralIndependence μ η) : 0 ≤ η := by
-  have h1 := (spectralIndependence_iff η).mp h (fun _ => 1)
-  have h2 : quadForm (Cov μ) (fun _ => (1 : ℝ)) = 0 := by
-    rw [quadForm_Cov]
-    have hcomb : spinComb (fun _ : V × S => (1 : ℝ)) = fun _ => ((Fintype.card V : ℝ)) := by
-      funext σ
-      rw [spinComb_eq]
-      simp
-    rw [hcomb, Var_const]
-  have h3 : (∑ p : V × S, marg μ p * (1 : ℝ) ^ 2) = (Fintype.card V : ℝ) := by
-    rw [Fintype.sum_prod_type]
-    simp [sum_marg]
-  rw [h2, h3] at h1
-  have hc : (0 : ℝ) < (Fintype.card V : ℝ) := by exact_mod_cast Fintype.card_pos
-  nlinarith
 
 /-- **A charged face of the encoded complex is the graph of a pinning.**
 
@@ -579,10 +538,16 @@ The user-facing form of the calibration: `PairwiseIndep` is a hypothesis about
 two-site marginals only, and it implies `SpectralIndependence … 1` by
 `spectralIndependence_of_pairwiseIndep`.
 
-Nothing in `Chains/` yet discharges this hypothesis for a concrete weight — the
-obvious candidate is `Chains.ProductMeasure.prodWeight`, whose pinnings are again
-product weights — so this statement is currently the library's cheapest route to
-a *non-vacuity* check for the theorem above. -/
+It is also the library's cheapest route to a *non-vacuity* check for the theorem
+above, and that check is now discharged:
+`Chains.ProductSpectralIndependence.pairwiseIndep_gibbsPin_prodWeight` supplies
+the hypothesis for `Chains.ProductMeasure.prodWeight`, whose pinnings are again
+product weights, and
+`Chains.ProductSpectralIndependence.spectralGapAtLeast_glauber_prodWeight_via_spectralIndependence`
+is the resulting `1/n` gap.  That instance also calibrates the whole chain: the
+same statement is proved by approximate tensorization in
+`Chains.ProductMeasure.spectralGapAtLeast_glauber_prodWeight`, with no slack on
+either side. -/
 theorem spectralGapAtLeast_glauber_of_pairwiseIndep
     (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) (hZ : 0 < Z w) {m : ℕ}
     (hm : Fintype.card V = m + 1)

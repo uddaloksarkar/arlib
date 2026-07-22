@@ -23,18 +23,18 @@ weight,
 the conditional expectation of `f` given that the top face contains `τ`
 (`levelFun_eq_div`).  Once both projections are ratios of derived weights, any
 statement comparing a link projection with an ambient one reduces to
-`LocalWalk.mu_linkWeight`-style bookkeeping, and the numerator is handled by the
+`LocalWalk.mu_starWeight`-style bookkeeping, and the numerator is handled by the
 *same* lemma applied to the weight `w · f` — which satisfies the same support
 hypothesis as `w`.  This is why the module needs no new counting.
 
-**Two links, and only one of them is the monograph's.**  `LocalWalk.linkWeight`
+**A star and a link, and only one of them is the monograph's.**  `LocalWalk.starWeight`
 keeps the ambient dimension `n`; its faces of size `j` are all the `j`-subsets of
 the top faces containing `τ`, *including subsets that meet `τ`*.  That is the
 **star** of `τ`, and it is a perfectly good weighted complex — the restriction
-theorem holds for it (`levelFun_linkWeightNorm`).  But its level-`j`
-distribution `LocalWalk.linkPi w n j τ` is **not** the monograph's `π_{τ,j}`: it
+theorem holds for it (`levelFun_starWeightNorm`).  But its level-`j`
+distribution `LocalWalk.starPi w n j τ` is **not** the monograph's `π_{τ,j}`: it
 gives every `j`-subface of `τ` itself the mass `1 / n.choose j`
-(`linkPi_apply_of_subset`).  The monograph's link has dimension `n - |τ|` and
+(`starPi_apply_of_subset`).  The monograph's link has dimension `n - |τ|` and
 lives on the faces disjoint from `τ`; it is built here as `linkShift` /
 `linkShiftNorm`, and its level-`j` distribution `linkShiftPi` is `π_{τ,j}`,
 audited at `j = 1` against `LocalWalk.linkDist` (`linkShiftPi_one_singleton`).
@@ -51,7 +51,7 @@ Main declarations:
   reindexing of the module, along `σ ↦ σ \ τ` and `ρ ↦ τ ∪ ρ`.
 * **`levelFun_eq_div`** — the closed form of the projection as a ratio of derived
   weights, with `mu_mul_levelFun` for the version valid at null faces.
-* **`levelFun_linkWeightNorm`** and `levelFun_linkWeightNorm_disjoint` — the
+* **`levelFun_starWeightNorm`** and `levelFun_starWeightNorm_disjoint` — the
   restriction theorem for the star: `(f_τ)^{(j)}(ρ) = f^{(|τ ∪ ρ|)}(τ ∪ ρ)`, and
   for `ρ` disjoint from `τ`, `= f^{(|τ| + j)}(τ ∪ ρ)`.
 * **`levelFun_linkShiftNorm`** — the same for the honest link, where the shift
@@ -59,8 +59,8 @@ Main declarations:
 * `linkShiftPi`, `linkShiftPi_apply_of_disjoint`, **`linkShiftPi_one_singleton`**
   — the monograph's `π_{τ,j}`, and the check that at `j = 1` it agrees with the
   independently built `LocalWalk.linkDist`.
-* `linkShiftPi_eq_zero_of_not_disjoint`, `linkPi_apply_of_subset` — the two
-  lemmas that separate `π_{τ,j}` from `LocalWalk.linkPi w n j τ`.
+* `linkShiftPi_eq_zero_of_not_disjoint`, `starPi_apply_of_subset` — the two
+  lemmas that separate `π_{τ,j}` from `LocalWalk.starPi w n j τ`.
 * `sum_ite_disjoint_union` — the reindexing of `mu_linkShift`, isolated so that
   it applies to a summand other than a derived weight.
 * `linkShiftPiOf`, `linkShiftPiOf_eq_linkShiftPi` — the **guarded-total**
@@ -89,16 +89,32 @@ open Finset
 
 variable {E : Type*} [DecidableEq E]
 
+/-! ## Attaching a face to a small face of its link
+
+Every face of the link of `τ` is read in the ambient complex as `τ ∪ ρ`, so the
+level-one and level-two computations keep meeting `τ ∪ {e}` and
+`τ ∪ {e, e'}`; these are the two rewrites that put them in `insert` form. -/
+
+/-- Attaching `τ` to a singleton: `τ ∪ {e} = insert e τ`. -/
+theorem union_singleton_eq_insert (τ : Finset E) (e : E) :
+    τ ∪ ({e} : Finset E) = insert e τ := by
+  rw [Finset.union_comm, ← Finset.insert_eq]
+
+/-- Attaching `τ` to a two-element face. -/
+theorem union_pair_eq_insert_insert (τ : Finset E) (e e' : E) :
+    τ ∪ insert e' ({e} : Finset E) = insert e' (insert e τ) := by
+  rw [Finset.union_comm, Finset.insert_union, ← Finset.insert_eq]
+
 /-! ## The shifted link weight
 
 The one definition of this module that does not mention the ambient `Fintype`
-structure, placed first for the same reason `LocalWalk.linkWeight` is: it is a
+structure, placed first for the same reason `LocalWalk.starWeight` is: it is a
 pointwise formula, and every quantitative statement about it needs sums. -/
 
 /-- The **shifted link weight** of a face `τ`: `linkShift w τ σ = w (τ ∪ σ)` for
 `σ` disjoint from `τ`, and `0` otherwise.
 
-Unlike `LocalWalk.linkWeight`, which keeps the ambient dimension `n` and whose
+Unlike `LocalWalk.starWeight`, which keeps the ambient dimension `n` and whose
 faces are all the subfaces of the top faces containing `τ`, this is the *link* in
 the simplicial sense: a weighted complex of dimension `n - |τ|` whose faces are
 the faces of the ambient complex disjoint from `τ`.  It is the complex the
@@ -229,7 +245,7 @@ The monograph *defines* `f^{(k)}` by the downward recursion `f^{(k)} = U_k f^{(k
 and this is the closed form that recursion computes.  Everything in this module
 is a corollary: two projections agree exactly when the two ratios do, and ratios
 of derived weights are trivial to compare across a link because
-`LocalWalk.mu_linkWeight` says the link's derived weights are the ambient ones
+`LocalWalk.mu_starWeight` says the star's derived weights are the ambient ones
 shifted by `τ`.
 
 Note that the hypothesis `k ≤ n` is *not* needed: `0 < mu w τ` already forces
@@ -270,8 +286,8 @@ theorem mu_mul_levelFun (w : Finset E → ℝ) (n k : ℕ)
 /-! ## Scaling the weight -/
 
 /-- Derived weights are homogeneous: dividing the weight by a scalar divides all
-the derived weights.  This is the only fact needed to pass between `linkWeight`
-and `linkWeightNorm`. -/
+the derived weights.  This is the only fact needed to pass between `starWeight`
+and `starWeightNorm`. -/
 theorem mu_div (g : Finset E → ℝ) (c : ℝ) (ρ : Finset E) :
     mu (fun σ => g σ / c) ρ = mu g ρ / c := by
   rw [mu_apply, mu_apply, Finset.sum_div]
@@ -284,21 +300,21 @@ theorem mu_div (g : Finset E → ℝ) (c : ℝ) (ρ : Finset E) :
 
 /-- The derived weight of `w · f` in the link of `τ`:
 
-  `mu (linkWeightNorm w τ · f) ρ = mu (w · f) (τ ∪ ρ) / mu w τ`.
+  `mu (starWeightNorm w τ · f) ρ = mu (w · f) (τ ∪ ρ) / mu w τ`.
 
-This is `LocalWalk.mu_linkWeightNorm` with the weight `w` replaced by `w · f`,
+This is `LocalWalk.mu_starWeightNorm` with the weight `w` replaced by `w · f`,
 and it is the only computation the restriction theorem needs. -/
-theorem mu_mul_linkWeightNorm (w f : Finset E → ℝ) (τ ρ : Finset E) :
-    mu (fun σ => linkWeightNorm w τ σ * f σ) ρ
+theorem mu_mul_starWeightNorm (w f : Finset E → ℝ) (τ ρ : Finset E) :
+    mu (fun σ => starWeightNorm w τ σ * f σ) ρ
       = mu (fun σ => w σ * f σ) (τ ∪ ρ) / mu w τ := by
-  have h1 : (fun σ => linkWeightNorm w τ σ * f σ)
-      = fun σ => linkWeight (fun σ' => w σ' * f σ') τ σ / mu w τ := by
+  have h1 : (fun σ => starWeightNorm w τ σ * f σ)
+      = fun σ => starWeight (fun σ' => w σ' * f σ') τ σ / mu w τ := by
     funext σ
-    rw [linkWeightNorm_apply, linkWeight_apply, linkWeight_apply]
+    rw [starWeightNorm_apply, starWeight_apply, starWeight_apply]
     by_cases h : τ ⊆ σ
     · rw [if_pos h, if_pos h, div_mul_eq_mul_div]
     · rw [if_neg h, if_neg h, zero_div, zero_mul]
-  rw [h1, mu_div, mu_linkWeight]
+  rw [h1, mu_div, mu_starWeight]
 
 /-- **The projections commute with restriction to a link.**  For every face `τ`,
 every `ρ` of cardinality `j`, and every `f` on the top level,
@@ -306,13 +322,13 @@ every `ρ` of cardinality `j`, and every `f` on the top level,
   **`(f_τ)^{(j)}(ρ) = f^{(|τ ∪ ρ|)}(τ ∪ ρ)`**,
 
 where the left side is the level-`j` projection computed *inside the link of `τ`*
-— that is, for the weighted complex `linkWeightNorm w τ` — and the right side is
+— that is, for the weighted complex `starWeightNorm w τ` — and the right side is
 the ambient projection.
 
 Both sides are the conditional expectation of `f` given that the top face
 contains `τ ∪ ρ`, by `levelFun_eq_div`: the link's derived weights are the
-ambient ones shifted by `τ` (`LocalWalk.mu_linkWeightNorm`), the same holds for
-the weight `w · f` (`mu_mul_linkWeightNorm`), and the two normalising factors
+ambient ones shifted by `τ` (`LocalWalk.mu_starWeightNorm`), the same holds for
+the weight `w · f` (`mu_mul_starWeightNorm`), and the two normalising factors
 `mu w τ` cancel in the ratio.
 
 Note that no restriction operation is applied to `f` itself: the link of `τ` is a
@@ -321,23 +337,23 @@ on its top level is literally a function on the top level of the ambient complex
 The only hypothesis is `0 < mu w (τ ∪ ρ)`, which is exactly the condition under
 which `f^{(·)}(τ ∪ ρ)` is a genuine conditional expectation rather than the junk
 value of a degenerate row. -/
-theorem levelFun_linkWeightNorm (w : Finset E → ℝ) (n j : ℕ)
+theorem levelFun_starWeightNorm (w : Finset E → ℝ) (n j : ℕ)
     (hw : ∀ σ : Finset E, 0 ≤ w σ)
     (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0) (f : Finset E → ℝ) (τ ρ : Finset E)
     (hcard : ρ.card = j) (hpos : 0 < mu w (τ ∪ ρ)) :
-    levelFun (linkWeightNorm w τ) n (linkWeightNorm_nonneg hw τ)
-        (linkWeightNorm_supp hsupp τ) f j ρ
+    levelFun (starWeightNorm w τ) n (starWeightNorm_nonneg hw τ)
+        (starWeightNorm_supp hsupp τ) f j ρ
       = levelFun w n hw hsupp f (τ ∪ ρ).card (τ ∪ ρ) := by
   have hτ : 0 < mu w τ := lt_of_lt_of_le hpos (mu_mono hw Finset.subset_union_left)
   have hτ0 : mu w τ ≠ 0 := hτ.ne'
   have hρ0 : mu w (τ ∪ ρ) ≠ 0 := hpos.ne'
-  have hlink : 0 < mu (linkWeightNorm w τ) ρ := by
-    rw [mu_linkWeightNorm]
+  have hlink : 0 < mu (starWeightNorm w τ) ρ := by
+    rw [mu_starWeightNorm]
     exact div_pos hpos hτ
-  rw [levelFun_eq_div (linkWeightNorm w τ) n j (linkWeightNorm_nonneg hw τ)
-      (linkWeightNorm_supp hsupp τ) f hcard hlink,
-    levelFun_card_eq_div w n hw hsupp f hpos, mu_mul_linkWeightNorm w f τ ρ,
-    mu_linkWeightNorm, div_div_div_cancel_right₀]
+  rw [levelFun_eq_div (starWeightNorm w τ) n j (starWeightNorm_nonneg hw τ)
+      (starWeightNorm_supp hsupp τ) f hcard hlink,
+    levelFun_card_eq_div w n hw hsupp f hpos, mu_mul_starWeightNorm w f τ ρ,
+    mu_starWeightNorm, div_div_div_cancel_right₀]
   exact hτ0
 
 /-- **The index shift.**  For a face `ρ` of the link of `τ` in the honest sense —
@@ -350,16 +366,16 @@ This is the identity the monograph states without proof in the course of
 `claim:first-step` (§6.6, "then `f_η^{(2)}(τ) = f^{(k+1)}(η ∪ τ)`", for
 `|η| = k - 1`): conditioning on a face of size `|τ|` shifts every level by
 `|τ|`.  The disjointness hypothesis is what turns `|τ ∪ ρ|` into `|τ| + j`; it
-is *not* needed for `levelFun_linkWeightNorm` itself, which is the reason that
+is *not* needed for `levelFun_starWeightNorm` itself, which is the reason that
 theorem is stated first. -/
-theorem levelFun_linkWeightNorm_disjoint (w : Finset E → ℝ) (n j : ℕ)
+theorem levelFun_starWeightNorm_disjoint (w : Finset E → ℝ) (n j : ℕ)
     (hw : ∀ σ : Finset E, 0 ≤ w σ)
     (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0) (f : Finset E → ℝ) (τ ρ : Finset E)
     (hd : Disjoint τ ρ) (hcard : ρ.card = j) (hpos : 0 < mu w (τ ∪ ρ)) :
-    levelFun (linkWeightNorm w τ) n (linkWeightNorm_nonneg hw τ)
-        (linkWeightNorm_supp hsupp τ) f j ρ
+    levelFun (starWeightNorm w τ) n (starWeightNorm_nonneg hw τ)
+        (starWeightNorm_supp hsupp τ) f j ρ
       = levelFun w n hw hsupp f (τ.card + j) (τ ∪ ρ) := by
-  rw [levelFun_linkWeightNorm w n j hw hsupp f τ ρ hcard hpos,
+  rw [levelFun_starWeightNorm w n j hw hsupp f τ ρ hcard hpos,
     Finset.card_union_of_disjoint hd, hcard]
 
 /-! ## The honest link, with the levels shifted down by `|τ|` -/
@@ -402,8 +418,8 @@ theorem sum_ite_disjoint_union (τ : Finset E) (j : ℕ) (Φ : Finset E → ℝ)
 /-- **The derived weights of the shifted link are the ambient ones shifted by
 `τ`**: `mu (linkShift v τ) ρ = mu v (τ ∪ ρ)` for `ρ` disjoint from `τ`.
 
-This is the analogue of `LocalWalk.mu_linkWeight` for the honest link, and it is
-the only combinatorial content of this section.  Where `mu_linkWeight` is a
+This is the analogue of `LocalWalk.mu_starWeight` for the honest link, and it is
+the only combinatorial content of this section.  Where `mu_starWeight` is a
 one-line consequence of `Finset.union_subset_iff`, this one is a genuine
 reindexing: the faces `σ ⊇ τ ∪ ρ` of the ambient complex correspond to the faces
 `σ \ τ ⊇ ρ` of the link, under the mutually inverse maps `σ ↦ σ \ τ` and
@@ -462,7 +478,7 @@ theorem mu_linkShift_eq_zero_of_not_disjoint (w : Finset E → ℝ) {τ ρ : Fin
   · rw [if_neg hsub]
 
 /-- The partition function of the shifted link is the derived weight of `τ`,
-exactly as for `LocalWalk.linkWeight`. -/
+exactly as for `LocalWalk.starWeight`. -/
 theorem sum_linkShift (w : Finset E → ℝ) (τ : Finset E) :
     ∑ σ : Finset E, linkShift w τ σ = mu w τ := by
   rw [← mu_empty (linkShift w τ), mu_linkShift w (Finset.disjoint_empty_right τ),
@@ -502,6 +518,14 @@ theorem mu_linkShiftNorm (w : Finset E → ℝ) {τ ρ : Finset E} (hd : Disjoin
   rw [show linkShiftNorm w τ = fun σ => linkShift w τ σ / mu w τ from rfl, mu_div,
     mu_linkShift w hd]
 
+/-- The derived weights of the normalised link vanish off the faces disjoint
+from `τ`.  The normalised form is what `Levels.up` reads, so it is recorded
+beside the `linkShift` version `mu_linkShift_eq_zero_of_not_disjoint`. -/
+theorem mu_linkShiftNorm_eq_zero_of_not_disjoint (w : Finset E → ℝ) {τ ρ : Finset E}
+    (hd : ¬ Disjoint τ ρ) : mu (linkShiftNorm w τ) ρ = 0 := by
+  rw [show linkShiftNorm w τ = fun σ => linkShift w τ σ / mu w τ from rfl, mu_div,
+    mu_linkShift_eq_zero_of_not_disjoint w hd, zero_div]
+
 /-- **The distribution `π_{τ,j}` of the monograph**: the level-`j` distribution
 of the honest link of `τ`, a distribution on the faces of size `j` disjoint from
 `τ`, with mass proportional to `mu w (τ ∪ ρ)`.
@@ -510,8 +534,8 @@ The dimension of the link is `n - |τ|`, so the level index runs `0 ≤ j ≤ n 
 and the normalising binomial coefficient is `(n - |τ|).choose j`, *not*
 `n.choose j`.
 
-Warning, and the reason this section exists: `LocalWalk.linkPi w n j τ` is **not**
-this distribution.  That one is the level-`j` distribution of `linkWeightNorm w τ`,
+Warning, and the reason this section exists: `LocalWalk.starPi w n j τ` is **not**
+this distribution.  That one is the level-`j` distribution of `starWeightNorm w τ`,
 whose faces are all `j`-subsets of the top faces containing `τ` — including
 subsets that meet `τ`.  Its restriction to the faces disjoint from `τ` is
 proportional to `π_{τ,j}`, with total mass `(n - |τ|).choose j / n.choose j`,
@@ -570,7 +594,7 @@ cardinality `j`,
 where the left side is the level-`j` projection computed in the link complex of
 dimension `n - |τ|`, applied to the *restricted* function `σ ↦ f (τ ∪ σ)`.
 
-This is `levelFun_linkWeightNorm_disjoint` transported to the link in the honest
+This is `levelFun_starWeightNorm_disjoint` transported to the link in the honest
 sense.  The two statements are genuinely different — the left sides are
 projections in two different weighted complexes, of dimensions `n` and `n - |τ|`
 — and they agree because both are the conditional expectation of `f` given that
@@ -633,22 +657,22 @@ theorem linkShiftPi_eq_zero_of_not_disjoint (w : Finset E → ℝ) (n j : ℕ) (
   · rw [hmu, zero_div]
   · rfl
 
-/-- **The star-link distribution does not ignore them.**  `LocalWalk.linkPi` — the
-level-`j` distribution of `LocalWalk.linkWeightNorm w τ` — gives every `j`-subset
+/-- **The star distribution does not ignore them.**  `LocalWalk.starPi` — the
+level-`j` distribution of `LocalWalk.starWeightNorm w τ` — gives every `j`-subset
 of `τ` itself the mass `1 / n.choose j`.
 
 Together with `linkShiftPi_eq_zero_of_not_disjoint` this is a proof that
-`linkPi w n j τ ≠ linkShiftPi w n j τ` as soon as `τ` has a nonempty subface of
+`starPi w n j τ ≠ linkShiftPi w n j τ` as soon as `τ` has a nonempty subface of
 size `j`, i.e. as soon as `0 < j ≤ |τ|`.  It is recorded because the two are
-easily confused: `linkPi w n 2 τ` looks like the monograph's `π_{τ,2}` and is
-not.  The intuitive reason is that `linkWeightNorm w τ` is the complex of *all*
+easily confused: `starPi w n 2 τ` looks like the monograph's `π_{τ,2}` and is
+not.  The intuitive reason is that `starWeightNorm w τ` is the complex of *all*
 subfaces of the top faces containing `τ` — the star of `τ`, of dimension `n` —
 whereas the monograph's link has dimension `n - |τ|`. -/
-theorem linkPi_apply_of_subset (w : Finset E → ℝ) (n j : ℕ) (τ : Finset E)
+theorem starPi_apply_of_subset (w : Finset E → ℝ) (n j : ℕ) (τ : Finset E)
     (hw : ∀ σ : Finset E, 0 ≤ w σ) (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0)
     (hpos : 0 < mu w τ) (hj : j ≤ n) {ρ : Finset E} (hsub : ρ ⊆ τ) (hcard : ρ.card = j) :
-    linkPi w n j τ hw hsupp hpos hj ρ = 1 / ((n.choose j : ℕ) : ℝ) := by
-  rw [linkPi_apply, if_pos hcard, Finset.union_eq_left.mpr hsub, ← div_div,
+    starPi w n j τ hw hsupp hpos hj ρ = 1 / ((n.choose j : ℕ) : ℝ) := by
+  rw [starPi_apply, if_pos hcard, Finset.union_eq_left.mpr hsub, ← div_div,
     div_self hpos.ne']
 
 /-! ## The guarded-total link distribution and link projection

@@ -56,7 +56,7 @@ across several projects but are not in Mathlib under an obvious name.
 
 ### `Arlib.MarkovChains` — finite Markov chains
 
-58 modules, ~29.3k LOC, split by a load-bearing design principle: `Techniques/` holds
+59 modules, ~28.8k LOC, split by a load-bearing design principle: `Techniques/` holds
 machinery valid for *any* finite chain, `Chains/` holds the analysis of *specific* chains,
 and every general definition is instantiated against a concrete chain that keeps it honest.
 Following the Chen–Štefankovič–Vigoda monograph on spectral independence (`source/main.tex`).
@@ -86,7 +86,7 @@ here by an elementary variational, discriminant, or adjointness argument.
 | `Techniques.Coupling` | Couplings, the coupling inequality, and the maximal coupling — so TV distance *is* the minimum disagreement probability. |
 | `Techniques.LevelVariance` | The law of total variance for a bare kernel — no hypotheses — and hence the local-to-global step `Var_{π_{k+1}}(g) = Var_{π_k}(Ug) + ℰ_{downUp}(g)` as an *identity*. |
 | `Techniques.LocalToGlobal` | Telescoping that identity down the levels: `Var_{π_n}(f) = Σ_{k<n} ℰ_{downUp_k}(f^{(k+1)})`, exactly — `π_0` is a point mass, so there is no leading term. Includes the guarded link distribution the sum needs. |
-| `Techniques.LinkRestriction` | A closed form for the level projections — `f^{(k)}(τ)` is the conditional expectation given `σ ⊇ τ` — and their compatibility with restriction to a link. Separates the *star* of a face (what `LocalWalk.linkWeight` builds) from the link proper; they agree at level one, audited against `linkDist`. |
+| `Techniques.LinkRestriction` | A closed form for the level projections — `f^{(k)}(τ)` is the conditional expectation given `σ ⊇ τ` — and their compatibility with restriction to a link. Separates the *star* of a face (now `LocalWalk.starWeight`, renamed once this module proved it is not the link) from the link proper; they agree at level one, audited against `linkDist`. |
 | `Techniques.FirstStep` | `claim:first-step` — the two-level variance drop equals the average over faces of the variance inside the two-levels-up link. Needs no WLOG centering (the squared means cancel by a pushforward identity), and the crux is the factor `2·(n−k).choose 2 = (n−k)(n−k−1)` relating the link to two applications of the up operator. |
 | `Techniques.ImprovedRandomWalk` | `lem:improved-technical` and the Improved Random Walk Theorem — per-link Poincaré inequalities give the top-level down-up walk a gap of `Γ_m / ∑_{i≤m} Γ_i`, with `Γ_i = ∏_{j<i}(2γ_j − 1)`. The monograph's induction tacitly needs `2γ_j ≥ 1`, which is why the theorem is stated in those factors at all; here it is an explicit hypothesis. |
 | `Techniques.LocalWalkBridge` | `P^∧∨_{τ,1} = (Q_τ + I)/2` — an entrywise identity on *every* row, degenerate ones included, because the two constructions' guards are literally the same predicate. Hence `γ(P^∧∨_{τ,1}) ≥ γ/2 ↔ γ(Q_τ) ≥ γ`, exact in both directions, and the Random Walk Theorem restated on `Q_τ`. |

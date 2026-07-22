@@ -82,8 +82,9 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
 
 * `Techniques.Levels` — weighted simplicial complexes: the level distributions
   and the up/down operators, adjoint by construction.
-* `Techniques.LocalWalk` — links (conditioning does not leave the category) and
-  the local walk.
+* `Techniques.LocalWalk` — the **star** of a face (conditioning does not leave
+  the category), and the local walk `Q_τ` with its level-one distribution
+  `linkDist`, which is the honest `π_{τ,1}`.
 * `Techniques.LevelVariance` — the law of total variance for a bare kernel, and
   hence the one-step identity
   `Var_{π_{k+1}}(g) = Var_{π_k}(U g) + ℰ_{downUp}(g)`.
@@ -92,9 +93,10 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
   telescoping that identity down the levels.
 * `Techniques.LinkRestriction` — the closed form `f^{(k)}(τ) = ∑_{σ⊇τ} w σ f σ /
   ∑_{σ⊇τ} w σ` for the level projections, and hence their compatibility with
-  restriction to a link.  Note `LocalWalk.linkWeight` is the *star* of a face,
-  not the link: `linkShift` here is the link proper, and the two agree at level
-  one, which is all `LocalWalk.linkDist` ever uses.
+  restriction to a link.  `LocalWalk.starWeight` is the *star* of a face, not the
+  link — that is what its name says since the §3.3 rename — and `linkShift` here
+  is the link proper.  The two agree at level one, which is all
+  `LocalWalk.linkDist` and everything downstream of it ever uses.
 * `Techniques.FirstStep` — `claim:first-step`: the two-level variance drop is
   the average over faces of the variance inside the two-levels-up link.  The
   content is a factor of two — the link counts each face once, the two-step up
@@ -254,6 +256,7 @@ import Arlib.MarkovChains.Techniques.ImprovedRandomWalkSharp
 import Arlib.MarkovChains.Techniques.LocalWalkBridge
 import Arlib.MarkovChains.Techniques.EntropyDecay
 import Arlib.MarkovChains.Techniques.Pinsker
+import Arlib.MarkovChains.Techniques.EntropyMixing
 import Arlib.MarkovChains.Techniques.Transport
 import Arlib.MarkovChains.Techniques.EntropyVariational
 import Arlib.MarkovChains.Techniques.PsdOrder

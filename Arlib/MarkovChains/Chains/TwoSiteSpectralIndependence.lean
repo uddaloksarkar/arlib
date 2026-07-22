@@ -65,10 +65,8 @@ correlation it is `0`, which is right: there `Q_∅` is reducible.
 * `twoSite_sum_marg_sq` and `twoSiteTest` — the diagonal form split into the
   part the covariance form sees and the part it cannot, and the extremal vectors
   where the second part vanishes.
-* `bilinOf_single` — the bilinear companion of `PsdOrder.quadForm_single`,
-  proved locally because this file may not edit `Techniques.PsdOrder`; it
-  belongs there.  With it, **`twoSite_cov_sq_le`** is Cauchy–Schwarz for the two
-  entries.
+* **`twoSite_cov_sq_le`** — Cauchy–Schwarz for the two entries, from
+  `PsdOrder.bilinOf_single` and `SpectralIndependence.bilinOf_Cov_sq_le`.
 * **`twoSiteCorr`**, **`twoSiteEta`** — `ρ` and `η = 1 + |ρ|`, with
   `twoSite_corr_eq` in the four probabilities, **`twoSite_corr_gibbs`** in the
   four *unnormalised* weights (the partition function cancels), and
@@ -385,21 +383,10 @@ end Test
 modulus at most one, and it is the reason the exact constant lands in `[1,2]`.
 It is `Techniques.SpectralIndependence.bilinOf_Cov_sq_le` — itself the
 discriminant argument of `Techniques.Bilinear`, with no eigenvalue — evaluated
-at two standard basis vectors.  The evaluation lemma `bilinOf_single` is the
-bilinear companion of `quadForm_single` and belongs beside it in
-`Techniques.PsdOrder`; it is proved here because this file may not edit its
-neighbours. -/
+at two standard basis vectors, by the evaluation lemma
+`Techniques.PsdOrder.bilinOf_single`. -/
 
 section CauchySchwarz
-
-/-- **Evaluating a bilinear form at two standard basis vectors reads off an
-entry.**  The companion of `Techniques.PsdOrder.quadForm_single`, which it
-generalises off the diagonal. -/
-theorem bilinOf_single {ι : Type*} [Fintype ι] [DecidableEq ι] (M : ι → ι → ℝ) (i j : ι) :
-    bilinOf M (fun k => if k = i then (1 : ℝ) else 0)
-        (fun k => if k = j then (1 : ℝ) else 0) = M i j := by
-  simp only [bilinOf, ite_mul, one_mul, zero_mul, mul_ite, mul_zero, mul_one,
-    Finset.sum_ite_eq', Finset.mem_univ, if_true]
 
 variable (μ : FinDist (Bool → Bool))
 

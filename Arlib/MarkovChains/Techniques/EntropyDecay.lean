@@ -50,15 +50,12 @@ where the hypothesis comes from.
 
 ## Main declarations
 
-* **`entropyProduction_sub_localEnt`** — the exact defect
-  `ℰ_P(f, log f) − μ[Ent_P(f)] = μ[(P f)(log (P f) − log f)]`, the identity
-  underlying `localEnt_le_entropyProduction`.
 * `eq_of_Ex_mul_log_sub_log_nonpos` — the equality case of the log-sum
-  inequality.
+  inequality.  With `Entropy.entropyProduction_sub_localEnt` — the exact defect
+  `ℰ_P(f, log f) − μ[Ent_P(f)] = μ[(P f)(log (P f) − log f)]` — it is what makes
+  the refutation of (**) accessible.
 * **`act_eq_self_of_entropyProduction_le`** and
   `Ent_sub_Ent_act_lt_entropyProduction` — the refutation of (**).
-* `Ex_comp_equiv`, `Ent_comp_equiv` — expectation and entropy are invariant
-  under a measure-preserving relabelling of the state space.
 * `swapDist`, `swapChain`, `modLogSobolev_swapChain`,
   **`exists_modLogSobolev_not_entropyContraction`** — the counterexample.
 * **`EntropyContraction`**, with `EntropyContraction.mono`,
@@ -95,8 +92,10 @@ difference is `klDiv_dirac`: the initial divergence of a point mass is
 Two things are *not* claimed.  `ρ` and the Poincaré constant `γ` are different
 quantities and nothing here compares them — the improvement is in the dependence
 on `μ_min` at a fixed rate.  And the conclusion is in relative entropy, not total
-variation: converting it needs Pinsker's inequality, which this development does
-not have.
+variation.  Converting it is `Techniques/Pinsker.lean` composed with the results
+below, which is done in `Chains/OptimalMixingTV.lean`; the conversion is not
+free, since Pinsker's `‖·‖_TV ≤ √(D_KL/2)` halves the effective decay rate of
+the distance one wanted.
 
 Everything here is proved from first principles with no `sorry`; no eigenvalue,
 and no spectral notion beyond the Dirichlet form, appears anywhere.
@@ -113,46 +112,6 @@ open Finset
 variable {Ω : Type*} [Fintype Ω]
 
 /-! ## The gap between the entropy drop and the entropy production -/
-
-/-- **The exact defect in `localEnt_le_entropyProduction`.**  For a reversible
-chain and any `f`,
-
-  `ℰ_P(f, log f) − μ[Ent_P(f)] = μ[(P f) · (log (P f) − log f)]`,
-
-the right-hand side being the relative entropy of the pair `(P f, f)`, which
-`Techniques/Entropy.lean` bounds below by `0` with the log-sum inequality.
-
-Recording the defect as an *identity* rather than an inequality is what makes the
-equality case accessible, and the equality case is what settles whether the
-one-step entropy decay `Ent_μ(f) − Ent_μ(P f) ≥ ℰ_P(f, log f)` can hold.  The
-proof is the first two steps of `localEnt_le_entropyProduction` and needs no
-positivity of `f`. -/
-theorem entropyProduction_sub_localEnt {μ : FinDist Ω} {P : FinChain Ω}
-    (hrev : Reversible μ P) (f : Ω → ℝ) :
-    entropyProduction μ P f - localEnt μ P f
-      = Ex μ (fun x => P.act f x * (Real.log (P.act f x) - Real.log (f x))) := by
-  have hst := hrev.stationary
-  have hEP : entropyProduction μ P f
-      = Ex μ (fun x => f x * Real.log (f x))
-        - Ex μ (fun x => P.act f x * Real.log (f x)) := by
-    rw [entropyProduction_apply, dirichlet_apply, ip_eq_Ex_mul,
-      ip_act_comm hrev f (fun x => Real.log (f x))]
-    congr 1
-    exact Finset.sum_congr rfl fun x _ => by ring
-  have hloc : localEnt μ P f
-      = Ex μ (fun x => f x * Real.log (f x))
-        - Ex μ (fun x => P.act f x * Real.log (P.act f x)) := by
-    rw [localEnt_eq_Ent_sub_Ent hst f]
-    simp only [Ent_apply]
-    rw [Ex_act_of_stationary hst f]
-    ring
-  have hsplit : Ex μ (fun x => P.act f x * (Real.log (P.act f x) - Real.log (f x)))
-      = Ex μ (fun x => P.act f x * Real.log (P.act f x))
-        - Ex μ (fun x => P.act f x * Real.log (f x)) := by
-    simp only [Ex_apply, ← Finset.sum_sub_distrib]
-    exact Finset.sum_congr rfl fun x _ => by ring
-  rw [hEP, hloc, hsplit]
-  ring
 
 /-- **The equality case of the log-sum inequality**, in the form needed below:
 if two strictly positive functions have the same `p`-average and the aggregate
@@ -305,16 +264,6 @@ theorem EntropyContraction.Ent_act_le {μ : FinDist Ω} {P : FinChain Ω} {ρ : 
   rw [localEnt_eq_Ent_sub_Ent hst f] at hstep
   linarith
 
-/-- **A non-constant function has positive entropy.**  The quantitative content
-of `eq_Ex_of_Ent_eq_zero`: if `f ≥ 0` has positive mean and takes two different
-values at two states the measure charges, then `Ent_μ(f) > 0`. -/
-theorem Ent_pos_of_ne {μ : FinDist Ω} {f : Ω → ℝ} (hf : ∀ x, 0 ≤ f x) (hm : 0 < Ex μ f)
-    {x y : Ω} (hx : μ x ≠ 0) (hy : μ y ≠ 0) (hne : f x ≠ f y) : 0 < Ent μ f := by
-  rcases (Ent_nonneg μ hf).eq_or_lt with h0 | hpos
-  · exact absurd (((eq_Ex_of_Ent_eq_zero hf hm h0.symm (μ.mem_support_iff.mpr hx)).trans
-      (eq_Ex_of_Ent_eq_zero hf hm h0.symm (μ.mem_support_iff.mpr hy)).symm)) hne
-  · exact hpos
-
 section LeOne
 
 variable [DecidableEq Ω]
@@ -355,35 +304,6 @@ reason.  It is the entropy analogue of the standing remark that a bipartite chai
 has a spectral gap and does not converge — which is why `Techniques/Lazy.lean`
 exists.  The difference is that laziness does *not* repair the present failure:
 see the note in `EntropyContraction`'s docstring. -/
-
-/-- **Expectation is invariant under a measure-preserving relabelling**:
-`μ(g ∘ e) = μ(g)` for `e` an equivalence preserving `μ`. -/
-theorem Ex_comp_equiv {μ : FinDist Ω} (e : Ω ≃ Ω) (he : ∀ x, μ (e x) = μ x) (g : Ω → ℝ) :
-    Ex μ (fun x => g (e x)) = Ex μ g := by
-  simp only [Ex_apply]
-  calc ∑ x, μ x * g (e x) = ∑ x, μ (e x) * g (e x) :=
-        Finset.sum_congr rfl fun x _ => by rw [he x]
-    _ = ∑ y, μ y * g y := Equiv.sum_comp e (fun y => μ y * g y)
-
-/-- **Entropy is invariant under a measure-preserving relabelling.**  In
-particular a chain that merely permutes the state space measure-preservingly
-destroys no entropy, however fast it mixes in appearance. -/
-theorem Ent_comp_equiv {μ : FinDist Ω} (e : Ω ≃ Ω) (he : ∀ x, μ (e x) = μ x) (f : Ω → ℝ) :
-    Ent μ (fun x => f (e x)) = Ent μ f := by
-  have h1 : Ex μ (fun x => f (e x) * Real.log (f (e x)))
-      = Ex μ (fun x => f x * Real.log (f x)) :=
-    Ex_comp_equiv e he (fun y => f y * Real.log (f y))
-  have h2 : Ex μ (fun x => f (e x)) = Ex μ f := Ex_comp_equiv e he f
-  simp only [Ent_apply]
-  rw [h1, h2]
-
-/-- `1 − v/u ≤ log u − log v`, the evaluation of `log t ≤ t − 1` at `t = v/u`.
-The companion to `mul_log_le_mul_log_add_sub`, which evaluates it at `m/t`. -/
-theorem one_sub_div_le_log_sub_log {u v : ℝ} (hu : 0 < u) (hv : 0 < v) :
-    1 - v / u ≤ Real.log u - Real.log v := by
-  have h := Real.log_le_sub_one_of_pos (div_pos hv hu)
-  rw [Real.log_div hv.ne' hu.ne'] at h
-  linarith
 
 /-- **The two-point inequality behind the swap chain's modified log-Sobolev
 inequality**: for `a, b > 0` and `m = (a + b)/2`,
@@ -541,13 +461,6 @@ in `f` (through `Real.continuous_mul_log`, the only place in this development
 where a limit is taken), the shift `f ↦ f + ε` commutes with the action of a
 kernel, and the inequality passes to the limit `ε → 0⁺`. -/
 
-/-- Adding a constant commutes with the action of a kernel: `K(f + c) = K f + c`.
-The companion of `FinKernel.act_sub_const`. -/
-theorem FinKernel.act_add_const {α β : Type*} [Fintype β] (K : FinKernel α β) (f : β → ℝ)
-    (c : ℝ) : K.act (fun y => f y + c) = fun x => K.act f x + c := by
-  have h := K.act_sub_const f (-c)
-  simpa using h
-
 /-- **The entropy functional is continuous along the shift `f ↦ f + ε`.**  The
 only analytic input is `Real.continuous_mul_log`, i.e. continuity of `t log t` at
 `t = 0` — which is exactly the boundary point the strict positivity hypotheses
@@ -638,13 +551,6 @@ Specialising the decay to `f = ν/μ` turns `Ent` into `klDiv` by definition, an
 of distributions.  The initial divergence from a point start is `log(1/μ(x))`,
 where the χ² route pays `1/μ(x) − 1`; that single change is where the entropy
 method earns its keep. -/
-
-/-- The relative density is nonnegative. -/
-theorem relDensity_nonneg (ν μ : FinDist Ω) (x : Ω) : 0 ≤ relDensity ν μ x := by
-  by_cases hx : μ x = 0
-  · simp [relDensity, hx]
-  · simp only [relDensity, if_neg hx]
-    exact div_nonneg (ν.coe_nonneg x) (μ.coe_nonneg x)
 
 /-- **One-step decay of the relative entropy**: `D(νP ‖ μ) ≤ (1 − ρ) D(ν ‖ μ)`.
 The entropy counterpart of `chiSq_push_le`. -/
@@ -790,18 +696,6 @@ The step that was missing is the concavity of `Ent` in the measure: the entropy
 under an averaged row dominates the average of the entropies under the individual
 rows.  That is one more application of `mul_log_sum_le_sum_mul_log`, now with the
 uniform weights on the *index* type rather than on the state space. -/
-
-/-- The entropy under a row of a kernel, in terms of the action of the kernel. -/
-theorem Ent_row (P : FinChain Ω) (f : Ω → ℝ) (x : Ω) :
-    Ent (P.row x) f
-      = P.act (fun y => f y * Real.log (f y)) x - P.act f x * Real.log (P.act f x) := by
-  rw [Ent_apply, Ex_row_eq_act, Ex_row_eq_act]
-
-/-- Expectation commutes with a finite sum. -/
-theorem Ex_sum {ι : Type*} [Fintype ι] (μ : FinDist Ω) (g : ι → Ω → ℝ) :
-    Ex μ (fun x => ∑ i, g i x) = ∑ i, Ex μ (g i) := by
-  simp only [Ex_apply, Finset.mul_sum]
-  exact Finset.sum_comm
 
 section Avg
 

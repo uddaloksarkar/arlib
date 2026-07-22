@@ -228,6 +228,39 @@ theorem sum_ite_card_one (g : Finset E → ℝ) :
       ({a} : Finset E) = {b} → a = b := fun a _ b _ hab => Finset.singleton_injective hab
   rw [hset, Finset.sum_image hinj]
 
+/-- The level-`1` subfaces of a face `η` are its singletons: an indicator sum
+over `Finset E` collapses to a sum over `η`.  This is `sum_ite_card_one` with the
+extra constraint `ρ ⊆ η`, and it is what evaluates the down operator `D_1` at a
+two-element face. -/
+theorem sum_ite_card_one_subset (η : Finset E) (c : Finset E → ℝ) :
+    ∑ ρ : Finset E, (if ρ.card = 1 ∧ ρ ⊆ η then c ρ else 0) = ∑ x ∈ η, c {x} := by
+  have h : ∀ ρ : Finset E, (if ρ.card = 1 ∧ ρ ⊆ η then c ρ else 0)
+      = if ρ.card = 1 then (if ρ ⊆ η then c ρ else 0) else 0 := by
+    intro ρ
+    by_cases h1 : ρ.card = 1 <;> by_cases h2 : ρ ⊆ η <;> simp [h1, h2]
+  have h2 : ∀ x : E, (if ({x} : Finset E) ⊆ η then c {x} else 0)
+      = if x ∈ η then c {x} else 0 :=
+    fun x => if_congr Finset.singleton_subset_iff rfl rfl
+  rw [Finset.sum_congr rfl fun ρ _ => h ρ,
+    sum_ite_card_one (fun ρ => if ρ ⊆ η then c ρ else 0),
+    Finset.sum_congr rfl fun x _ => h2 x, Finset.sum_ite_mem, Finset.univ_inter]
+
+/-- The level-`1` faces disjoint from `τ` are the singletons of `τᶜ`: the
+companion of `sum_ite_card_one_subset` for the disjointness guard that the link
+distributions carry. -/
+theorem sum_ite_card_one_disjoint (τ : Finset E) (c : Finset E → ℝ) :
+    ∑ ρ : Finset E, (if ρ.card = 1 ∧ Disjoint τ ρ then c ρ else 0) = ∑ e ∈ τᶜ, c {e} := by
+  have h : ∀ ρ : Finset E, (if ρ.card = 1 ∧ Disjoint τ ρ then c ρ else 0)
+      = if ρ.card = 1 then (if Disjoint τ ρ then c ρ else 0) else 0 := by
+    intro ρ
+    by_cases h1 : ρ.card = 1 <;> by_cases h2 : Disjoint τ ρ <;> simp [h1, h2]
+  have h2 : ∀ e : E, (if Disjoint τ ({e} : Finset E) then c {e} else 0)
+      = if e ∈ τᶜ then c {e} else 0 :=
+    fun e => if_congr (by rw [Finset.disjoint_singleton_right, Finset.mem_compl]) rfl rfl
+  rw [Finset.sum_congr rfl fun ρ _ => h ρ,
+    sum_ite_card_one (fun ρ => if Disjoint τ ρ then c ρ else 0),
+    Finset.sum_congr rfl fun e _ => h2 e, Finset.sum_ite_mem, Finset.univ_inter]
+
 /-- **Counting lemma A.** The derived weights of the level-`k` faces sum to
 `n.choose k`: each top face of size `n` is counted once for each of its
 `n.choose k` subfaces of size `k`.
@@ -606,6 +639,16 @@ noncomputable def upDown (w : Finset E → ℝ) (n k : ℕ)
     (hw : ∀ σ : Finset E, 0 ≤ w σ)
     (hsupp : ∀ σ : Finset E, σ.card ≠ n → w σ = 0) (hk : k < n) : FinChain (Finset E) :=
   up w n k hw hsupp hk ∘ₖ down k
+
+/-- The **entries of the up-down walk**: `P^∧∨_k(ρ, ρ') = ∑_η U_k(ρ, η)·D_k(η, ρ')`.
+
+`upDown` is a composite, so it is almost never evaluated; the counting arguments
+of `Techniques.LocalWalkBridge` are the exception. -/
+theorem upDown_apply (v : Finset E → ℝ) (m k : ℕ)
+    (hv : ∀ σ : Finset E, 0 ≤ v σ) (hvs : ∀ σ : Finset E, σ.card ≠ m → v σ = 0)
+    (hk : k < m) (ρ ρ' : Finset E) :
+    upDown v m k hv hvs hk ρ ρ'
+      = ∑ η : Finset E, up v m k hv hvs hk ρ η * down k η ρ' := rfl
 
 /-- The **down-up walk** on level `k + 1`: come down, then go back up.  For a
 spin system with `k + 1 = n` this is the Glauber dynamics. -/

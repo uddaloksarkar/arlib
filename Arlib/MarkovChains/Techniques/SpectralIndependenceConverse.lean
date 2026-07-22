@@ -27,7 +27,7 @@ and `m − ((m − η)/(m − 1))·(m − 1) = η` on the nose, so the two compo
 identity in both directions.  That equivalence is
 `spectralIndependence_iff_spectralGapAtLeast_pinLocalWalk`, the headline here.
 
-## What is *not* proved, and a correction to the obvious paraphrase
+## What is proved *here*, and a correction to the obvious paraphrase
 
 The monograph's converse (`main.tex` line 504, `lem:opt-relax-SI`, quoted from
 Anari–Jain–Koehler–Pham–Vuong) reads:
@@ -38,15 +38,27 @@ Anari–Jain–Koehler–Pham–Vuong) reads:
 
 The chain there is the *Glauber dynamics*, not the local walk `Q_τ`, and the
 factor `n − |S|` is the Glauber slowdown (one site is resampled per step), which
-the local walk does not have.  Nothing in this module proves that statement: the
-step from a Glauber gap to a local-walk gap is a converse to the Random Walk
-Theorem and is not available here.  What *is* proved is the local-walk converse,
-which is the exact inverse of `spectralGapAtLeast_pinLocalWalk` and is the
-sharper statement per pinning; combined with a converse Random Walk Theorem it
-would give `lem:opt-relax-SI`.  The shape of the constant does match: the
-monograph's `η` is our `η − 1` (`Techniques.SpectralIndependence`), so its
-`(C−1)`-spectral independence is our `C`-spectral independence, and `C` there
-plays the role of `m − γ(m−1)` here.
+the local walk does not have.  So `lem:opt-relax-SI` is **not** what this module
+proves.  What is proved here is the local-walk converse: the exact inverse of
+`spectralGapAtLeast_pinLocalWalk`, and the sharper statement per pinning.  The
+shape of the constant does match: the monograph's `η` is our `η − 1`
+(`Techniques.SpectralIndependence`), so its `(C−1)`-spectral independence is our
+`C`-spectral independence, and `C` there plays the role of `m − γ(m−1)` here.
+
+`lem:opt-relax-SI` itself is proved in `Chains.GlauberToSpectralIndependence`,
+and by a route that needs no converse Random Walk Theorem: it never mentions the
+local walk, but tests the Glauber Poincaré inequality at the *linear statistics*
+`σ ↦ ∑_v a (v, σ v)`, where the left-hand side is the covariance form on the nose
+(`quadForm_Cov`) and the right-hand side is
+`(1/n)∑_v μ[Var_v]` (`dirichlet_glauber`).  That is
+`spectralIndependence_pinned_of_relaxationTime_freeGlauber`, with the pinned
+chain built honestly as `freeGlauber` — the mixture over the *free* sites, not
+`glauber (pinWeight …)`, which carries holding probability `|Λ|/|V|`.  Composing
+it with `spectralGapAtLeast_pinLocalWalk` gives the missing step in the form this
+module could not supply,
+`spectralGapAtLeast_pinLocalWalk_of_relaxationTime_freeGlauber`, and composing
+further with `Chains.SpectralIndependenceMixing` closes the round trip
+(`spectralGapAtLeast_glauber_of_optimalRelaxationTime`).
 
 ## Which quantifier moves
 
@@ -88,9 +100,8 @@ forces `γ ≤ m/(m−1)` (`numFree_sub_mul_nonneg`).
   `sum_marg_siteIndicator`, `Var_pinDist_siteIndicator`,
   **`numFree_sub_mul_nonneg`** — the non-degeneracy of `π_{η,1}` and hence
   `0 ≤ m − γ(m−1)`.
-* `joint_nonneg`, `joint_le_marg`, `marg_eq_zero_of_marg_eq_one`,
-  **`Cov_eq_zero_of_marg_eq_one`** — a deterministic site is invisible to the
-  covariance form.
+* `marg_eq_zero_of_marg_eq_one`, **`Cov_eq_zero_of_marg_eq_one`** — a
+  deterministic site is invisible to the covariance form.
 * `quadForm_Cov_freeRestrict_eq`, `marg_gibbsPin_eq_one`,
   `exists_marg_gibbsPin_eq_one` — hence for a pinned measure the covariance form
   only sees the free pairs.
@@ -337,22 +348,6 @@ section Deterministic
 
 variable {V : Type*} [Fintype V] [DecidableEq V] {S : Type*} [Fintype S] [DecidableEq S]
 variable {μ : FinDist (V → S)}
-
-/-- The joint probability is a probability. -/
-theorem joint_nonneg (p q : V × S) : 0 ≤ joint μ p q := Pr_nonneg _ _
-
-/-- A joint probability is dominated by the marginal of its first coordinate. -/
-theorem joint_le_marg (p q : V × S) : joint μ p q ≤ marg μ p := by
-  rw [joint_eq_sum, marg_eq_sum]
-  refine Finset.sum_le_sum fun σ _ => ?_
-  have hind : spinInd q σ ≤ 1 := by
-    simp only [spinInd]
-    split <;> norm_num
-  have hnn : 0 ≤ μ σ * spinInd p σ := by
-    refine mul_nonneg (μ.coe_nonneg σ) ?_
-    simp only [spinInd]
-    split <;> norm_num
-  nlinarith
 
 /-- **A site with a sure spin has no other charged spin.** -/
 theorem marg_eq_zero_of_marg_eq_one {v : V} {s t : S} (h : marg μ (v, s) = 1) (ht : t ≠ s) :

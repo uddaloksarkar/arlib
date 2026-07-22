@@ -165,6 +165,22 @@ theorem joint_symm (p q : V × S) : joint μ p q = joint μ q p := by
   rw [joint_eq_sum, joint_eq_sum]
   exact Finset.sum_congr rfl fun σ _ => by ring
 
+/-- The joint probability is a probability. -/
+theorem joint_nonneg (p q : V × S) : 0 ≤ joint μ p q := Pr_nonneg _ _
+
+/-- A joint probability is dominated by the marginal of its first coordinate. -/
+theorem joint_le_marg (p q : V × S) : joint μ p q ≤ marg μ p := by
+  rw [joint_eq_sum, marg_eq_sum]
+  refine Finset.sum_le_sum fun σ _ => ?_
+  have hind : spinInd q σ ≤ 1 := by
+    simp only [spinInd]
+    split <;> norm_num
+  have hnn : 0 ≤ μ σ * spinInd p σ := by
+    refine mul_nonneg (μ.coe_nonneg σ) ?_
+    simp only [spinInd]
+    split <;> norm_num
+  nlinarith
+
 /-- Two different spins at the *same* site are incompatible. -/
 theorem joint_eq_zero_of_spin_ne {p q : V × S} (hv : p.1 = q.1) (hs : p.2 ≠ q.2) :
     joint μ p q = 0 := by
@@ -359,6 +375,34 @@ theorem one_sub_marg_le_of_spectralIndependence {η : ℝ} (h : SpectralIndepend
   have hle := h (fun q => if q = p then (1 : ℝ) else 0)
   rw [quadForm_single, quadForm_smul, quadForm_single, diag_self, Cov_self] at hle
   nlinarith [hle, hp]
+
+/-- **Spectral independence forces a nonnegative constant.**
+
+Evaluating `Cov μ ⪯ η · diag (marg μ)` at the all-ones vector gives
+`0 ≤ η · |V|`, because the linear statistic of the all-ones vector is the
+constant `|V|` and constants have variance zero, while `∑_p marg μ p = |V|`.
+
+This is worth having because it removes a hypothesis downstream: the side
+condition `γ_j ≤ 2` of the Improved Random Walk Theorem
+(`Chains.SpectralIndependenceMixing`) needs `0 ≤ η`, and it is free.  Compare
+`one_sub_marg_le_of_spectralIndependence`, which is the same evaluation at a
+basis vector. -/
+theorem nonneg_of_spectralIndependence [Nonempty V] {μ : FinDist (V → S)} {η : ℝ}
+    (h : SpectralIndependence μ η) : 0 ≤ η := by
+  have h1 := (spectralIndependence_iff η).mp h (fun _ => 1)
+  have h2 : quadForm (Cov μ) (fun _ => (1 : ℝ)) = 0 := by
+    rw [quadForm_Cov]
+    have hcomb : spinComb (fun _ : V × S => (1 : ℝ)) = fun _ => ((Fintype.card V : ℝ)) := by
+      funext σ
+      rw [spinComb_eq]
+      simp
+    rw [hcomb, Var_const]
+  have h3 : (∑ p : V × S, marg μ p * (1 : ℝ) ^ 2) = (Fintype.card V : ℝ) := by
+    rw [Fintype.sum_prod_type]
+    simp [sum_marg]
+  rw [h2, h3] at h1
+  have hc : (0 : ℝ) < (Fintype.card V : ℝ) := by exact_mod_cast Fintype.card_pos
+  nlinarith
 
 /-! ### The universal bound
 

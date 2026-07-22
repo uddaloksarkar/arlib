@@ -26,7 +26,9 @@ its lazy version always is.
   The proof is one line from `neg_ip_le_ip_act_self`, the `s = 1` case of the
   pair expansion.
 * `dirichlet_lazy`, `lazy_spectralGapAtLeast` — the Dirichlet form and hence the
-  spectral gap are exactly halved.
+  spectral gap are exactly halved.  `lazy_spectralGapAtLeast_iff` records that
+  the halving loses nothing: it is an equivalence, so a gap for `P_lazy` can be
+  read back as a gap for `P`.
 * `Var_iter_lazy_le` — the capstone: *any* reversible chain with Poincaré
   constant `γ`, made lazy, satisfies `Var_μ(P_lazy^t f) ≤ (1 - γ/2)^{2t} Var_μ(f)`.
   No eigenvalue, no spectral theorem, no ergodicity hypothesis.
@@ -141,6 +143,26 @@ theorem lazy_spectralGapAtLeast {μ : FinDist Ω} {P : FinChain Ω} {γ : ℝ}
   rw [dirichlet_lazy]
   have := h f
   linarith
+
+/-- **Laziness halves the spectral gap exactly.**  `P_lazy = ½(I + P)` has
+Poincaré constant at least `γ/2` if and only if `P` has Poincaré constant at
+least `γ`, because `ℰ_{P_lazy}(f) = ℰ_P(f)/2` identically and the variance is
+unchanged.
+
+The converse direction is what `Techniques.LocalWalkBridge` needs: the hypothesis
+of `Techniques.ImprovedRandomWalk` is about the lazy chain, and the hypothesis
+available downstream is about the local walk. -/
+theorem lazy_spectralGapAtLeast_iff {μ : FinDist Ω} {P : FinChain Ω} {γ : ℝ} :
+    SpectralGapAtLeast μ P.lazy (γ / 2) ↔ SpectralGapAtLeast μ P γ := by
+  constructor
+  · intro h f
+    have hf := h f
+    rw [dirichlet_lazy] at hf
+    linarith
+  · intro h f
+    rw [dirichlet_lazy]
+    have hf := h f
+    linarith
 
 /-! ## Capstone: geometric decay of variance for any reversible chain -/
 

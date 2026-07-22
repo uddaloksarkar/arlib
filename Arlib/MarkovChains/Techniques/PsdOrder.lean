@@ -323,6 +323,15 @@ theorem quadForm_single (M : ι → ι → ℝ) (i : ι) :
   simp only [quadForm, ite_mul, one_mul, zero_mul, mul_ite, mul_zero, mul_one,
     Finset.sum_ite_eq', Finset.mem_univ, if_true]
 
+/-- **Evaluating a bilinear form at two standard basis vectors reads off an
+entry.**  The companion of `quadForm_single`, which it generalises off the
+diagonal. -/
+theorem bilinOf_single (M : ι → ι → ℝ) (i j : ι) :
+    bilinOf M (fun k => if k = i then (1 : ℝ) else 0)
+        (fun k => if k = j then (1 : ℝ) else 0) = M i j := by
+  simp only [bilinOf, ite_mul, one_mul, zero_mul, mul_ite, mul_zero, mul_one,
+    Finset.sum_ite_eq', Finset.mem_univ, if_true]
+
 /-- A diagonal entry is dominated along the order. -/
 theorem PsdLe.diag_le {M N : ι → ι → ℝ} (h : PsdLe M N) (i : ι) : M i i ≤ N i i := by
   have := h (fun j => if j = i then (1 : ℝ) else 0)

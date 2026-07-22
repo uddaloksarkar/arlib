@@ -43,16 +43,21 @@ the last step being `(γ - 1)² ≥ 0`.  The monograph instead divides by
 `1 - γ_{k-1}/2` and so tacitly assumes `γ_{k-1} < 2`; the route above needs only
 `0 ≤ γ`, and in particular is not vacuous at `γ = 2`.
 
-**Where the gap hypothesis comes from, and where it stops.**  The monograph's
-chain is `γ(Q_τ) ≥ γ_k` ⟹ `γ(P^∧∨_{τ,1}) ≥ γ_k/2` ⟹ `γ(P^∨∧_{τ,2}) ≥ γ_k/2`,
-the first step because `P^∧∨_{τ,1} = (Q_τ + I)/2` and the second by
-`lem:updown-downup` — which is `Techniques.UpDownDownUp`.  The second step is
-supplied here; the first is *not* available in this development, because no
-lemma yet identifies `Techniques.LocalWalk.localWalk` with the level-`1` up-down
-walk of the honest link `LinkRestriction.linkShiftNorm`.  Accordingly the
-headline below is stated with the up-down hypothesis `γ(P^∧∨_{τ,1}) ≥ γ/2`,
-which is as close to `γ(Q_τ) ≥ γ` as can currently be written down, and the
-down-up form is kept as the primitive.
+**Where the gap hypothesis comes from.**  The monograph's chain is
+`γ(Q_τ) ≥ γ_k` ⟹ `γ(P^∧∨_{τ,1}) ≥ γ_k/2` ⟹ `γ(P^∨∧_{τ,2}) ≥ γ_k/2`, the first
+step because `P^∧∨_{τ,1} = (Q_τ + I)/2` and the second by `lem:updown-downup` —
+which is `Techniques.UpDownDownUp`.  The second step is supplied here.  The first
+is supplied by `Techniques.LocalWalkBridge`, which identifies
+`Techniques.LocalWalk.localWalk` with the level-`1` up-down walk of the honest
+link `LinkRestriction.linkShiftNorm`
+(`upDown_linkShiftNorm_eq_lazy_localWalk`, `rem:local-downup`) and turns the
+halving into an *equivalence*
+(`spectralGapAtLeast_upDown_linkShiftNorm_iff`).  That module imports this one,
+so the headline below is still stated with the up-down hypothesis
+`γ(P^∧∨_{τ,1}) ≥ γ/2` and keeps the down-up form as the primitive; the version
+with the hypothesis phrased directly as `γ(Q_τ) ≥ γ` is
+`LocalWalkBridge.downUp_top_spectralGapAtLeast_of_localWalk_gap`, and it is what
+`Chains.SpectralIndependenceMixing` consumes.
 
 **The side condition of `lem:updown-downup` propagates as `γ ≤ 2`.**  The
 transfer `Adjoint.spectralGapAtLeast_comp_iff` needs its gap to be at most `1`,

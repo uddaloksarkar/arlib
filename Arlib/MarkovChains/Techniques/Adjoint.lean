@@ -67,6 +67,56 @@ theorem Adjoint.symm {μ : FinDist α} {ν : FinDist β} {K : FinKernel α β} {
 theorem adjoint_self_iff {Ω : Type*} [Fintype Ω] (μ : FinDist Ω) (P : FinChain Ω) :
     Adjoint μ μ P P ↔ Reversible μ P := Iff.rfl
 
+/-! ## Adjointness composes
+
+Note the asymmetry: the forward operators compose in the order they are applied,
+the adjoints in the opposite order, exactly as for a composite of linear maps and
+its adjoint. -/
+
+section Comp
+
+variable {γ : Type*} [Fintype γ]
+
+/-- **Adjointness composes.**  If `K : α → β` and `L : β → α` are mutually
+adjoint for `μ, ν`, and `K' : β → γ` and `L' : γ → β` are mutually adjoint for
+`ν, ρ`, then `K ∘ₖ K'` and `L' ∘ₖ L` are mutually adjoint for `μ, ρ`.
+
+The order is **reversed** on the right: the adjoint of a composite is the
+composite of the adjoints in the opposite order, and here that is visible in the
+matrices rather than in an abstract `L²` argument.  The proof is one chain of
+rewrites inside a sum over the intermediate space: `μ(x)K(x,y)` becomes
+`ν(y)L(y,x)`, then `ν(y)K'(y,z)` becomes `ρ(z)L'(z,y)`, and the two `L`s are
+left over in the right order. -/
+theorem Adjoint.comp {μ : FinDist α} {ν : FinDist β} {ρ : FinDist γ}
+    {K : FinKernel α β} {L : FinKernel β α} {K' : FinKernel β γ} {L' : FinKernel γ β}
+    (h : Adjoint μ ν K L) (h' : Adjoint ν ρ K' L') :
+    Adjoint μ ρ (K ∘ₖ K') (L' ∘ₖ L) := by
+  intro x z
+  rw [FinKernel.comp_apply, FinKernel.comp_apply, Finset.mul_sum, Finset.mul_sum]
+  refine Finset.sum_congr rfl fun y _ => ?_
+  calc μ x * (K x y * K' y z) = μ x * K x y * K' y z := by ring
+    _ = ν y * L y x * K' y z := by rw [h x y]
+    _ = ν y * K' y z * L y x := by ring
+    _ = ρ z * L' z y * L y x := by rw [h' y z]
+    _ = ρ z * (L' z y * L y x) := by ring
+
+end Comp
+
+section Id
+
+variable [DecidableEq α]
+
+/-- The unit of `Adjoint.comp`: the identity kernel is self-adjoint with respect
+to every distribution. -/
+theorem adjoint_id (μ : FinDist α) : Adjoint μ μ (FinKernel.id α) (FinKernel.id α) := by
+  intro x y
+  by_cases h : x = y
+  · rw [h]
+  · simp only [FinKernel.id]
+    rw [if_neg h, if_neg (Ne.symm h), mul_zero, mul_zero]
+
+end Id
+
 /-! ## Consequences for the distributions
 
 Mutual adjointness is a strong relation: it pins down each distribution as the

@@ -32,9 +32,9 @@ walk.  Every degenerate branch matches too: when `mu w (insert e τ)` vanishes t
 up walk's guard turns its row into the identity row, `Q_τ`'s guard does the same,
 and the lazy version of an identity row is that identity row.
 
-**The star/link mismatch does not bite.**  `LocalWalk.linkWeight` is the *star* of
-`τ`, and `LocalWalk.linkPi w n j τ` is not the monograph's `π_{τ,j}` for `j ≥ 2`
-(ROADMAP §3.3, `LinkRestriction.linkPi_apply_of_subset`).  Nothing here touches
+**The star/link mismatch does not bite.**  `LocalWalk.starWeight` is the *star* of
+`τ`, and `LocalWalk.starPi w n j τ` is not the monograph's `π_{τ,j}` for `j ≥ 2`
+(ROADMAP §3.3, `LinkRestriction.starPi_apply_of_subset`).  Nothing here touches
 either.  The ambient side of the bridge is the *honest* link
 `LinkRestriction.linkShiftNorm`, and the only distribution used is at level one,
 where `LinkRestriction.linkShiftPi_one_singleton` audits `π_{τ,1}` against
@@ -44,8 +44,6 @@ state spaces — faces of the link versus ground-set elements — so the bridge 
 
 **Main declarations.**
 
-* `upDown_apply` — the composite `upDown` entrywise; a `Levels` lemma that was
-  missing.
 * `upDown_one_singleton_self`, `upDown_one_singleton_ne`,
   `upDown_one_singleton_of_not_pos` — the level-one up-down walk of an
   *arbitrary* weighted complex, evaluated between singletons.  The first is the
@@ -66,13 +64,13 @@ state spaces — faces of the link versus ground-set elements — so the bridge 
   reproves anything: both are the imported statements with the hypothesis pushed
   through the equivalence above.
 
-**Four lemmas proved here that belong elsewhere**, kept local because this file
-may not edit its neighbours: `upDown_apply` (→ `Techniques.Levels`),
-`mu_linkShiftNorm_eq_zero_of_not_disjoint` and the two `Finset` rewrites
-`union_singleton_eq_insert`, `union_pair_eq_insert_insert`
-(→ `Techniques.LinkRestriction`), and `lazy_spectralGapAtLeast_iff`
-(→ `Techniques.Lazy`, which currently proves only the `→` direction as
-`lazy_spectralGapAtLeast`).
+**Four general lemmas this file runs on live upstream**, where they belong:
+`Levels.upDown_apply` (the composite `upDown` entrywise),
+`LinkRestriction.mu_linkShiftNorm_eq_zero_of_not_disjoint` and the two `Finset`
+rewrites `LinkRestriction.union_singleton_eq_insert`,
+`LinkRestriction.union_pair_eq_insert_insert`, and
+`Lazy.lazy_spectralGapAtLeast_iff` (the two-directional form of
+`lazy_spectralGapAtLeast`, which is what makes the halving here an equivalence).
 
 Everything here is proved from first principles with no `sorry`; in particular no
 eigenvalue, and no spectral theorem, appears anywhere.
@@ -86,75 +84,7 @@ namespace Arlib.MarkovChains
 open scoped BigOperators
 open Finset
 
-/-! ## Laziness halves the gap, in both directions
-
-`Techniques.Lazy.lazy_spectralGapAtLeast` gives one direction.  The converse is
-free from the same identity `ℰ_{P_lazy}(f) = ℰ_P(f)/2`, and it is the direction
-this module needs: the hypothesis of `Techniques.ImprovedRandomWalk` is about the
-lazy chain, and the hypothesis available downstream is about `Q_τ`. -/
-
-section Lazy
-
-variable {Ω : Type*} [Fintype Ω] [DecidableEq Ω]
-
-/-- **Laziness halves the spectral gap exactly.**  `P_lazy = ½(I + P)` has
-Poincaré constant at least `γ/2` if and only if `P` has Poincaré constant at
-least `γ`, because `ℰ_{P_lazy}(f) = ℰ_P(f)/2` identically and the variance is
-unchanged.
-
-Belongs in `Techniques.Lazy` beside `lazy_spectralGapAtLeast`, which is the
-forward direction. -/
-theorem lazy_spectralGapAtLeast_iff {μ : FinDist Ω} {P : FinChain Ω} {γ : ℝ} :
-    SpectralGapAtLeast μ P.lazy (γ / 2) ↔ SpectralGapAtLeast μ P γ := by
-  constructor
-  · intro h f
-    have hf := h f
-    rw [dirichlet_lazy] at hf
-    linarith
-  · intro h f
-    rw [dirichlet_lazy]
-    have hf := h f
-    linarith
-
-end Lazy
-
-/-! ## Two `Finset` rewrites
-
-Attaching a face `τ` to a small face of its link.  Both belong in
-`Techniques.LinkRestriction`; they are stated before the `[Fintype E]` variable
-because neither needs it. -/
-
-section Union
-
-variable {E : Type*} [DecidableEq E]
-
-/-- Attaching `τ` to a singleton: `τ ∪ {e} = insert e τ`. -/
-theorem union_singleton_eq_insert (τ : Finset E) (e : E) :
-    τ ∪ ({e} : Finset E) = insert e τ := by
-  rw [Finset.union_comm, ← Finset.insert_eq]
-
-/-- Attaching `τ` to a two-element face. -/
-theorem union_pair_eq_insert_insert (τ : Finset E) (e e' : E) :
-    τ ∪ insert e' ({e} : Finset E) = insert e' (insert e τ) := by
-  rw [Finset.union_comm, Finset.insert_union, ← Finset.insert_eq]
-
-end Union
-
 variable {E : Type*} [Fintype E] [DecidableEq E]
-
-/-! ## The up-down walk, entrywise
-
-`Techniques.Levels` defines `upDown` as a composite and never evaluates it.  The
-computation below needs its entries, so the defining sum is recorded first. -/
-
-/-- The **entries of the up-down walk**: `P^∧∨_k(ρ, ρ') = ∑_η U_k(ρ, η)·D_k(η, ρ')`.
-
-Belongs in `Techniques.Levels` beside `upDown`. -/
-theorem upDown_apply (v : Finset E → ℝ) (m k : ℕ)
-    (hv : ∀ σ : Finset E, 0 ≤ v σ) (hvs : ∀ σ : Finset E, σ.card ≠ m → v σ = 0)
-    (hk : k < m) (ρ ρ' : Finset E) :
-    upDown v m k hv hvs hk ρ ρ'
-      = ∑ η : Finset E, up v m k hv hvs hk ρ η * down k η ρ' := rfl
 
 /-! ## The level-one up-down walk between singletons
 
@@ -299,14 +229,6 @@ The bridge is the previous section read through
 `ρ = {e}` and `ρ = {e, e'}`, together with the observation that a face meeting
 `τ` is null in the link — which is what makes the guard of the link's up walk
 agree with the guard of the local walk. -/
-
-/-- A face of the link meeting `τ` is null.  This is
-`LinkRestriction.mu_linkShift_eq_zero_of_not_disjoint` after normalisation, and
-belongs beside it. -/
-theorem mu_linkShiftNorm_eq_zero_of_not_disjoint (w : Finset E → ℝ) {τ ρ : Finset E}
-    (hd : ¬ Disjoint τ ρ) : mu (linkShiftNorm w τ) ρ = 0 := by
-  rw [show linkShiftNorm w τ = fun σ => linkShift w τ σ / mu w τ from rfl, mu_div,
-    mu_linkShift_eq_zero_of_not_disjoint w hd, zero_div]
 
 /-- The derived weight of the link at a singleton disjoint from `τ`: the
 conditional weight `mu w (insert e τ) / mu w τ`. -/

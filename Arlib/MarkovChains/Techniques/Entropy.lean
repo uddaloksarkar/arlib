@@ -154,6 +154,14 @@ theorem mul_log_le_mul_log_add_sq_div {m x : ℝ} (hm : 0 < m) (hx : 0 ≤ x) :
     rw [e2] at h2
     linarith
 
+/-- `1 − v/u ≤ log u − log v`, the evaluation of `log t ≤ t − 1` at `t = v/u`.
+The companion to `mul_log_le_mul_log_add_sub`, which evaluates it at `m/t`. -/
+theorem one_sub_div_le_log_sub_log {u v : ℝ} (hu : 0 < u) (hv : 0 < v) :
+    1 - v / u ≤ Real.log u - Real.log v := by
+  have h := Real.log_le_sub_one_of_pos (div_pos hv hu)
+  rw [Real.log_div hv.ne' hu.ne'] at h
+  linarith
+
 /-! ## Jensen's inequality for `t ↦ t log t`
 
 The single convexity fact this development needs, in the weighted finite-sum
@@ -403,6 +411,18 @@ theorem Ent_smul (μ : FinDist Ω) {c : ℝ} (hc : 0 ≤ c) {f : Ω → ℝ} (hf
       Ex_smul, Ex_smul, hlog]
     ring
 
+/-- **Entropy is invariant under a measure-preserving relabelling.**  In
+particular a chain that merely permutes the state space measure-preservingly
+destroys no entropy, however fast it mixes in appearance. -/
+theorem Ent_comp_equiv {μ : FinDist Ω} (e : Ω ≃ Ω) (he : ∀ x, μ (e x) = μ x) (f : Ω → ℝ) :
+    Ent μ (fun x => f (e x)) = Ent μ f := by
+  have h1 : Ex μ (fun x => f (e x) * Real.log (f (e x)))
+      = Ex μ (fun x => f x * Real.log (f x)) :=
+    Ex_comp_equiv e he (fun y => f y * Real.log (f y))
+  have h2 : Ex μ (fun x => f (e x)) = Ex μ f := Ex_comp_equiv e he f
+  simp only [Ent_apply]
+  rw [h1, h2]
+
 /-- **Entropy detects constancy.**  If `f ≥ 0` has positive mean and zero
 entropy then `f` is constant on the support of `μ`, equal to its own mean.
 
@@ -447,6 +467,16 @@ theorem eq_Ex_of_Ent_eq_zero {μ : FinDist Ω} {f : Ω → ℝ} (hf : ∀ x, 0 �
     · exact h1
   by_contra hne
   linarith [mul_log_lt_mul_log_add_sub hm (hf x) hne]
+
+/-- **A non-constant function has positive entropy.**  The quantitative content
+of `eq_Ex_of_Ent_eq_zero`: if `f ≥ 0` has positive mean and takes two different
+values at two states the measure charges, then `Ent_μ(f) > 0`. -/
+theorem Ent_pos_of_ne {μ : FinDist Ω} {f : Ω → ℝ} (hf : ∀ x, 0 ≤ f x) (hm : 0 < Ex μ f)
+    {x y : Ω} (hx : μ x ≠ 0) (hy : μ y ≠ 0) (hne : f x ≠ f y) : 0 < Ent μ f := by
+  rcases (Ent_nonneg μ hf).eq_or_lt with h0 | hpos
+  · exact absurd (((eq_Ex_of_Ent_eq_zero hf hm h0.symm (μ.mem_support_iff.mpr hx)).trans
+      (eq_Ex_of_Ent_eq_zero hf hm h0.symm (μ.mem_support_iff.mpr hy)).symm)) hne
+  · exact hpos
 
 /-! ## The modified log-Sobolev inequality
 
@@ -745,6 +775,12 @@ theorem localEnt_apply (μ : FinDist Ω) (P : FinChain Ω) (f : Ω → ℝ) :
 /-- Averaging against a row of a kernel is the action of the kernel. -/
 theorem Ex_row_eq_act (P : FinChain Ω) (f : Ω → ℝ) (x : Ω) : Ex (P.row x) f = P.act f x := rfl
 
+/-- The entropy under a row of a kernel, in terms of the action of the kernel. -/
+theorem Ent_row (P : FinChain Ω) (f : Ω → ℝ) (x : Ω) :
+    Ent (P.row x) f
+      = P.act (fun y => f y * Real.log (f y)) x - P.act f x * Real.log (P.act f x) := by
+  rw [Ent_apply, Ex_row_eq_act, Ex_row_eq_act]
+
 /-- The mean conditional entropy is nonnegative, being an average of
 entropies. -/
 theorem localEnt_nonneg (μ : FinDist Ω) (P : FinChain Ω) {f : Ω → ℝ} (hf : ∀ x, 0 ≤ f x) :
@@ -783,6 +819,46 @@ theorem localEnt_eq_Ent_sub_Ent {μ : FinDist Ω} {P : FinChain Ω} (hst : Stati
   rw [localEnt_apply, hrow, Ex_sub, Ex_act_of_stationary hst]
   simp only [Ent_apply]
   rw [Ex_act_of_stationary hst f]
+  ring
+
+/-- **The exact defect in `localEnt_le_entropyProduction`.**  For a reversible
+chain and any `f`,
+
+  `ℰ_P(f, log f) − μ[Ent_P(f)] = μ[(P f) · (log (P f) − log f)]`,
+
+the right-hand side being the relative entropy of the pair `(P f, f)`, which
+`Techniques/Entropy.lean` bounds below by `0` with the log-sum inequality.
+
+Recording the defect as an *identity* rather than an inequality is what makes the
+equality case accessible, and the equality case is what settles whether the
+one-step entropy decay `Ent_μ(f) − Ent_μ(P f) ≥ ℰ_P(f, log f)` can hold.  The
+proof is the first two steps of `localEnt_le_entropyProduction` and needs no
+positivity of `f`. -/
+theorem entropyProduction_sub_localEnt {μ : FinDist Ω} {P : FinChain Ω}
+    (hrev : Reversible μ P) (f : Ω → ℝ) :
+    entropyProduction μ P f - localEnt μ P f
+      = Ex μ (fun x => P.act f x * (Real.log (P.act f x) - Real.log (f x))) := by
+  have hst := hrev.stationary
+  have hEP : entropyProduction μ P f
+      = Ex μ (fun x => f x * Real.log (f x))
+        - Ex μ (fun x => P.act f x * Real.log (f x)) := by
+    rw [entropyProduction_apply, dirichlet_apply, ip_eq_Ex_mul,
+      ip_act_comm hrev f (fun x => Real.log (f x))]
+    congr 1
+    exact Finset.sum_congr rfl fun x _ => by ring
+  have hloc : localEnt μ P f
+      = Ex μ (fun x => f x * Real.log (f x))
+        - Ex μ (fun x => P.act f x * Real.log (P.act f x)) := by
+    rw [localEnt_eq_Ent_sub_Ent hst f]
+    simp only [Ent_apply]
+    rw [Ex_act_of_stationary hst f]
+    ring
+  have hsplit : Ex μ (fun x => P.act f x * (Real.log (P.act f x) - Real.log (f x)))
+      = Ex μ (fun x => P.act f x * Real.log (P.act f x))
+        - Ex μ (fun x => P.act f x * Real.log (f x)) := by
+    simp only [Ex_apply, ← Finset.sum_sub_distrib]
+    exact Finset.sum_congr rfl fun x _ => by ring
+  rw [hEP, hloc, hsplit]
   ring
 
 /-- **The mean conditional entropy is at most the entropy production**:

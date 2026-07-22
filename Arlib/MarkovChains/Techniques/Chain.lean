@@ -149,6 +149,13 @@ theorem act_sub_const (K : FinKernel α β) (f : β → ℝ) (c : ℝ) :
   have := K.act_sub f (fun _ => c)
   simpa [K.act_const c] using this
 
+/-- Adding a constant commutes with the action of a kernel: `K(f + c) = K f + c`.
+The companion of `act_sub_const`. -/
+theorem act_add_const (K : FinKernel α β) (f : β → ℝ) (c : ℝ) :
+    K.act (fun y => f y + c) = fun x => K.act f x + c := by
+  have h := K.act_sub_const f (-c)
+  simpa using h
+
 theorem act_smul (K : FinKernel α β) (c : ℝ) (f : β → ℝ) :
     K.act (fun y => c * f y) = fun x => c * K.act f x := by
   funext x
@@ -240,6 +247,15 @@ theorem act_iter_succ {Ω : Type*} [Fintype Ω] [DecidableEq Ω]
   rw [iter_succ, act_comp]
 
 end FinKernel
+
+/-- Two kernels with the same entries are equal, the counterpart of
+`FinDist.ext` for kernels. -/
+theorem finKernel_ext {α β : Type*} [Fintype β] {K L : FinKernel α β}
+    (h : ∀ x y, K x y = L x y) : K = L := by
+  cases K; cases L
+  simp only [FinKernel.mk.injEq]
+  funext x y
+  exact h x y
 
 /-! ## Stationarity and reversibility -/
 

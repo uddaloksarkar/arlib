@@ -60,6 +60,13 @@ arbitrary `f`, with no mean-zero hypothesis.
   statistic by a constant and leaves `quadForm (Cov μ)` alone.
 * `marg_gibbs`, `joint_gibbs` — the dictionary between the marginals of
   `Techniques.SpectralIndependence` and the masses of `Chains.PinnedGlauber`.
+* `spinEvent_eq_filter_agreesOn`, `spinEvent₂_eq_filter_agreesOn`,
+  `marg_gibbs_eq_Z_pinWeight`, `joint_gibbs_eq_Z_pinWeight` — the same
+  dictionary written with `Chains.Pinning` on the right: the one- and two-site
+  marginals of a Gibbs measure are the partition functions of one- and two-site
+  *pinnings*.  Nothing below uses these; they are the form in which a structural
+  hypothesis on the weight becomes usable, and
+  `Chains.ProductSpectralIndependence` is the consumer.
 * `sum_joint_diag`, `sum_joint_offDiag`, `quadForm_joint_eq` — the three
   rearrangements of the double sum: the same-site blocks contribute
   `∑_p marg p · a p²`, and the unrestricted sum is
@@ -228,6 +235,60 @@ theorem joint_gibbs (w : (V → S) → ℝ) (hw : ∀ σ, 0 ≤ w σ) (hZ : 0 < 
   by_cases h : σ p.1 = p.2 ∧ σ q.1 = q.2
   · rw [if_pos h, if_pos h, gibbs_apply]
   · rw [if_neg h, if_neg h, zero_div]
+
+/-! ### The same dictionary in terms of pinned partition functions
+
+`Chains.Pinning` computes `Pr` of a pinned event as a ratio of partition
+functions; composing that with the definitions of `marg` and `joint` expresses
+both as pinned partition functions.  That is the form in which a *structural*
+hypothesis on the weight can be used — `Chains.ProductSpectralIndependence`
+consumes it, because `pinWeight` of a product weight is again a product
+weight. -/
+
+/-- The event `σ v = s` is the event of agreeing with a one-site pinning. -/
+theorem spinEvent_eq_filter_agreesOn (v : V) (s : S) :
+    spinEvent v s = univ.filter (AgreesOn ({v} : Finset V) (fun _ => s)) := by
+  ext σ
+  simp only [spinEvent, mem_filter, mem_univ, true_and]
+  constructor
+  · intro h u hu
+    rw [Finset.mem_singleton.mp hu]
+    exact h
+  · intro h
+    exact h v (Finset.mem_singleton_self v)
+
+/-- At two *distinct* sites, the event `σ v = s ∧ σ u = t` is the event of
+agreeing with a two-site pinning.  Distinctness is needed: at `v = u` with
+`s ≠ t` the left-hand side is empty while the right-hand side is the one-site
+event. -/
+theorem spinEvent₂_eq_filter_agreesOn {v u : V} (h : v ≠ u) (s t : S) :
+    spinEvent₂ v s u t
+      = univ.filter (AgreesOn ({v, u} : Finset V) (fun x => if x = v then s else t)) := by
+  ext σ
+  simp only [spinEvent₂, mem_filter, mem_univ, true_and, AgreesOn, Finset.mem_insert,
+    Finset.mem_singleton]
+  constructor
+  · rintro ⟨h1, h2⟩ x (hx | hx)
+    · subst hx; simpa using h1
+    · subst hx; simpa [Ne.symm h] using h2
+  · intro hA
+    exact ⟨by simpa using hA v (Or.inl rfl), by simpa [Ne.symm h] using hA u (Or.inr rfl)⟩
+
+/-- **The pair marginal is a one-site pinned partition function.** -/
+theorem marg_gibbs_eq_Z_pinWeight {w : (V → S) → ℝ} (hw : ∀ σ, 0 ≤ w σ) (hZ : 0 < Z w)
+    (v : V) (s : S) :
+    marg (gibbs w hw hZ) (v, s) = Z (pinWeight w {v} (fun _ => s)) / Z w := by
+  rw [marg, spinEvent_eq_filter_agreesOn]
+  exact Pr_agreesOn hw hZ _ _
+
+/-- **The pair joint probability at two distinct sites is a two-site pinned
+partition function.** -/
+theorem joint_gibbs_eq_Z_pinWeight {w : (V → S) → ℝ} (hw : ∀ σ, 0 ≤ w σ) (hZ : 0 < Z w)
+    {v u : V} (h : v ≠ u) (s t : S) :
+    joint (gibbs w hw hZ) (v, s) (u, t)
+      = Z (pinWeight w {v, u} (fun x => if x = v then s else t)) / Z w := by
+  rw [joint, spinEvent₂_eq_filter_agreesOn h]
+  exact Pr_agreesOn hw hZ _ _
 
 end Dictionary
 
