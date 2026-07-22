@@ -164,7 +164,7 @@ links, most of which are theorems here:
 | lifting `deg⁺` to nonnegative rank — GLMWZ16, Kothari21 | **imported** (papers not in repo) |
 | `Par₁ ≥ rk⁺` | **proved**, `Communication/NonnegRank.lean` |
 | `deg⁺(f) ≤ UC₁(f)` | **proved**, `Communication/ConicalJunta.lean` |
-| the gadget composition `F = f ∘ gⁿ` and the width-`2bm` upper bound on `F` | **not built** |
+| the gadget composition `F = f ∘ gⁿ` and the width-`2bm` upper bound on `F` | **proved**, `Circuits/DNFSubst.lean`, `Circuits/DNFMap.lean`, `LowerBounds/UnionDerived.lean` |
 
 Lemma 14 is the one link Göös–Kiefer–Yuan prove themselves — their §4 opens by saying "there
 is no existing result showing that the `∨`-operation is hard for unambiguous DNFs and/or
@@ -172,11 +172,17 @@ conical juntas; we show a result of this type" — and it is fully checked, both
 the source's logarithmic parameters replaced by the three inequalities its proof actually
 uses (`exists_powering_params` then exhibits a valid triple, so nothing is lost).
 
-**`UnionHard` is still a hypothesis.** The last row of the table is why: the chain above
-bounds `rk⁺` of a *composed* function, and getting from there to a statement about a
-`k`-DNF over `F ⊕ Zι` needs the gadget and the composition upper bound, neither of which
-exists here. So this work does not yet discharge anything; it replaces one citation by a
-proof plus two more primitive citations.
+**`UnionHard` is now derived.** `UnionDerived.unionHard_of_imports` takes
+`Imported.HardnessOfNegation` and `Imported.NonnegLifting` and *produces* an
+`Imported.UnionHard`, with `k = m·2b`, term count `|ψ|·(2^{2b})^m` and partition bound the
+lifting theorem's `liftBound d`, for any `d` with `k·d < degBound`. So `thm: union`,
+`thm: ex` and `cor: add` no longer rest on an extraction from the middle of somebody's proof;
+they rest on two named, widely cited theorems, with everything in between checked.
+
+The three constructions that closed the gap: `Circuits/DNFSubst.lean` (minterm expansion, and
+substituting a DNF for each variable of a DNF, preserving unambiguity), `Circuits/DNFMap.lean`
+(renaming variables, to place a gadget's expansion at one coordinate), and
+`Communication/Gadget.lean` (the composition and its exactly balanced partition).
 
 **On strong duality — proved, and Farkas is not needed.** The two claims of Lemma 14 sit on
 opposite sides of the LP: Claim 15 is about dual certificates and builds one, Claim 16 is

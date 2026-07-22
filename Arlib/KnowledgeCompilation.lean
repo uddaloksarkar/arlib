@@ -66,6 +66,10 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
   lists of terms, `IsKDNF`, and `Unambiguous` in its counting form.  This is the
   shape in which every imported hardness result arrives, and the object the
   copy-and-permute construction transforms.
+* `Circuits.DNFSubst` — the minterm expansion of an arbitrary Boolean function,
+  and substitution of a DNF for each variable of a DNF, with the width, term
+  count and — the hard part — unambiguity of the result.  This is the upper-bound
+  half of the gadget composition.
 * `Circuits.DNFMap` — renaming the variables of a DNF, which preserves the
   computed function, the width, the term count and unambiguity.  Needed to place
   a gadget's minterm expansion at one coordinate of a composed function; the
@@ -162,6 +166,10 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
 * `LowerBounds.AffinePerms` — the Wegman–Carter family `x ↦ ax+b` over a finite
   field, and its pairwise independence.  This **discharges** import I3: the paper
   cites it, we prove it.
+* `LowerBounds.UnionDerived` — `Imported.UnionHard` *derived* from the two results
+  Göös–Kiefer–Yuan themselves import, rather than assumed.  Contains the gadget
+  as a DNF at one coordinate, the composed DNF, and the assembly of the whole
+  chain; see `ROADMAP.md` §3, "Unwinding I1′".
 * `LowerBounds.Imported` — the results the paper genuinely imports, as named
   bundles of data and hypotheses rather than axioms.  Every downstream theorem
   takes one as a parameter, so what a statement is conditional on is visible in
@@ -175,6 +183,7 @@ import Arlib.KnowledgeCompilation.Circuits.SDD
 import Arlib.KnowledgeCompilation.Circuits.DNF
 import Arlib.KnowledgeCompilation.Circuits.DNFtoCircuit
 import Arlib.KnowledgeCompilation.Circuits.DNFMap
+import Arlib.KnowledgeCompilation.Circuits.DNFSubst
 import Arlib.KnowledgeCompilation.Circuits.DNFMux
 import Arlib.KnowledgeCompilation.Circuits.Arithmetic
 import Arlib.KnowledgeCompilation.Circuits.Figure1
@@ -195,3 +204,4 @@ import Arlib.KnowledgeCompilation.LowerBounds.Instance
 import Arlib.KnowledgeCompilation.LowerBounds.Pullback
 import Arlib.KnowledgeCompilation.LowerBounds.AffinePerms
 import Arlib.KnowledgeCompilation.LowerBounds.Imported
+import Arlib.KnowledgeCompilation.LowerBounds.UnionDerived
