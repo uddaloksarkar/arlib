@@ -322,17 +322,31 @@ infinite family, with the witnessing v-tree node genuinely varying per `∧`-nod
 not a restatement — it is the only thing in the area that tests the *encoding* rather than
 the reasoning about it. The caption and the drawing agree.
 
-What it cost, since this entry used to warn about exactly this:
+What it cost — **and this entry previously overstated the cost, so read the corrections**:
 
-- `decide` works for `child_lt` (purely syntactic in `gate`) and for nothing semantic:
-  `valAt`/`varsAt` are well-founded recursions and `WellFounded.fix` does not reduce in the
-  kernel. Every value goes through the unfolding lemmas.
-- `fin_cases` does **not** fire on `i : Fin C.size`, because `C.size` is not a numeral. The
-  trick that makes the whole thing tractable is to state the inversion lemmas on the raw
-  `G : Fin 15 → Gate Var 15`, where it does fire, and cross to `C.gate` by `rfl`.
-- Case-split on the node index **only**; the children are then determined by the hypothesis
-  via injection. Splitting on all three indices is `15³` cases and hangs — which is what
-  killed a first attempt.
+- The finished file compiles in about **3.3 s**. Building a concrete circuit is *not*
+  expensive, contrary to what this entry claimed for months.
+- `decide` works for `child_lt` (purely syntactic in `gate`), and for `Finset Var`
+  equalities and disjointness. It does **not** work for anything semantic: `valAt`/`varsAt`
+  are well-founded recursions and `WellFounded.fix` does not reduce in the kernel, so every
+  value goes through the unfolding lemmas fed gate equations by `rfl`.
+- **The real obstacle is not `fin_cases`, it is `OfNat`.** Instance search will not unfold
+  the projection `C.size` to a numeral, so `OfNat (Fin C.size) 7` fails to synthesize and one
+  cannot even *write* `C.valAt α 7`. One line fixes it — `instance : NeZero C.size :=
+  ⟨by decide⟩`, supplying the missing premise of `Fin.instOfNat` — and it is the single most
+  load-bearing trick in the file. Stating inversion lemmas on the raw
+  `G : Fin 15 → Gate Var 15` and crossing to `C.gate` by `rfl` also works and is tidy, but it
+  is a convenience rather than a necessity.
+- `rw` with a list of `∨`-branch lemmas fails, since in each branch only some apply;
+  `simp only` with the same list is the right instrument because it skips non-matching ones.
+
+**A retracted claim.** This entry used to assert that splitting on all three node indices is
+`15³` cases and that this "killed a first attempt". The first attempt did stall, but *the
+cause was never established* — the guess was written up as fact. The second attempt lost
+time to an apparent hang that turned out to be its worktree being deleted underneath it by
+the integrator, not a tactic at all, and the identical file compiles in seconds. Nothing
+here has been observed to hang. Splitting on one index and letting the children fall out by
+injection is still the right shape; it is just not known to be *necessary*.
 
 **G5 — the v-tree of a lower-bound circuit must span every variable. CLOSED.** The lower
 bounds used to carry `T.vars = univ`, so a circuit whose v-tree omitted a variable of `ψ'`
