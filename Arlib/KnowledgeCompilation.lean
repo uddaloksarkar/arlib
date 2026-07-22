@@ -97,7 +97,9 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
   which matters: a linear `t` satisfies every hypothesis and still destroys the
   size comparison the theorem exists to make.
 * `LowerBounds.Separation` — `thm: main` and `thm: sep`, assembled, with fully
-  explicit bounds and conditional only on the imported hardness.
+  explicit bounds and conditional only on the imported hardness.  The
+  lower-bound halves hold for *any* v-tree the circuit respects, not only one
+  spanning every variable — omitted variables are grafted on.
 * `LowerBounds.ClaimPerm` — the probabilistic heart of the lifting, which the
   paper proves only by citation: some affine permutation places, for every
   original variable and every side of the partition, at least one copy on that

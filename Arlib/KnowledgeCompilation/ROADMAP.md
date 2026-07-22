@@ -309,14 +309,22 @@ shows such a `rep` exists as soon as `|F|² ≤ 2^{|Zι|}`, which for `|F| = 2^t
 `|Zι| = 2t`. The variables of `ψ'` outside the image of the copies are exactly the paper's
 padding, and they cost nothing.
 
-**G5 — the v-tree of a lower-bound circuit must span every variable of `ψ'`.** The lower bounds
-in `Separation` carry the hypothesis `T.vars = univ`. The paper's `def: vtree` (line 150)
-builds this in — its v-trees are v-trees *for the variable set of the function* — so the
-hypothesis is faithful, but it is not vacuous here, where `Respects` relates a circuit to an
-arbitrary tree. It is load-bearing rather than cosmetic: the rectangle lemma hands back a
-balanced partition of `var(T)`, while Claim `perm`'s cardinality bounds are about all of `|F|`,
-so a v-tree omitting variables would need those bounds re-derived (and, for the dummy
-variables, an argument that they may be added back to the tree without changing the circuit).
+**G5 — the v-tree of a lower-bound circuit must span every variable. CLOSED.** The lower
+bounds used to carry `T.vars = univ`, so a circuit whose v-tree omitted a variable of `ψ'`
+was simply not covered.
+
+The fix is that **`Respects` is monotone under grafting**: if `T` is a subtree of `T'` then
+every subtree of `T` is a subtree of `T'`, so the v-tree node witnessing each `∧`-node
+survives and `C.Respects T → C.Respects T'`. So given any `T` the circuit respects, graft
+the omitted variables on as a sibling — `T' := node T S` with `S` a v-tree over the rest —
+and apply the old bound to `T'`. `NNF.Respects.exists_graft` packages this, and it needed a
+construction building a well-formed v-tree over an arbitrary `Finset`, which is worth having
+anyway.
+
+The hypothesis is **gone** from the lower-bound halves of `thm_main` and `thm_sep`, and from
+their instantiated corollaries. It is deliberately *kept* on the upper-bound halves, where
+the v-tree is *prescribed* — "for every v-tree there is a small circuit respecting it" is the
+paper's statement there, and is a feature rather than a restriction.
 
 **G6 — the parameters are instantiated; the asymptotic packaging is not.** *(Non-vacuity half
 closed, in `LowerBounds/Instance.lean`.)* `thm: main` takes `|F| ≥ 8|Zι|`, `|F|² ≤ 2^{|Zι|}`

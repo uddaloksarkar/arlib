@@ -449,4 +449,133 @@ theorem IsdSDNNF.exists_vTree (h : C.IsdSDNNF) :
 
 end NNF
 
+/-! ## Building a v-tree over a prescribed variable set
+
+Everything above takes the v-tree as given.  The lower bounds need the converse
+— a v-tree *over* a prescribed finite set of variables — because the paper's
+`def: vtree` (`source/kc/arXiv.tex:150`) makes a v-tree a v-tree *for the
+variable set of the function*, while `Respects` here relates a circuit to an
+arbitrary tree.  The two are reconciled by *grafting*: any well-formed `T` sits
+inside a well-formed `T'` spanning whatever extra variables one wants, and
+`NNF.Respects.mono` below carries the circuit along.  See
+`NNF.Respects.exists_graft`, and `LowerBounds/Separation.lean` for the use. -/
+
+namespace VTree
+
+variable {V : Type*}
+
+/-- **The right comb over a nonempty list of variables.**
+
+The list is presented as a head and a tail rather than as a `List V` with a
+non-nilness hypothesis: a `VTree` has no empty tree, so the empty list has no
+image, and excluding it by typing saves every consumer a side condition.
+
+The shape of the tree is irrelevant to everything downstream — only `vars` and
+`WellFormed` are ever asked of it — so the comb, the cheapest shape to define
+and to reason about, is the right choice.  In particular this is deliberately
+*not* balanced: balancedness of the *partition* is arranged later, by
+`VTree.exists_balanced_cut` choosing a node, not by the tree being balanced. -/
+def ofList : V → List V → VTree V
+  | x, [] => leaf x
+  | x, y :: l => node (leaf x) (ofList y l)
+
+@[simp] lemma leaves_ofList (x : V) (l : List V) : (ofList x l).leaves = x :: l := by
+  induction l generalizing x with
+  | nil => rfl
+  | cons y l ih => simp [ofList, ih]
+
+lemma vars_ofList [DecidableEq V] (x : V) (l : List V) :
+    (ofList x l).vars = (x :: l).toFinset := by
+  rw [vars_eq_toFinset_leaves, leaves_ofList]
+
+/-- The comb over a list without duplicates is well-formed — immediately from
+`wellFormed_iff_nodup_leaves`, since the leaves of the comb are the list. -/
+lemma wellFormed_ofList [DecidableEq V] {x : V} {l : List V} (h : (x :: l).Nodup) :
+    (ofList x l).WellFormed := by
+  rw [wellFormed_iff_nodup_leaves, leaves_ofList]
+  exact h
+
+/-- **Every nonempty finite set of variables carries a v-tree**, i.e. the
+paper's "v-tree over `X`" exists for every `X ≠ ∅` (`def: vtree`,
+`source/kc/arXiv.tex:150`).
+
+Nonemptiness is necessary and not a technicality: `vars_nonempty` says every
+v-tree has at least one variable, so `∅` carries none. -/
+theorem exists_wellFormed_vars_eq [DecidableEq V] {s : Finset V} (hs : s.Nonempty) :
+    ∃ T : VTree V, T.WellFormed ∧ T.vars = s := by
+  obtain ⟨x, l, hl⟩ : ∃ (x : V) (l : List V), s.toList = x :: l := by
+    rcases h : s.toList with _ | ⟨x, l⟩
+    · exact absurd (Finset.toList_eq_nil.mp h) hs.ne_empty
+    · exact ⟨x, l, rfl⟩
+  have hnd : (x :: l).Nodup := hl ▸ s.nodup_toList
+  refine ⟨ofList x l, wellFormed_ofList hnd, ?_⟩
+  rw [vars_ofList, ← hl, Finset.toList_toFinset]
+
+/-- **Grafting: a well-formed v-tree extends to one spanning any further
+variables.**
+
+Hang a v-tree over the variables of `s` that `T` is missing off a new root
+beside `T`.  The two sides are disjoint by construction — that is the whole
+reason the graft is `s \ T.vars` and not `s` — so the result is well-formed,
+and `T` is a node of it.
+
+The case split is on `s ⊆ var(T)`, where there is nothing to graft and `T`
+itself is the answer; a construction assuming a nonempty complement would be
+wrong, since `ofList` cannot produce the empty tree. -/
+theorem exists_wellFormed_isSubtree [DecidableEq V] {T : VTree V} (hT : T.WellFormed)
+    (s : Finset V) :
+    ∃ T' : VTree V, T'.WellFormed ∧ IsSubtree T T' ∧ T'.vars = T.vars ∪ s := by
+  rcases (s \ T.vars).eq_empty_or_nonempty with h | h
+  · rw [Finset.sdiff_eq_empty_iff_subset] at h
+    exact ⟨T, hT, .refl T, (Finset.union_eq_left.mpr h).symm⟩
+  · obtain ⟨S, hS, hSvars⟩ := exists_wellFormed_vars_eq h
+    refine ⟨node T S, ⟨hT, hS, ?_⟩, isSubtree_node_left _ _, ?_⟩
+    · rw [hSvars]; exact Finset.disjoint_sdiff
+    · rw [vars_node, hSvars, Finset.union_sdiff_self_eq_union]
+
+end VTree
+
+namespace NNF
+
+variable {V : Type*} [DecidableEq V]
+
+/-! ## Respecting is monotone in the v-tree -/
+
+/-- **Respecting a v-tree survives grafting**, at every node reachable from `r`.
+
+`RespectsFrom` asks, for each `∧`-node, for *some* node of the v-tree; a node of
+`T` is still a node of any `T'` containing `T` (`IsSubtree.trans`), so the same
+witness serves.  Nothing about `T'` outside `T` is used, and well-formedness is
+not needed: monotonicity is pure bookkeeping about `IsSubtree`. -/
+theorem RespectsFrom.mono {C : NNF V} {T T' : VTree V} {r : Fin C.size}
+    (h : C.RespectsFrom T r) (hsub : VTree.IsSubtree T T') : C.RespectsFrom T' r := by
+  intro i j k hr hg
+  obtain ⟨tl, tr, ht, hj, hk⟩ := h hr hg
+  exact ⟨tl, tr, ht.trans hsub, hj, hk⟩
+
+/-- **Respecting a v-tree survives grafting**, the special case of
+`RespectsFrom.mono` at the source. -/
+theorem Respects.mono {C : NNF V} {T T' : VTree V} (h : C.Respects T)
+    (hsub : VTree.IsSubtree T T') : C.Respects T' :=
+  RespectsFrom.mono h hsub
+
+/-- **A circuit structured by *some* v-tree is structured by one spanning any
+prescribed variables.**
+
+`VTree.exists_wellFormed_isSubtree` and `Respects.mono` in one step.  With
+`s = univ` this says that the paper's convention — a v-tree is a v-tree *for the
+variable set of the function* (`def: vtree`, `source/kc/arXiv.tex:150`) — costs
+nothing here: a circuit respecting a v-tree that omits variables respects one
+that omits none, of the same circuit and with the old tree still inside.  That
+is what lets the lower bounds of `LowerBounds/Separation.lean` drop the
+hypothesis `var(T) = var(ψ')` instead of assuming it. -/
+theorem Respects.exists_graft {C : NNF V} {T : VTree V} (hT : T.WellFormed)
+    (hR : C.Respects T) (s : Finset V) :
+    ∃ T' : VTree V, T'.WellFormed ∧ C.Respects T' ∧ VTree.IsSubtree T T' ∧
+      T'.vars = T.vars ∪ s := by
+  obtain ⟨T', hT', hsub, hvars⟩ := VTree.exists_wellFormed_isSubtree hT s
+  exact ⟨T', hT', hR.mono hsub, hsub, hvars⟩
+
+end NNF
+
 end Arlib.KnowledgeCompilation

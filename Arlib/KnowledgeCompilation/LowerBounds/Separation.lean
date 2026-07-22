@@ -49,16 +49,29 @@ circuit chooses the v-tree and hence the partition, and the lifting theorem must
 survive *every* balanced choice — that is exactly the best-partition difficulty
 the whole construction exists to overcome.
 
-## The one hypothesis that is not in the paper: `var(T) = var(ψ')`
+## `var(T) = var(ψ')`: needed by the machinery, not by the statement
 
-The lower bounds below quantify over v-trees `T` with `T.vars = univ`.  The
-paper's `def: vtree` (`source/kc/arXiv.tex:150`) builds this in — a v-tree is a
-v-tree *for the variable set of the function* — so this is faithful rather than
-a restriction; but it is a genuine hypothesis in a formalization where `Respects`
-is a relation between a circuit and an arbitrary tree, and it is load-bearing:
-the rectangle lemma produces a partition of `var(T)`, while Claim `perm` needs a
-partition of all of `var(ψ')` (its cardinality bounds are about `|F|`).  A
-circuit structured by a v-tree that omits variables of `ψ'` is not covered.
+The paper's `def: vtree` (`source/kc/arXiv.tex:150`) makes a v-tree a v-tree
+*for the variable set of the function*, so `var(T) = var(ψ')` is built into its
+notation and never appears as a hypothesis.  Here `Respects` relates a circuit
+to an *arbitrary* tree, and the machinery does need the equality: the rectangle
+lemma produces a partition of `var(T)`, while Claim `perm` needs a partition of
+all of `var(ψ')` (its cardinality bounds are about `|F|`).
+
+The lower bounds nonetheless do not assume it.  `Respects` is monotone in the
+v-tree — a node of `T` is still a node of any tree containing `T`, so the
+witness supplied for each `∧`-node survives — and every well-formed `T` embeds
+in a well-formed tree over all of `var(ψ')`, obtained by hanging a v-tree over
+the omitted variables beside it (`VTree.exists_wellFormed_isSubtree`, packaged
+with monotonicity as `NNF.Respects.exists_graft`).  So the general case reduces
+to the spanning one in one step, and a circuit structured by a v-tree that
+omits variables of `ψ'` *is* covered.
+
+The *upper* bound keeps `T.vars = univ`, and there it is a feature rather than a
+hypothesis to be removed: the v-tree there is **prescribed** — the theorem
+builds a d-SDNNF respecting whichever v-tree over `var(ψ')` the reader names —
+and a prescribed tree that failed to mention some variable would leave the
+statement silent about it.
 -/
 import Arlib.KnowledgeCompilation.LowerBounds.Lifting
 import Arlib.KnowledgeCompilation.LowerBounds.RectangleLemma
@@ -172,32 +185,45 @@ backwards: the imported hardness forbids a `Π`-cover of `ψ⁻¹(0)` below
 `ψ'⁻¹(0)`, for `Γ` balanced; the rectangle lemma manufactures such a `Γ` and
 such a cover, of size `|C|`, from the circuit.  Determinism is not needed — the
 cover half of the rectangle lemma suffices, which is why the statement is about
-structured DNNF and not only about d-SDNNF. -/
+structured DNNF and not only about d-SDNNF.
+
+The v-tree is arbitrary: it is *not* assumed to mention every variable of `ψ'`,
+even though the machinery downstream needs a partition of all of them.  The
+first step of the proof repairs that by grafting the missing variables onto `T`
+(`NNF.Respects.exists_graft`), which `C` still respects; see the module
+docstring. -/
 theorem coverBound_le_size_of_computes_not
     (H : Imported.FixedPartitionHard (Finset.univ : Finset ι) k termBound coverBound)
     {e : ι × Fin m → F} (he : Function.Injective e)
     {rep : F × F → Zι → Bool} (hrep : Function.Injective rep)
     (hm : 6 * Fintype.card ι < m) (hz : 8 * Fintype.card Zι ≤ Fintype.card F)
     {T : VTree (F ⊕ Zι)} {C : NNF (F ⊕ Zι)} (hT : T.WellFormed)
-    (hTvars : T.vars = Finset.univ) (hR : C.Respects T) (hCT : C.vars ⊆ T.vars)
+    (hR : C.Respects T) (hCT : C.vars ⊆ T.vars)
     (hC : C.Computes (fun α => !(DNF.eval (permDNF e rep H.ψ) α))) :
     coverBound ≤ C.size := by
   by_contra hlt
   push_neg at hlt
+  -- graft the omitted variables onto `T`: `C` respects the larger v-tree too
+  obtain ⟨T', hT', hR', hsub, hT'vars⟩ :=
+    NNF.Respects.exists_graft hT hR (Finset.univ : Finset (F ⊕ Zι))
+  replace hT'vars : T'.vars = (Finset.univ : Finset (F ⊕ Zι)) := by
+    rw [hT'vars]
+    exact Finset.eq_univ_of_forall fun x => Finset.mem_union_right _ (Finset.mem_univ x)
+  have hCT' : C.vars ⊆ T'.vars := hCT.trans hsub.vars_subset
   -- the v-tree has at least two variables, since a field has at least two elements
-  have hcard2 : 2 ≤ T.vars.card := by
-    rw [hTvars, Finset.card_univ, Fintype.card_sum]
+  have hcard2 : 2 ≤ T'.vars.card := by
+    rw [hT'vars, Finset.card_univ, Fintype.card_sum]
     have := Fintype.one_lt_card (α := F)
     omega
   -- the rectangle lemma: a balanced partition, and a cover of `ψ'⁻¹(0)` by `|C|` rectangles
-  obtain ⟨s, hs, hbal⟩ := VTree.exists_balanced_cut hT hcard2
+  obtain ⟨s, hs, hbal⟩ := VTree.exists_balanced_cut hT' hcard2
   have hcov : HasCoverOfSize (VTree.cutPartition hs) (DNF.eval (permDNF e rep H.ψ))
       false C.size :=
-    hasCoverOfSize_of_not (hasCoverOfSize_cutPartition hT hR hs hCT hC)
+    hasCoverOfSize_of_not (hasCoverOfSize_cutPartition hT' hR' hs hCT' hC)
   -- the lifting theorem: pull it back to a `Π`-cover of `ψ⁻¹(0)` of the same size
   exact H.not_hasCover hlt
     (hasCoverOfSize_of_hasCoverOfSize_permDNF (P := H.P) he
-      (fun _ _ _ _ h => hrep h) hTvars hbal hm hz hcov)
+      (fun _ _ _ _ h => hrep h) hT'vars hbal hm hz hcov)
 
 /-- **`thm: main`** (`source/kc/arXiv.tex:113`): *there is a Boolean function
 with a small structured d-DNNF whose negation has no small structured DNNF*,
@@ -228,15 +254,15 @@ theorem thm_main
         ∃ C : NNF (F ⊕ Zι), C.Computes (DNF.eval ψ') ∧ C.Respects T ∧ C.IsdSDNNF ∧
           C.size ≤ (maps F).card * (termBound * m ^ k)
             * (2 * (Fintype.card Zι + k * m) + 2) + 1) ∧
-      (∀ (T : VTree (F ⊕ Zι)) (C : NNF (F ⊕ Zι)), T.WellFormed → T.vars = Finset.univ →
+      (∀ (T : VTree (F ⊕ Zι)) (C : NNF (F ⊕ Zι)), T.WellFormed →
         C.Respects T → C.vars ⊆ T.vars → C.Computes (fun α => !(DNF.eval ψ' α)) →
           coverBound ≤ C.size) := by
   refine ⟨permDNF e rep H.ψ,
     unambiguous_permDNF (fun _ _ _ _ h => hrep h) H.unambiguous,
     fun T hT hTvars => exists_isdSDNNF_permDNF hrep H.isKDNF H.unambiguous H.numTerms_le
       T hT hTvars,
-    fun T C hT hTvars hR hCT hC =>
-      coverBound_le_size_of_computes_not H he hrep hm hz hT hTvars hR hCT hC⟩
+    fun T C hT hR hCT hC =>
+      coverBound_le_size_of_computes_not H he hrep hm hz hT hR hCT hC⟩
 
 /-- **`thm: sep`** (`source/kc/arXiv.tex:107`, proof at `:465`): *there is a
 function with a small d-SDNNF and no small SDD*.
@@ -261,12 +287,12 @@ theorem thm_sep {c d : ℕ}
         ∃ C : NNF (F ⊕ Zι), C.Computes (DNF.eval ψ') ∧ C.Respects T ∧ C.IsdSDNNF ∧
           C.size ≤ (maps F).card * (termBound * m ^ k)
             * (2 * (Fintype.card Zι + k * m) + 2) + 1) ∧
-      (∀ (T : VTree (F ⊕ Zι)) (C : NNF (F ⊕ Zι)), T.WellFormed → T.vars = Finset.univ →
+      (∀ (T : VTree (F ⊕ Zι)) (C : NNF (F ⊕ Zι)), T.WellFormed →
         C.IsSDDAt C.root T → C.Computes (DNF.eval ψ') → coverBound ≤ c * C.size ^ d) := by
   refine ⟨permDNF e rep H.ψ,
     fun T hT hTvars => exists_isdSDNNF_permDNF hrep H.isKDNF H.unambiguous H.numTerms_le
       T hT hTvars, ?_⟩
-  intro T C hT hTvars hSDD hC
+  intro T C hT hSDD hC
   -- complement the SDD: same v-tree, size at most `c·|C|^d`
   obtain ⟨C', hSDD', hC', hsize⟩ := comp.compl T C _ hT hSDD hC
   -- an SDD is structured, at every node reachable from its source — which is
@@ -275,7 +301,7 @@ theorem thm_sep {c d : ℕ}
     NNF.IsSDDAt.respectsFrom T (VTree.IsSubtree.refl T) C'.root hSDD'
   have hCT' : C'.vars ⊆ T.vars := NNF.IsSDDAt.varsAt_subset T C'.root hSDD'
   exact le_trans
-    (coverBound_le_size_of_computes_not H he hrep hm hz hT hTvars hR' hCT' hC') hsize
+    (coverBound_le_size_of_computes_not H he hrep hm hz hT hR' hCT' hC') hsize
 
 end Main
 

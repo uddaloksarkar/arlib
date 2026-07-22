@@ -266,7 +266,7 @@ theorem thm_main_instance (n k termBound coverBound : ℕ)
           C.size ≤ (2 ^ exponent n - 1) * 2 ^ exponent n * (termBound * copies n ^ k)
             * (2 * (2 * exponent n + k * copies n) + 2) + 1) ∧
       (∀ (T : VTree (Fld n ⊕ Zid n)) (C : NNF (Fld n ⊕ Zid n)), T.WellFormed →
-        T.vars = Finset.univ → C.Respects T → C.vars ⊆ T.vars →
+        C.Respects T → C.vars ⊆ T.vars →
         C.Computes (fun α => !(DNF.eval ψ' α)) → coverBound ≤ C.size) := by
   obtain ⟨e, he⟩ := exists_e n
   obtain ⟨rep, hrep⟩ := exists_rep n
@@ -291,7 +291,7 @@ theorem thm_sep_instance (n k termBound coverBound c d : ℕ)
           C.size ≤ (2 ^ exponent n - 1) * 2 ^ exponent n * (termBound * copies n ^ k)
             * (2 * (2 * exponent n + k * copies n) + 2) + 1) ∧
       (∀ (T : VTree (Fld n ⊕ Zid n)) (C : NNF (Fld n ⊕ Zid n)), T.WellFormed →
-        T.vars = Finset.univ → C.IsSDDAt C.root T → C.Computes (DNF.eval ψ') →
+        C.IsSDDAt C.root T → C.Computes (DNF.eval ψ') →
           coverBound ≤ c * C.size ^ d) := by
   obtain ⟨e, he⟩ := exists_e n
   obtain ⟨rep, hrep⟩ := exists_rep n
