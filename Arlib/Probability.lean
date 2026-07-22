@@ -57,3 +57,5 @@ import Arlib.Probability.MixedCondProd
 import Arlib.Probability.MixedCoordIndep
 import Arlib.Probability.KWiseChernoff
 import Arlib.Probability.SequentialCond
+import Arlib.Probability.SequentialDominate
+import Arlib.Probability.Poisson
