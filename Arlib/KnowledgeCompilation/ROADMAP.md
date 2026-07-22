@@ -66,6 +66,17 @@ conditional on.
 This is not pedantry: two of the four are the *entire* quantitative content of the main
 theorem. If they were axioms, `thm: main` would typecheck while proving nothing.
 
+**Being a `structure` is not by itself enough.** A bundle whose fields were jointly
+unsatisfiable would make every theorem taking it as a hypothesis vacuously true — and that
+theorem would typecheck and would report only `propext`, `Classical.choice`, `Quot.sound`.
+`#print axioms` cannot detect it. The discipline is therefore completed by *inhabiting* the
+bundles: `Imported.fixedPartitionHard_witness` and `Imported.unionHard_witness` are minimal
+witnesses, in the non-vacuity section at the foot of `LowerBounds/Imported.lean`. They say
+nothing about the quantitative content — that is the imported theorem — but they establish
+that the conditionals are about something. `SDDComplementation` is deliberately *not*
+inhabited, for the reason given there, so `thm: sep` sits on a weaker footing than
+`thm: main` and `thm: union`.
+
 See §3 for the list and the status of each.
 
 ---
@@ -100,7 +111,7 @@ Three directories, mirroring the shape of the argument.
 | `RectangleLemma` | d-SDNNF of size `s` ⟹ `Par₁(f) ≤ s`; SDNNF of size `s` ⟹ `Cov₁(f) ≤ s` | **done** — discharges I2 |
 | `Copies` | Step 1: `copyTerm`, `collapse`, `OneHot`, soundness + one-hot completeness, `copyTerm_eq_of_sat` (the crux of unambiguity), `copyDNF` and its term count | **done** — the *counting* form of unambiguity needs the enumeration of choice functions, which is in `Lifting` |
 | `AffinePerms` | the Wegman–Carter family `x ↦ ax+b`, bijectivity, `|𝒫| = (q−1)q`, and exact pairwise independence | **done** — discharges I3 |
-| `Imported` | I1 and I1′ as `structure`s carrying explicit bounds | **done** |
+| `Imported` | I1 and I1′ as `structure`s carrying explicit bounds | **done** — and both inhabited, so the conditionals are not vacuous |
 | `ClaimPerm` | the second-moment argument producing a good permutation | **done** — closes G2 |
 | `Pullback` | protocol simulation as a rectangle pullback along a substitution | **done** |
 | `Lifting` | the canonical choice-function enumeration and the counting unambiguity of `ψ^∨`; Step 2 (`zBlock`, `permTerm`, `permDNF`) with its term count, width and unambiguity; and `thm: fixed_to_best` as a `PartitionMap` | **done** |
