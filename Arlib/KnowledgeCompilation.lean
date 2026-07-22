@@ -103,6 +103,12 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
   explicit bounds and conditional only on the imported hardness.  The
   lower-bound halves hold for *any* v-tree the circuit respects, not only one
   spanning every variable — omitted variables are grafted on.
+* `LowerBounds.Union` — `thm: union`: d-SDNNF is not closed under disjunction.
+  Every component was built for `thm: main`; this is the same composition run at
+  the *partition* half of each rather than the *cover* half.  Determinism turns
+  from a non-hypothesis into a hypothesis, which is the paper's own footnote:
+  unambiguous communication needs disjoint rectangles, and only determinism
+  supplies them.
 * `LowerBounds.ClaimPerm` — the probabilistic heart of the lifting, which the
   paper proves only by citation: some affine permutation places, for every
   original variable and every side of the partition, at least one copy on that
@@ -135,6 +141,7 @@ import Arlib.KnowledgeCompilation.LowerBounds.RectangleLemma
 import Arlib.KnowledgeCompilation.LowerBounds.ClaimPerm
 import Arlib.KnowledgeCompilation.LowerBounds.Lifting
 import Arlib.KnowledgeCompilation.LowerBounds.Separation
+import Arlib.KnowledgeCompilation.LowerBounds.Union
 import Arlib.KnowledgeCompilation.LowerBounds.Instance
 import Arlib.KnowledgeCompilation.LowerBounds.Pullback
 import Arlib.KnowledgeCompilation.LowerBounds.AffinePerms

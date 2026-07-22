@@ -518,6 +518,15 @@ equivalent to `f ∨ g` has size `n^{Ω̃(log n)}`.*
 *Deps:* T1, T3, T10. Note that `f` and `g` must respect a **common** `T` — that is what
 makes the statement about the disjunction operation rather than about two unrelated
 circuits.
+**In Lean** as `Separation.thm_union` (`LowerBounds/Union.lean`), instantiated as
+`Instance.thm_union_instance`. Clause (1) is proved in the stronger form *every*
+well-formed spanning v-tree works for both, which subsumes "some common `T`".
+Clause (2) carries a `Deterministic` hypothesis — see the file docstring: the import is
+about unambiguous protocols, hence rectangular *partitions*, and only determinism makes
+a circuit's rectangles disjoint. This matches the paper's own footnote (line 481).
+The one new ingredient was generalizing `Lifting.exists_partitionMap_permDNF` to produce
+a substitution good for *all* DNFs at once; `ψ` and `φ` must be lifted through the **same**
+`ρ` or the two conclusions say nothing about the union.
 
 **T12. Existential quantification.** (`thm: ex`, line 493; proof line 501)
 *For every `n` there are `X`, `f : {0,1}^X → {0,1}` and `x ∈ X` such that `f` admits a

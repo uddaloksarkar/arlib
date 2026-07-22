@@ -603,11 +603,28 @@ definition of `ρ` inside the proof: the `z`-variables encode `σ`; the copy
 `v_{r(i,k)}` that `σ` places on side `k` of `Γ` carries the value `aᵢ` of the
 original variable, where `k` is the side of `Π` that `xᵢ` is on; and **every
 other variable of `V` is zero**, which is what makes the simulated input one-hot
-and hence puts it in the region where `ψ^∨` and `ψ` agree. -/
+and hence puts it in the region where `ψ^∨` and `ψ` agree.
+
+## One `ρ` for every formula at once
+
+The conclusion quantifies over the DNF *inside* the existential: a single `ρ`
+works simultaneously for **all** `χ`.  This is not a strengthening bought with
+extra work — it is a reading of the construction.  Nothing that builds `ρ` ever
+looks at a formula: the permutation `p` comes from Claim `perm`, which sees only
+`e` and the two sides of `Γ`; the chosen copies `sel`/`site` see only `p` and
+`P.X`.  The formula enters at the very last step, and only to be evaluated.
+
+`thm: union` (`source/kc/arXiv.tex:471`) is what needs this.  There the lifting
+must be applied to `ψ` and `φ` *together* — the hardness is about `f ∪ g`, so
+the same substitution has to convert `ψ' ∪ φ'` into `ψ ∪ φ` in one step.  Two
+separate invocations would produce two unrelated `ρ`s, chosen from two
+independent applications of Claim `perm`, and the union of the two conclusions
+would say nothing about either union. -/
 theorem exists_partitionMap_permDNF (he : Function.Injective e)
     (hrep : Set.InjOn rep (maps F)) (hZ' : Z' = Finset.univ) (hΓ : Γ.Balanced)
     (hm : 6 * Fintype.card ι < m) (hz : 8 * Fintype.card Zι ≤ Fintype.card F) :
-    ∃ ρ : PartitionMap P Γ, ∀ a, DNF.eval (permDNF e rep ψ) (ρ.toFun a) = DNF.eval ψ a := by
+    ∃ ρ : PartitionMap P Γ, ∀ (χ : DNF ι) (a : ι → Bool),
+      DNF.eval (permDNF e rep χ) (ρ.toFun a) = DNF.eval χ a := by
   classical
   -- the two sides of `Γ`, restricted to the copy-variables
   set A : Finset F := Finset.univ.filter (fun x => (Sum.inl x : F ⊕ Zι) ∈ Γ.X) with hAdef
@@ -751,8 +768,8 @@ theorem exists_partitionMap_permDNF (he : Function.Injective e)
     · rcases P.mem_or_mem (Finset.mem_univ i) with h | h
       · exact absurd h hiX
       · exact h
-  · -- and it turns `ψ'` into `ψ`
-    intro a
+  · -- and it turns `χ'` into `χ`, for every `χ` at once
+    intro χ a
     rw [Bool.eq_iff_iff, DNF.eval_eq_true_iff, DNF.eval_eq_true_iff]
     constructor
     · intro h
@@ -781,7 +798,7 @@ theorem hasCoverOfSize_of_hasCoverOfSize_permDNF (he : Function.Injective e)
     {b : Bool} {j : ℕ} (h : HasCoverOfSize Γ (DNF.eval (permDNF e rep ψ)) b j) :
     HasCoverOfSize P (DNF.eval ψ) b j := by
   obtain ⟨ρ, hρ⟩ := exists_partitionMap_permDNF (P := P) he hrep hZ' hΓ hm hz
-  exact hasCoverOfSize_comap ρ hρ h
+  exact hasCoverOfSize_comap ρ (hρ ψ) h
 
 /-- The same for rectangular *partitions*, which is what the unambiguous
 measures `Par`/`UCC` of `thm: union` need. -/
@@ -791,7 +808,29 @@ theorem hasPartitionOfSize_of_hasPartitionOfSize_permDNF (he : Function.Injectiv
     {b : Bool} {j : ℕ} (h : HasPartitionOfSize Γ (DNF.eval (permDNF e rep ψ)) b j) :
     HasPartitionOfSize P (DNF.eval ψ) b j := by
   obtain ⟨ρ, hρ⟩ := exists_partitionMap_permDNF (P := P) he hrep hZ' hΓ hm hz
-  exact hasPartitionOfSize_comap ρ hρ h
+  exact hasPartitionOfSize_comap ρ (hρ ψ) h
+
+/-- **The lifting, applied to a union** — the form `thm: union`
+(`source/kc/arXiv.tex:471`) consumes.
+
+*A rectangular partition of `(ψ' ∪ φ')⁻¹(δ)` for any balanced `Γ` yields one of
+`(ψ ∪ φ)⁻¹(δ)` for `Π`, of the same size.*
+
+The single substitution `ρ` is applied to both formulas, which is exactly what
+the generalized `exists_partitionMap_permDNF` above supplies.  Note that the
+union is taken *after* lifting on the left and *before* it on the right: the
+pullback identity needed is
+`eval ψ' (ρ a) || eval φ' (ρ a) = eval ψ a || eval φ a`, which is the two
+instances of the lifting equation combined pointwise. -/
+theorem hasPartitionOfSize_of_hasPartitionOfSize_permDNF_union (he : Function.Injective e)
+    (hrep : Set.InjOn rep (maps F)) (hZ' : Z' = Finset.univ) (hΓ : Γ.Balanced)
+    (hm : 6 * Fintype.card ι < m) (hz : 8 * Fintype.card Zι ≤ Fintype.card F)
+    {φ : DNF ι} {b : Bool} {j : ℕ}
+    (h : HasPartitionOfSize Γ
+      (fun α => DNF.eval (permDNF e rep ψ) α || DNF.eval (permDNF e rep φ) α) b j) :
+    HasPartitionOfSize P (fun a => DNF.eval ψ a || DNF.eval φ a) b j := by
+  obtain ⟨ρ, hρ⟩ := exists_partitionMap_permDNF (P := P) he hrep hZ' hΓ hm hz
+  exact hasPartitionOfSize_comap ρ (fun a => by rw [hρ ψ a, hρ φ a]) h
 
 omit [Fintype ι] in
 /-- Every function of the variables of `ψ'` is coverable, since there are
@@ -810,7 +849,7 @@ theorem fixedCov_le_fixedCov_permDNF (he : Function.Injective e)
     (hm : 6 * Fintype.card ι < m) (hz : 8 * Fintype.card Zι ≤ Fintype.card F) (b : Bool) :
     fixedCov P (DNF.eval ψ) b ≤ fixedCov Γ (DNF.eval (permDNF e rep ψ)) b := by
   obtain ⟨ρ, hρ⟩ := exists_partitionMap_permDNF (P := P) he hrep hZ' hΓ hm hz
-  exact fixedCov_comap_le ρ hρ (coverable_permDNF hZ' b)
+  exact fixedCov_comap_le ρ (hρ ψ) (coverable_permDNF hZ' b)
 
 end Lifted
 

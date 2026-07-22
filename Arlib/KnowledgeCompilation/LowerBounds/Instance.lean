@@ -77,6 +77,7 @@ development in its own right, consumed exactly once" that `Imported.lean`'s own 
 declines.  Nothing in this file blocks it; it is simply a different piece of work.
 -/
 import Arlib.KnowledgeCompilation.LowerBounds.Separation
+import Arlib.KnowledgeCompilation.LowerBounds.Union
 import Mathlib.FieldTheory.Finite.GaloisField
 
 namespace Arlib.KnowledgeCompilation
@@ -301,6 +302,42 @@ theorem thm_sep_instance (n k termBound coverBound c d : ℕ)
   obtain ⟨C, h1, h2, h3, h4⟩ := hup T hT hTv
   refine ⟨C, h1, h2, h3, h4.trans (le_of_eq ?_)⟩
   rw [card_maps, card_Fld, card_Zid]
+
+/-- **`thm: union` with its parameters discharged** (`source/kc/arXiv.tex:471`).
+
+The same discharge again, on the disjunction theorem.  The parameters are shared
+with `thm_main_instance` — the copy count `6n+1`, the field `Fld n` and the
+identifier set `Zid n` do not depend on *which* hardness result is being lifted,
+only on `n` — so `exists_e`, `exists_rep` and the two cardinality side conditions
+are reused verbatim.  The single remaining hypothesis is `UnionHard`.
+
+The size bound is the same numeral as in `thm_main_instance`, and that is not a
+coincidence: both come from compiling a lifted `k`-DNF with `termBound` terms
+through the same compiler.  Here it is asserted of *both* `ψ'` and `φ'`, against
+one prescribed v-tree. -/
+theorem thm_union_instance (n k termBound partBound : ℕ)
+    (H : Imported.UnionHard (Finset.univ : Finset (Fin n)) k termBound partBound) :
+    ∃ ψ' φ' : DNF (Fld n ⊕ Zid n),
+      (∀ T : VTree (Fld n ⊕ Zid n), T.WellFormed → T.vars = Finset.univ →
+        (∃ C : NNF (Fld n ⊕ Zid n), C.Computes (DNF.eval ψ') ∧ C.Respects T ∧ C.IsdSDNNF ∧
+          C.size ≤ (2 ^ exponent n - 1) * 2 ^ exponent n * (termBound * copies n ^ k)
+            * (2 * (2 * exponent n + k * copies n) + 2) + 1) ∧
+        (∃ C : NNF (Fld n ⊕ Zid n), C.Computes (DNF.eval φ') ∧ C.Respects T ∧ C.IsdSDNNF ∧
+          C.size ≤ (2 ^ exponent n - 1) * 2 ^ exponent n * (termBound * copies n ^ k)
+            * (2 * (2 * exponent n + k * copies n) + 2) + 1)) ∧
+      (∀ (T : VTree (Fld n ⊕ Zid n)) (C : NNF (Fld n ⊕ Zid n)), T.WellFormed →
+        C.Respects T → C.Deterministic → C.vars ⊆ T.vars →
+        C.Computes (fun α => DNF.eval ψ' α || DNF.eval φ' α) → partBound ≤ C.size) := by
+  obtain ⟨e, he⟩ := exists_e n
+  obtain ⟨rep, hrep⟩ := exists_rep n
+  obtain ⟨ψ', φ', hup, hlow⟩ :=
+    Separation.thm_union H he hrep (six_mul_lt_copies n) (eight_mul_card_Zid_le n)
+  refine ⟨ψ', φ', fun T hT hTv => ?_, hlow⟩
+  obtain ⟨⟨C, h1, h2, h3, h4⟩, ⟨D, g1, g2, g3, g4⟩⟩ := hup T hT hTv
+  have hcard : (maps (Fld n)).card = (2 ^ exponent n - 1) * 2 ^ exponent n := by
+    rw [card_maps, card_Fld]
+  exact ⟨⟨C, h1, h2, h3, h4.trans (le_of_eq (by rw [hcard, card_Zid]))⟩,
+    ⟨D, g1, g2, g3, g4.trans (le_of_eq (by rw [hcard, card_Zid]))⟩⟩
 
 end Instance
 end Arlib.KnowledgeCompilation

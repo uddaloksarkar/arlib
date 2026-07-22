@@ -104,7 +104,8 @@ Three directories, mirroring the shape of the argument.
 | `ClaimPerm` | the second-moment argument producing a good permutation | **done** — closes G2 |
 | `Pullback` | protocol simulation as a rectangle pullback along a substitution | **done** |
 | `Lifting` | the canonical choice-function enumeration and the counting unambiguity of `ψ^∨`; Step 2 (`zBlock`, `permTerm`, `permDNF`) with its term count, width and unambiguity; and `thm: fixed_to_best` as a `PartitionMap` | **done** |
-| `Separation` | `thm: main` and `thm: sep`, with both bounds explicit | **done** — `thm: main` conditional on I1, `thm: sep` on I1 and I5; `thm: union`, `thm: ex` still to do |
+| `Separation` | `thm: main` and `thm: sep`, with both bounds explicit | **done** — `thm: main` conditional on I1, `thm: sep` on I1 and I5 |
+| `Union` | `thm: union`, the same assembly at `Par₁` rather than `Cov₀` | **done** — conditional on I1′; `thm: ex` still to do |
 
 ---
 
@@ -396,10 +397,20 @@ remains, in the order it is worth doing:
    paper's `n^{Ω̃(log n)}`. This is the only remaining asymptotic step in the area, and it now
    depends on a *family* version of `Imported.FixedPartitionHard` carrying `n = k^{O(1)}`,
    `termBound = 2^{Õ(k)}` and `coverBound = 2^{Ω̃(k²)}`, not on anything about the witness.
-2. **`thm: union` and `thm: ex`** (T11, T12). `Imported.UnionHard` and the `Par`-side pullback
-   (`Lifting.hasPartitionOfSize_of_hasPartitionOfSize_permDNF`) are both already in place, so
-   T11 is the same assembly as `thm: main` with `Par₁` in place of `Cov₀`; T12 is a short
-   circuit construction on top of it.
+2. ~~**`thm: union`**~~ (T11) — *done*, `LowerBounds/Union.lean`, plus `thm_union_instance`.
+   It was indeed the `thm: main` assembly with `Par₁` for `Cov₀`, and it compiled first try:
+   both halves of the rectangle lemma and both halves of the lifting had been proved when
+   they were written, so the file is the composition and nothing else. One thing did have to
+   change — `Lifting.exists_partitionMap_permDNF` now quantifies over the DNF *inside* the
+   existential, so that a single `ρ` serves `ψ` and `φ` simultaneously. Two invocations would
+   draw two unrelated permutations from Claim `perm`, and the pair of conclusions would say
+   nothing about the union. The construction never looked at a formula in the first place, so
+   this cost nothing.
+   **`thm: ex`** (T12) is next. Note the paper's proof glues two *circuits*; we do the mux at
+   the *DNF* level instead and reuse `exists_isdSDNNF_of_unambiguous_kDNF`, which avoids
+   index-shifting machinery for straight-line programs that the area needs nowhere else.
+   Quantifying `∃x` away lands back in the original variable type, so no partition-transfer
+   step is required either.
 3. **Gap G1** — restate `Decomposable`/`Deterministic`/`Respects` over reachable nodes. This
    deletes a field of `Imported.SDDComplementation` and a hypothesis of `IsSDD.isdSDNNF`.
 4. **Gap G5** — remove the `var(T) = var(ψ')` hypothesis of the lower bounds, if it is worth it.
