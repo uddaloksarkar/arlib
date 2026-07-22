@@ -64,6 +64,8 @@ was waiting for.
 import Arlib.KnowledgeCompilation.Circuits.DNF
 import Arlib.KnowledgeCompilation.Circuits.SDD
 import Arlib.KnowledgeCompilation.Communication.Measures
+import Arlib.KnowledgeCompilation.Communication.ConicalJunta
+import Arlib.KnowledgeCompilation.Communication.Gadget
 
 namespace Arlib.KnowledgeCompilation
 namespace Imported
@@ -188,6 +190,70 @@ structure SDDComplementation (V : Type*) [DecidableEq V] (c d : ℕ) where
     C.IsSDDAt C.root T → C.Computes f →
     ∃ C' : NNF V, C'.IsSDDAt C'.root T ∧
       C'.Computes (fun α => !(f α)) ∧ C'.size ≤ c * C.size ^ d
+
+/-! ## The two results behind `UnionHard`
+
+`UnionHard` is itself derivable — see `ROADMAP.md` §3, "Unwinding I1′" — from
+Göös–Kiefer–Yuan's Theorem 2, whose proof rests on two results *they* import and
+one they prove.  The one they prove is formalized
+(`Communication/ConicalJunta.lean`, `not_hasConicalApprox_orExt`); the two they
+import are below.
+
+Stating them here rather than keeping `UnionHard` opaque is worth the two extra
+bundles: it makes visible that the paper-specific content of the union theorem
+is proved and only two standard, widely-cited results are assumed.  As
+everywhere in this file, their asymptotics become explicit parameters. -/
+
+/-- **I7 — hardness of negation for approximate conical juntas**
+[IMPORTED — Göös–Jayram–Pitassi–Watson, Lemma 8], quoted as
+`lem:gjpw` in `source/kc/goos/parts/union.tex`.
+
+*For every `m` there is `f` with `n ≤ poly(m)` variables such that
+`UC₁(f) ≤ m` and `deg⁺_{0.05}(¬f) ≥ Ω̃(m²)`.*
+
+The `UC₁(f) ≤ m` half is data rather than a hypothesis: it *is* an unambiguous
+`m`-DNF for `f`, which is the form the upper-bound half of the union argument
+consumes.  The `Ω̃(m²)` becomes the parameter `degBound`, and `0.05` the
+parameter `δ`, so that a downstream theorem relates the constants it is given to
+the constants it produces. -/
+structure HardnessOfNegation (κ : Type) [Fintype κ] [DecidableEq κ]
+    (m degBound : ℕ) (δ : ℝ) where
+  /-- The hard function, presented as an unambiguous `m`-DNF. -/
+  f : DNF κ
+  /-- Its terms have at most `m` literals — the paper's `UC₁(f) ≤ m`. -/
+  isKDNF : DNF.IsKDNF m f
+  /-- It is unambiguous. -/
+  unambiguous : DNF.Unambiguous f
+  /-- No conical junta of degree below `degBound` `δ`-approximates `¬f`. -/
+  hard : ∀ d < degBound, ¬ ConicalJunta.HasConicalApprox d δ
+    (fun α => 1 - (if DNF.eval f α then (1 : ℝ) else 0))
+
+/-- **I8 — lifting non-negative degree to non-negative rank**
+[IMPORTED — Göös–Lovett–Meka–Watson–Zuckerman; Kothari], quoted as
+`thm:ndeg-lifting` in `source/kc/goos/parts/union.tex`.
+
+*Fix `δ > ε > 0`.  For any `n` there is a gadget `g` on `b = Θ(log n)` bits such
+that for any `f`, `log rk⁺_ε(f ∘ gⁿ) ≥ Ω(deg⁺_δ(f)·b)`.*
+
+Three things are made explicit.  The gadget is *data*, since the upper-bound half
+of the argument composes with the very same gadget.  The logarithm is removed by
+stating the conclusion as a lower bound on the rank itself: `liftBound d` is the
+paper's `2^{Ω(d·b)}`.  And "for any `f`" is quantified inside the bundle, because
+the union argument applies it to `f^∨` and not to `f`.
+
+The composition and its partition are `Communication/Gadget.lean`; taking the
+variable type there to be `ι ⊕ ι` is what makes this bundle applicable to `f^∨`
+with no separate construction. -/
+structure NonnegLifting (κ : Type) [Fintype κ] [DecidableEq κ]
+    (b : ℕ) (ε δ : ℝ) (liftBound : ℕ → ℕ) where
+  /-- The gadget, on `b` bits for each party. -/
+  gadget : (Fin b → Bool) → (Fin b → Bool) → Bool
+  /-- Lifting: a degree lower bound for `f` becomes a non-negative-rank lower
+  bound for the composed two-party function. -/
+  lift : ∀ (f : (κ → Bool) → Bool) (d : ℕ),
+    (¬ ConicalJunta.HasConicalApprox d δ (fun α => if f α then (1 : ℝ) else 0)) →
+    ∀ r < liftBound d, ¬ HasApproxNonnegRankOfSize (Gadget.partition κ b)
+      (fiberIndicator (Gadget.compose gadget f) true) ε r
 
 /-! ## A non-vacuity check
 

@@ -99,6 +99,11 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
   powering trick of their Claim 16 — the latter with the source's logarithmic
   parameters replaced by the three inequalities its proof actually uses.  Also
   `deg⁺(f) ≤ UC₁(f)`, linking the file to `Circuits.DNF`.
+* `Communication.Gadget` — composing a Boolean function with a two-party gadget,
+  the construction lifting theorems are about, and the exactly-balanced partition
+  it induces.  Stated for a general variable type, so that taking it to be
+  `ι ⊕ ι` gives the composition of the *doubled* function `f^∨` for free — which
+  is how the union argument's four-block bookkeeping disappears.
 
 ### LowerBounds
 
@@ -171,6 +176,7 @@ import Arlib.KnowledgeCompilation.Communication.Rectangle
 import Arlib.KnowledgeCompilation.Communication.Measures
 import Arlib.KnowledgeCompilation.Communication.NonnegRank
 import Arlib.KnowledgeCompilation.Communication.ConicalJunta
+import Arlib.KnowledgeCompilation.Communication.Gadget
 import Arlib.KnowledgeCompilation.LowerBounds.Copies
 import Arlib.KnowledgeCompilation.LowerBounds.BalancedCut
 import Arlib.KnowledgeCompilation.LowerBounds.RectangleLemma
