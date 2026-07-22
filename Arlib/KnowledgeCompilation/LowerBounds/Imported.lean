@@ -171,5 +171,133 @@ structure SDDComplementation (V : Type*) [DecidableEq V] (c d : ℕ) where
     ∃ C' : NNF V, C'.IsSDDAt C'.root T ∧
       C'.Computes (fun α => !(f α)) ∧ C'.size ≤ c * C.size ^ d
 
+/-! ## A non-vacuity check
+
+Every headline theorem in the area is conditional on one of the bundles above,
+and on nothing else.  So there is a failure mode that `#print axioms` cannot
+detect and that would make the entire development worthless: if a bundle's
+fields were jointly **unsatisfiable**, every theorem taking it as a hypothesis
+would be vacuously true, would typecheck, and would report only the three
+standard axioms.
+
+This is the same worry that made these imports structures rather than `axiom`s
+(module docstring, and `ROADMAP.md` §1.3) — but making them structures does not
+by itself answer it.  Inhabiting them does.  What follows exhibits a witness for
+each, so that "conditional on `FixedPartitionHard`" is known to be a hypothesis
+about something rather than about nothing.
+
+*What these witnesses are not.*  They are the smallest possible instances, on two
+variables, with `coverBound = partBound = 1`.  They say nothing whatsoever about
+the interesting content — that `2^{Ω̃(k²)}` rectangles are needed — which is a
+genuine theorem of Göös et al. and is exactly what is being imported.  The check
+is a consistency check on the *shape* of the bundle: no field contradicts
+another, the balancedness condition is satisfiable alongside the hardness
+condition, and so a reader knows the conditional statements are not empty.  A
+bound of `1` is nonetheless not nothing: it is the strongest bound these
+degenerate formulas admit, and getting it requires the `sInf` to be over a
+nonempty set, which is precisely the junk-value trap that
+`Communication/Measures.lean` documents. -/
+
+section Nonvacuity
+
+/-- The balanced partition of two variables: one on each side.  Two variables is
+the minimum — `Balanced` asks `|Z| ≤ 3·min(|X|,|Y|)`, so neither side may be
+empty. -/
+def twoPart : VarPartition (Finset.univ : Finset (Fin 2)) where
+  X := {0}
+  Y := {1}
+  disj := by decide
+  union_eq := by decide
+
+theorem twoPart_balanced : twoPart.Balanced := by
+  unfold VarPartition.Balanced twoPart
+  decide
+
+variable {V : Type*} [DecidableEq V] {Z : Finset V}
+
+/-- A function constantly equal to `b` needs exactly one rectangle to cover its
+`b`-fibre — and, crucially, not zero.  The empty family covers only the empty
+set, and this fibre is everything. -/
+private theorem one_le_fixedCov_of_total (P : VarPartition Z)
+    {f : (V → Bool) → Bool} {b : Bool} (h : ∀ α, f α = b) : 1 ≤ fixedCov P f b := by
+  have hcov : Coverable P f b :=
+    ⟨1, ⟨fun _ => Rectangle.univ P,
+      fun α => ⟨fun _ => h α, fun _ => ⟨0, Rectangle.mem_univ⟩⟩⟩⟩
+  rcases Nat.eq_zero_or_pos (fixedCov P f b) with h0 | hpos
+  · exfalso
+    have hmem := hasCover_fixedCov hcov
+    rw [h0] at hmem
+    obtain ⟨R, hR⟩ := hmem
+    obtain ⟨i, -⟩ := (hR (fun _ => false)).mpr (h _)
+    exact i.elim0
+  · exact hpos
+
+/-- The same for rectangular partitions.  One rectangle is trivially disjoint
+from itself only because there is no second index. -/
+private theorem one_le_fixedPar_of_total (P : VarPartition Z)
+    {f : (V → Bool) → Bool} {b : Bool} (h : ∀ α, f α = b) : 1 ≤ fixedPar P f b := by
+  have hpart : Partitionable P f b :=
+    ⟨1, ⟨fun _ => Rectangle.univ P,
+      ⟨fun α => ⟨fun _ => h α, fun _ => ⟨0, Rectangle.mem_univ⟩⟩,
+       fun i j hij => absurd (Subsingleton.elim i j) hij⟩⟩⟩
+  rcases Nat.eq_zero_or_pos (fixedPar P f b) with h0 | hpos
+  · exfalso
+    have hmem := hasPartition_fixedPar hpart
+    rw [h0] at hmem
+    obtain ⟨R, hR⟩ := hmem
+    obtain ⟨i, -⟩ := (hR.1 (fun _ => false)).mpr (h _)
+    exact i.elim0
+  · exact hpos
+
+/-- **`FixedPartitionHard` is satisfiable**, for every `k`.
+
+The witness is the empty DNF, which computes the constant `0`; its `0`-fibre is
+everything, which no family of `0` rectangles covers, so `Cov₀ ≥ 1`. -/
+def fixedPartitionHard_witness (k : ℕ) :
+    FixedPartitionHard (Finset.univ : Finset (Fin 2)) k 0 1 where
+  ψ := []
+  P := twoPart
+  balanced := twoPart_balanced
+  isKDNF := by simp [DNF.IsKDNF]
+  unambiguous := DNF.unambiguous_nil
+  numTerms_le := le_refl 0
+  hard := one_le_fixedCov_of_total _ (fun _ => rfl)
+
+/-- **`UnionHard` is satisfiable**, for every `k`.
+
+Here the witness must go the other way: the hardness clause is about the
+`1`-fibre of the *union*, so the two formulas are taken to be the single empty
+term — the constant `1` — and the fibre is again everything. -/
+def unionHard_witness (k : ℕ) :
+    UnionHard (Finset.univ : Finset (Fin 2)) k 1 1 where
+  ψ := [∅]
+  φ := [∅]
+  P := twoPart
+  balanced := twoPart_balanced
+  isKDNF := ⟨by simp [DNF.IsKDNF, Term.width], by simp [DNF.IsKDNF, Term.width]⟩
+  unambiguous :=
+    ⟨fun α => le_trans (List.length_filter_le _ _) (le_refl 1),
+     fun α => le_trans (List.length_filter_le _ _) (le_refl 1)⟩
+  numTerms_le := ⟨le_refl 1, le_refl 1⟩
+  hard := one_le_fixedPar_of_total _ (fun _ => by simp [DNF.eval])
+
+/-! ### The bundle this section does not discharge
+
+`SDDComplementation` gets no witness here, and the reason is worth recording
+rather than leaving as an omission.
+
+Its field is not a bound on a number but a `∀` over *every* SDD, demanding an
+actual complement circuit for each.  There is no degenerate instance: one cannot
+take `c = d = 0` and return a circuit of size `0`, because `NNF` carries a
+`root : Fin size` and so has no size-`0` inhabitants.  Producing a witness would
+mean implementing complementation and proving it correct — which is precisely
+the imported content, Darwiche's theorem, and not a shape check.
+
+So `thm: sep` remains conditional on a bundle not known here to be inhabited.
+That is an honest weaker position than the one `thm: main` and `thm: union`
+enjoy, and it is stated rather than hidden. -/
+
+end Nonvacuity
+
 end Imported
 end Arlib.KnowledgeCompilation
