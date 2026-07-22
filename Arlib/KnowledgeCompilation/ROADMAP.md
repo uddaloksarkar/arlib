@@ -94,6 +94,7 @@ Three directories, mirroring the shape of the argument.
 | `SDD` | `XDecomposition`, `IsChain`, `IsSDDAt`, `Reaches`, SDD ⊆ d-SDNNF | **done** (see G1) |
 | `DNF` | terms, width, `IsKDNF`, `Unambiguous` | **done** |
 | `DNFtoCircuit` | the DNF-to-d-SDNNF construction, `size ≤ ℓ·(2k+2) + 1` | **done** |
+| `DNFMux` | `muxDNF`, `existsFresh`, `∃x f_C ≡ f ∨ g` — the upper-bound ingredients of `thm: ex`, muxed at the DNF level rather than by gluing circuits | **done** |
 | `Arithmetic` | AC, monotone/positive AC, `supp`, the relabelling `φ`, p-decomposition, PSDD | last |
 
 ### `Communication/` — the tool
