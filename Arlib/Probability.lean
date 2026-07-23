@@ -57,3 +57,6 @@ import Arlib.Probability.MixedCondProd
 import Arlib.Probability.MixedCoordIndep
 import Arlib.Probability.KWiseChernoff
 import Arlib.Probability.SequentialCond
+import Arlib.Probability.FailureAmplification
+import Arlib.Probability.IIDProduct
+import Arlib.Probability.EmpiricalFrequency
