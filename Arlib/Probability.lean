@@ -59,3 +59,5 @@ import Arlib.Probability.KWiseChernoff
 import Arlib.Probability.SequentialCond
 import Arlib.Probability.SequentialDominate
 import Arlib.Probability.Poisson
+import Arlib.Probability.TVDistance
+import Arlib.Probability.Rejection
