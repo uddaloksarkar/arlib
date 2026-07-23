@@ -71,6 +71,21 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
   *hitting-time* bound rather than a mixing bound: a drift condition
   `K Φ ≤ λ·Φ` self-improves to `K^t Φ ≤ λ^t·Φ`, and a finite Markov inequality
   turns that into `Pr[not in T after t steps] ≤ λ^t · Φ(x₀)`.
+* `Techniques.HittingTime` — hitting times without measure theory: the killed
+  one-step operator, the survival probabilities `Pr_x[H_T > n]`, almost-sure
+  reachability, and the expected hitting time as a tail sum.
+* `Techniques.RankingSupermartingale` — ranking supermartingale certificates for
+  almost-sure reachability: the crux inequality `ε·∑_{k<n} Pr_x[H_T>k] ≤ V(x)`,
+  soundness, completeness, and a counterexample showing that the equivalence
+  must quantify over *all* states rather than an initial one.
+* `Techniques.ProgressPath` — the quantitative hitting bound from a graph
+  condition: uniform `q`-weighted paths of length `≤ D` give
+  `Pr_x[H_T > D] ≤ 1 - q^D` and `E_x[H_T] ≤ D/q^D`, and the condition survives
+  perturbation of the kernel.
+* `Techniques.ReachDistance` — the graph layer under it: reachability along
+  positive-probability transitions, the shortest-path distance `Dist`, the
+  eccentricity `ecc` with `ecc < |Ω|`, and the bridge from the `p_min`
+  hypothesis to `HasProgressPaths`.
 * `Techniques.SinusoidalPotential` — Wilson's potential `Φ(i) = sin(Ci)/sin C`
   and the hitting-time bound it yields for the hole walk of Huber's bounding
   chain for linear extensions (Huber 2006b, Theorem 5).  The engine is the
@@ -244,6 +259,10 @@ import Arlib.MarkovChains.Techniques.Conductance
 import Arlib.MarkovChains.Techniques.Coupling
 import Arlib.MarkovChains.Techniques.MixingTime
 import Arlib.MarkovChains.Techniques.PotentialDecay
+import Arlib.MarkovChains.Techniques.HittingTime
+import Arlib.MarkovChains.Techniques.RankingSupermartingale
+import Arlib.MarkovChains.Techniques.ProgressPath
+import Arlib.MarkovChains.Techniques.ReachDistance
 import Arlib.MarkovChains.Techniques.SinusoidalPotential
 import Arlib.MarkovChains.Techniques.LevelVariance
 import Arlib.MarkovChains.Techniques.LocalToGlobal
