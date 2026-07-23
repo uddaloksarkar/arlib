@@ -24,6 +24,11 @@ aggregation of area roots — put content in the area modules, not here.
 * `Arlib.Combinatorics` — generic `Finset` / `List` / `BigOperators` helpers
   (union-folds, powerset-of-union, disjoint-union projection, a concatenation
   counting bound, `List.foldr min` bounds).
+* `Arlib.Approximation` — relative-error approximation: the algebra of
+  multiplicative error windows, and `Coresets/`, domain reduction for `ℓ¹` linear
+  tests (weighted point sets, the functional `∑ᵢ μᵢ |⟨y, vᵢ⟩|`, subspace
+  embeddings and their composition, tensor and Hadamard products, and the
+  propagation invariant for a bottom-up reduction over a tree of regions).
 * `Arlib.Algorithms` — analyses of specific algorithms, each split so that only
   the problem-independent half lives here. Currently the Tootsie Pop Algorithm:
   the Poisson law of its contraction counter, and almost-sure termination.
@@ -39,6 +44,7 @@ aggregation of area roots — put content in the area modules, not here.
 import Arlib.Prelude
 import Arlib.Probability
 import Arlib.Combinatorics
+import Arlib.Approximation
 import Arlib.GameTheory
 import Arlib.InformationTheory
 import Arlib.Algorithms
