@@ -24,6 +24,10 @@ aggregation of area roots — put content in the area modules, not here.
 * `Arlib.Combinatorics` — generic `Finset` / `List` / `BigOperators` helpers
   (union-folds, powerset-of-union, disjoint-union projection, a concatenation
   counting bound, `List.foldr min` bounds).
+* `Arlib.MDP` — finite Markov decision processes with reachability objectives:
+  the model over a `FinKernel`, end components, the hitting-time weight and the
+  contraction it supplies, `Q*` by value iteration, trajectory semantics, and
+  policy values.
 * `Arlib.MarkovChains` — finite Markov chains: kernels, the `L²(μ)` calculus,
   the Dirichlet form and the Poincaré inequality, decay of variance and of
   χ²-divergence, total variation and mixing time, and analyses of specific
@@ -36,3 +40,4 @@ import Arlib.Combinatorics
 import Arlib.GameTheory
 import Arlib.InformationTheory
 import Arlib.MarkovChains
+import Arlib.MDP

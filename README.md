@@ -26,8 +26,8 @@ gives you one area.
 
 ### `Arlib.Probability` — finite/discrete probability
 
-25 modules, ~5.3k LOC, ~220 lemmas/theorems, 40 definitions/structures. Finite
-probability spaces and the machinery built on them:
+Finite probability spaces and the machinery built on them, **plus** a smaller
+group of modules built directly on Mathlib's measure theory (see below):
 
 | Module | Content |
 | --- | --- |
@@ -43,6 +43,21 @@ probability spaces and the machinery built on them:
 | `ContCoinProto`, `MixedCoinSpace`, `MixedRunProduct`, `MixedCoordIndep`, `MixedCondCELinear`, `MixedCondProd` | Continuous/mixed coin protocol and the mixed (continuous × discrete) product space and its independence / conditional-expectation algebra. |
 | `ProbSpaceValidation` | Sanity/validation lemmas for the space axioms. |
 
+**Measure-theoretic modules.** Built on Mathlib's `MeasureTheory.Measure`,
+`Filtration`, `condexp` and `Martingale` rather than on `FinProb`, because the
+statements are about limits, conditional expectation and almost-sure convergence
+and have no finite surrogate.
+
+| Module | Content |
+| --- | --- |
+| `RobbinsMonro` | The deterministic half of stochastic approximation: **the product lemma** `∏(1 − aₙ) → 0` under `∑ aₙ = ∞`, the recursion `Y_{n+1} = (1−aₙ)Yₙ + aₙc` with its closed form and convexity bounds, and criteria for establishing `∑ α = ∞` when the sequence is bounded below only along a sparse set of active times (`tendsto_sum_atTop_of_count_harmonic_le`). No measure theory. |
+| `StochasticApproximation` | **Robbins–Siegmund**, and `tendsto_zero_of_sa`: the scalar recursion `W_{t+1} = (1−α_t)W_t + α_t ε_t` drives `W_t → 0` a.s. under `E[ε_t ∣ F_t] = 0`, `E[ε_t² ∣ F_t] ≤ B`, `∑ α_t = ∞`, `∑ α_t² < ∞`. Stated over an arbitrary space and filtration. Includes `ae_exists_tendsto_of_nonneg_supermartingale` — a.e. convergence of a nonnegative supermartingale, which Mathlib states only in the `L¹`-bounded *sub*martingale form. |
+| `CondExpFreshDraw` | A centred fresh draw independent of the history has conditional mean zero — *unbiasedness of a sampled target* — over an arbitrary probability space, sub-σ-algebra, finite draw space and bounded factors. Plus the second-moment bound and `∑_{k<n} 1/(k+1)² ≤ 2`. |
+| `TorusProduct` | A **countably-indexed mutually independent uniform family**, built as normalised Haar measure on `ι → AddCircle 1` — no product construction needed, since independence and uniformity are *derived* from uniqueness of Haar measure on the finite-dimensional marginals. With `cylinderEvents` blocks and the time filtration `ℱ t = σ(draws before t)`. Mathlib v4.15 has no infinite product measure (`Measure.pi` stops at `Fintype`) and no Kolmogorov extension, so there is no other route to this object. |
+| `InverseCDF` | An arbitrary finite law from one uniform coin, by cutting `(0,1]` at the cumulative sums; `measure_drawOf_eq` proves the law is `p` exactly, and `drawOf_pos` that a zero-probability element is never returned (pointwise, not merely a.s.). Complements the finite-grid `UniformCoin` and the single coin of `ContCoinProto`. |
+| `LevyBorelCantelli` | Lévy's conditional Borel–Cantelli re-indexed for events adapted one step *late* — the shape a randomized process actually supplies, where the event at step `t` is decided by randomness drawn at step `t`. |
+| `MeasurableIndex` | Measurability of `f (X ω) ω`, a quantity read at a random, countably-valued index. `measurable_comp_index` needs **no** hypothesis on `f` at all. |
+
 ### `Arlib.Combinatorics` — generic `Finset` / `List` helpers
 
 Fully generic (`[DecidableEq α]` / `[LinearOrder α]`) helper lemmas that recurred
@@ -53,6 +68,7 @@ across several projects but are not in Mathlib under an obvious name.
 | `Combinatorics.Finset` | Membership in a list-fold union (`mem_foldr_union`, `mem_foldr_union_map`); powerset of a union as an image of a product (`image_union_powerset`); recovering a summand of a disjoint union (`union_inter_left`/`right`); tiling an interval by consecutive blocks (`Ico_biUnion_blocks`); a concatenation counting bound `|A|·|B| ≤ |C|` (`concat_injOn`, `card_mul_le_of_concat_subset`). |
 | `Combinatorics.BigOperators` | Diagonal/off-diagonal split of a double sum (`sum_matrix_diag_offdiag`); products of an idempotent function over subsets/unions/`biUnion`s (`prod_mul_prod_subset`, `prod_union_idem`, `prod_biUnion_idem`); a surjection–product inequality (`prod_le_prod_comp_of_surj`); products of `{0,1}`-valued functions (`prod_zero_or_one`, `zo_prod_eq_one_iff`). |
 | `Combinatorics.ListFold` | Upper/lower bounds for `List.foldr min` (`foldr_min_le_init`, `foldr_min_le_mem`, `le_foldr_min`, `lt_foldr_min`). |
+| `Combinatorics.FoldMax` | `maxOver s b f = s.fold max b f`, a `Finset` maximum **floored at `b`** — total, so no nonemptiness side condition ever appears at a call site, unlike `Finset.sup'`. The characterisation `maxOver_le_iff`, the two lower bounds, and the strict upper bound `maxOver_lt`. Companion to `ListFold`. |
 
 ### `Arlib.MarkovChains` — finite Markov chains
 
@@ -125,6 +141,37 @@ here by an elementary variational, discriminant, or adjointness argument.
 | `Chains.ProductEntropy` | Tensorization of *entropy* for a product measure at `C = 1`, and the library's first modified log-Sobolev instance, `ModLogSobolev μ (glauber …) (1/n)` — stated against `entropyProduction`, never the vacuous naive form. Includes `localEnt_le_entropyProduction`, valid for any reversible chain. |
 | `Chains.HardCore` | The monograph's two running examples. Hard-core, whose weight can vanish, with the exact `Zloc` trichotomy and the `λ/(1+λ)` update; and Ising, whose weight cannot, so `0 < Z` needs no hypothesis at all. |
 
+### `Arlib.MDP` — finite Markov decision processes, reachability objectives
+
+11 modules, ~2.6k LOC. The control layer over `Arlib.MarkovChains`: an `MDP S A`
+carries its transition kernel as a `MarkovChains.FinKernel (S × A) S`, so every
+one-step expectation in the area *is* `FinKernel.act` and the kernel algebra is
+inherited rather than re-proved.
+
+**Scope.** The objective throughout is **reachability** — maximise the
+probability of ever hitting the target set `S_T`. There are no rewards and no
+discount factor, and the terminal/target partition is part of the `MDP`
+structure. What replaces the missing discount factor is the hitting-time weight
+`T_s`, and the central result is that it supplies a genuine contraction.
+
+`MarkovChains.Techniques.{HittingTime, RankingSupermartingale, ProgressPath,
+ReachDistance}` are the **fixed-chain** version of the same story; this area is
+those questions with a `sup` over policies in front of them.
+
+| Module | Content |
+| --- | --- |
+| `MDP.Basic` | The `MDP` structure over a `FinKernel`; the state partition `Sₙₜ` / `S_T` / `S_N` and the enabled non-terminal pairs `SAnt`; the greedy value `vmax`. |
+| `MDP.Bellman` | The Bellman optimality operator `H` and the boundary extension `extVal` — `1` on a target, `0` on a non-target terminal, `max_{a'} Q(s',a')` on a non-terminal. |
+| `MDP.EndComponent` | `IsEC` (closed + strongly connected), the no-EC condition `NoEC`, reachability from `s₀`, and `AllReachable`. |
+| `MDP.HittingWeight` | The `HittingWeight` interface — the worst-case expected time to termination `T_s` — and the contraction factor `β = 1 − 1/maxₛ T_s < 1`. |
+| `MDP.WeightedNorm` | `‖Q‖_w = max_{(s,a) ∈ Sₙₜ×A} \|Q(s,a)\|/w(s,a)`, its pointwise form `WLe`, and the bridge between them. |
+| `MDP.Contraction` | **The crux**: `H` is a `β`-contraction in the `T_s`-weighted maximum norm. Proved for *two arbitrary arguments*, which is what lets `Q*` be constructed rather than assumed. |
+| `MDP.FixedPoint` | `Q*` **constructed** by value iteration from `0` plus Banach, with `H_Qstar`, uniqueness (`eq_Qstar_of_fixed`) and `Qstar_mem_Icc`. |
+| `MDP.Termination` | `exists_hittingWeight_of_noEC`: no end component ⟹ a uniform escape probability ⟹ a bounded expected hitting time. The `HittingWeight` interface is *discharged*, not postulated. Runs on the survival values `surviveVal`, the `Good` sets and `EscapeBound`. |
+| `MDP.Reachability` | `V*` and `Q*` by dynamic programming (`reachVal`, `Vstar`, `Qsem`), the Bellman optimality equations, and `Qsem_eq_Qstar` coupling the semantic value to the fixed point. |
+| `MDP.Trajectory` | Trajectory probabilities, with `pathProb_eq_prod` giving the honest product `∏ₖ P(s_{k+1} ∣ s_k, π(s_k))`, and **`isGreatest_reachProbSem`: the dynamic program is the attained maximum over policies**, not merely a supremum. `Vstar_isLUB_reachProbSem` at the infinite horizon. |
+| `MDP.PolicyValue` | `V^π` by the same route one policy at a time; the policy operator `Hpi` and its contraction; `Vpi_eq_Vstar` for a greedy-optimal policy; `greedy_eventually_optimal` and `tendsto_Vpi_greedy`. |
+
 ### `Arlib.Prelude`
 
 Small shared notation, currently the multiplicative **relative-error interval**
@@ -180,6 +227,8 @@ arlib/                    # repo folder (Lake package name stays lowercase)
     MarkovChains/
       Techniques/*.lean   # machinery valid for any finite chain
       Chains/*.lean       # analysis of specific chains
+    MDP.lean              # area root
+    MDP/*.lean            # finite MDPs with reachability objectives
 ```
 
 ## License
