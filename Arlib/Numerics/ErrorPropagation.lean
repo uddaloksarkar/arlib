@@ -11,11 +11,11 @@ import Mathlib.Tactic.Positivity
 /-!
 # Computational-DAG error propagation
 
-A "Computational DAG" (Bauer 1974's *additive*-error framework, extended here to
-*multiplicative* relative errors) models a floating-point evaluation of a numerical
-expression as a tree of the six basic operations `+ - × ÷ √ log`, each rounded on
-top of whatever error already arrived from its children.  This file formalizes the
-generic (Poisson-sampler-independent) machinery: the expression language `Expr`, its
+A computational DAG models a floating-point evaluation of a numerical expression
+as a tree of the six basic operations `+ - × ÷ √ log`, each rounded on top of
+whatever error already arrived from its children, with errors tracked
+*multiplicatively* (as relative errors) rather than additively.  This file
+develops that machinery in full generality: the expression language `Expr`, its
 ideal (`eval`) and rounded (`evalRnd`) evaluators for an *abstract* rounding oracle
 satisfying the standard relative-error contract, the symbolic bottom-up error bound
 `errBound`, and the master theorem bounding the true relative error of the rounded
@@ -24,25 +24,21 @@ evaluation by `errBound` plus an explicit, honestly-tracked `O(ε²)` correction
 ## Design choices (documented, not hidden)
 
 * **Exact constants are not rounded at all** (`θ = 0`, and `evalRnd` leaves a
-  `const` leaf untouched). The paper offers this as one of two equally defensible
-  modeling choices for a constant that is exactly representable; we take it here
-  because it makes the `const` case of the master theorem trivial and honest
-  (zero error in, zero error out), rather than because it is somehow more "correct."
-* **The `log` node carries its own lower bound.** Per the task's own suggested
-  encoding, `Expr.log (g : Expr ι) (lb : ℝ)` carries the promised bound
-  `lb ≤ |log (eval env g)|` alongside the node, avoiding a separate side-map from
-  nodes to bounds.
-* **`errBound` needs the environment, not just the syntax tree.** The paper's own
-  subtraction rule `θ_v = (θ_g·g + θ_h·h)/(g-h) + ε` mentions the *values* `g`,
-  `h`, not just their symbolic error bounds — so, unlike the sketch signature in
-  the task description, `errBound` is parameterized by `env` as well as `ε`,
-  `εlog`. This is the same information the master theorem's `Positive`/`ValidLb`
-  hypotheses already need to see.
+  `const` leaf untouched). For a constant that is exactly representable this is
+  one of two equally defensible modeling choices; we take it here because it makes
+  the `const` case of the master theorem trivial and honest (zero error in, zero
+  error out), rather than because it is somehow more "correct."
+* **The `log` node carries its own lower bound.** `Expr.log (g : Expr ι) (lb : ℝ)`
+  carries the promised bound `lb ≤ |log (eval env g)|` alongside the node, avoiding
+  a separate side-map from nodes to bounds.
+* **`errBound` needs the environment, not just the syntax tree.** The subtraction
+  rule `θ_v = (θ_g·g + θ_h·h)/(g-h) + ε` mentions the *values* `g`, `h`, not just
+  their symbolic error bounds — so `errBound` is parameterized by `env` as well as
+  `ε`, `εlog`. This is the same information the master theorem's
+  `Positive`/`ValidLb` hypotheses already need to see.
 * **The `O(ε²)` slack constant `C` is shape *and* value dependent** (it uses the
   concrete magnitudes at each node, exactly as `errBound` does for `sub`), and is
-  defined mutually with `errBound` by the same structural recursion. This is
-  exactly the generality the task invites ("depending on the expression's shape
-  is fine").
+  defined by the same structural recursion `errBound` uses.
 * **A "small error" side condition is unavoidable for `√` and `÷`.** Both need
   their *argument's* rounded value to stay clear of zero (respectively: to stay
   nonnegative so `Real.sqrt` behaves, and to stay away from zero so division
@@ -171,14 +167,12 @@ noncomputable def C (env : ι → ℝ) : Expr ι → ℝ
 /-- Every node's ideal value is strictly positive throughout the DAG — the
 hypothesis the master theorem needs threaded through the whole induction, since
 the propagation rules above only make sense as *relative*-error bounds for
-positive intermediate quantities. For `sub a b` we require the (uniform, hence
-slightly stronger than the paper's `g > h ≥ 0`) strict inequality
-`eval env b < eval env a`; the boundary case `h = 0` is the *exact* subtraction
-`v = g`, with no cancellation and hence no interesting content for this rule.
-For `log a lb` we require the node's *own* value `log (eval env a)` to be
-positive too, matching the master theorem's stated hypothesis literally (a
-real, if paper-inherited, restriction: it excludes `log` nodes whose argument
-sits in `(0,1)`). -/
+positive intermediate quantities. For `sub a b` we require the uniform strict
+inequality `eval env b < eval env a`; the boundary case `h = 0` is the *exact*
+subtraction `v = g`, with no cancellation and hence no interesting content for
+this rule. For `log a lb` we require the node's *own* value `log (eval env a)`
+to be positive too — a real restriction, since it excludes `log` nodes whose
+argument sits in `(0,1)`. -/
 def Positive (env : ι → ℝ) : Expr ι → Prop
   | var i => 0 < env i
   | const c => 0 < c
@@ -477,7 +471,7 @@ theorem abs_log_one_add_le {δ : ℝ} (hδ : |δ| ≤ 1 / 2) :
 
 set_option maxHeartbeats 16000000
 
-/-- **The master theorem** (the paper's `lem:multierrorfinder`). Given the
+/-- **The master theorem.** Given the
 standard rounding contracts for `rnd` (unit round-off `ε`) and `rndLog` (unit
 round-off `εlog`), `ε + εlog ≤ 1` (unit round-offs are always tiny — far below
 `1` — this just makes that precise), positivity of every node's ideal value,
@@ -489,7 +483,7 @@ up to an explicit, honestly-computed `O(ε²)` correction `C e * (ε+εlog)^2`.
 Proved by structural induction on `e` (a tree, for the purposes of this
 induction — shared subexpressions can be handled by unfolding, which only
 weakens the constants, not the shape of the argument), with each node type's
-step a first-order expansion in `θ` exactly following the paper's own sketch
+step a first-order expansion in `θ`
 (e.g. multiplication: `rnd(v) = rnd(rnd(g)·rnd(h)) ≤ rnd(g)·rnd(h)·(1+ε) ≤
 g(1+θg)·h(1+θh)·(1+ε) = gh·(1+θg+θh+ε+O(ε²))`), with the genuinely-`O(ε²)`
 cross terms bounded via `errBound_le_W_mul` and discharged into `C`.
