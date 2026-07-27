@@ -79,6 +79,7 @@ paper's `Õ`/`Ω̃`.  `exists_powering_params` then exhibits a valid triple, so 
 generality is not vacuous.
 -/
 import Arlib.KnowledgeCompilation.Circuits.DNF
+import Arlib.KnowledgeCompilation.Circuits.DNFMap
 import Mathlib.Analysis.SpecialFunctions.Log.Basic
 import Mathlib.Analysis.SpecialFunctions.Exp
 import Mathlib.Analysis.NormedSpace.HahnBanach.Separation
@@ -117,6 +118,16 @@ theorem ind_union (s t : Finset (Lit V)) (α : V → Bool) :
 
 lemma width_union_le (s t : Finset (Lit V)) : Term.width (s ∪ t) ≤ Term.width s + Term.width t :=
   Finset.card_union_le s t
+
+/-- **The indicator of a renamed conjunction reads the renamed assignment.**
+Renaming the variables of a term along `e : V → W'` (`DNF.mapTerm`) and then
+evaluating on `γ` is the same as evaluating the original on the restriction
+`fun x => γ (e x)`.  The pointwise twin of `DNF.sat_mapTerm`, and what lets
+conical juntas be pulled back along a variable map. -/
+theorem ind_mapTerm {W' : Type*} [DecidableEq W'] (e : V → W') (t : Finset (Lit V))
+    (γ : W' → Bool) : ind (DNF.mapTerm e t) γ = ind t (fun x => γ (e x)) := by
+  unfold ind
+  exact if_congr (DNF.sat_mapTerm e t γ) rfl rfl
 
 /-! ## Conical juntas
 
@@ -221,6 +232,25 @@ theorem pow (hf : IsConical d f) (k : ℕ) : IsConical (k * d) (fun α => f α ^
   | succ k ih =>
     refine ((ih.mul hf).congr (fun α => by ring)).mono ?_
     rw [Nat.succ_mul]
+
+/-- **Pullback along a variable renaming.**  Precomposing a conical `d`-junta's
+assignments with a map `e : V → W'` — reading `f` on the restriction
+`fun x => γ (e x)` — is again a conical `d`-junta, now over `W'`.  The width does
+not grow: a conjunction `t` becomes `DNF.mapTerm e t`, of width at most that of
+`t` (`DNF.width_mapTerm_le`).
+
+This is the nonnegative-degree twin of `Automata.ErrorReduction.nnRankLE_comp`,
+the pullback move that reads `F` as a matrix on the doubled index set; here it
+reads `f` as a function of a copy of the doubled variable set `V ⊕ V`. -/
+theorem comp {W' : Type*} [Fintype W'] [DecidableEq W'] (e : V → W')
+    (hf : IsConical d f) : IsConical d (fun γ : W' → Bool => f (fun x => γ (e x))) := by
+  induction hf with
+  | term c hc t ht =>
+    exact (IsConical.term c hc (DNF.mapTerm e t)
+      ((DNF.width_mapTerm_le e t).trans ht)).congr (fun γ => by rw [ind_mapTerm])
+  | zero => exact (IsConical.zero _).congr (fun γ => rfl)
+  | add _ _ ihf ihg => exact ihf.add ihg
+  | congr _ hfg ih => exact ih.congr (fun γ => by rw [hfg])
 
 end IsConical
 
@@ -433,6 +463,34 @@ theorem orExt_eq_or {f : (V → Bool) → ℝ} (hf : ∀ α, f α = 0 ∨ f α =
   unfold orExt
   rcases hf (β ∘ Sum.inl) with h1 | h1 <;> rcases hf (β ∘ Sum.inr) with h2 | h2 <;>
     simp [h1, h2] <;> norm_num
+
+/-- **`cl: or`, the easy half** (`source/kc/goos/parts/applications.tex:9`): the
+doubled disjunction `f^∨` of a `{0,1}`-valued `f` is `1/4`-approximated by a
+conical junta of the *same* degree as `f`, so `deg⁺_{1/4}(f^∨) ≤ deg⁺(f)`.
+
+The approximator is `g(x,y) = (f(x)+f(y))/2 + 1/4`, taking the values
+`1/4, 3/4, 5/4` and sitting exactly `1/4` from `f^∨` in every case.  This is the
+nonnegative-*degree* twin of the nonnegative-*rank* statement
+`Automata.ErrorReduction.hasApproxNNRankLE_orExtend`, and it is literally the same
+proof: two pullbacks (`IsConical.comp` along `Sum.inl` / `Sum.inr`), a scaling by
+`1/2` (`IsConical.smul`) and the constant `1/4` (`IsConical.const`), assembled by
+`IsConical.add`.  It is the degree form of `cl: or` that
+`Automata/ErrorReduction.lean` deliberately does not carry, since it belongs on
+the conical-junta side. -/
+theorem hasConicalApprox_orExt {d : ℕ} {f : (V → Bool) → ℝ}
+    (hf : ∀ α, f α = 0 ∨ f α = 1) (hd : IsConical d f) :
+    HasConicalApprox d (1 / 4) (orExt f) := by
+  refine ⟨fun β => (f (β ∘ Sum.inl) + f (β ∘ Sum.inr)) / 2 + 1 / 4, ?_, ?_⟩
+  · have hl : IsConical d (fun β : V ⊕ V → Bool => f (β ∘ Sum.inl)) := hd.comp Sum.inl
+    have hr : IsConical d (fun β : V ⊕ V → Bool => f (β ∘ Sum.inr)) := hd.comp Sum.inr
+    have hconst : IsConical d (fun _ : V ⊕ V → Bool => (1 / 4 : ℝ)) :=
+      (IsConical.const (V := V ⊕ V) (1 / 4) (by norm_num)).mono (Nat.zero_le d)
+    refine (((hl.smul (by norm_num : (0 : ℝ) ≤ 1 / 2)).add
+      (hr.smul (by norm_num : (0 : ℝ) ≤ 1 / 2))).add hconst).congr (fun β => ?_)
+    ring
+  · intro β
+    rcases hf (β ∘ Sum.inl) with h1 | h1 <;> rcases hf (β ∘ Sum.inr) with h2 | h2 <;>
+      simp only [orExt, h1, h2] <;> norm_num [abs_le]
 
 /-- **Claim 15 of the source.**  `⟨Φ^∨, f^∨⟩ ≥ ⟨Φ, 2−f⟩² > ε²`, and `Φ^∨` is
 feasible, so a certificate for `2 − f` at degree `d` and margin `ε` gives one for

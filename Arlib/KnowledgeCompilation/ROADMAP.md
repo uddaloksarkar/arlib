@@ -545,3 +545,209 @@ When you add a language to `Circuits/`, add the containment lemma that places it
 hierarchy (SDD ⊆ d-SDNNF ⊆ d-DNNF ⊆ NNF). The containments are what make a lower bound for
 one class say anything about another, and they are cheap to prove at the time and painful
 to retrofit.
+
+---
+
+## 8. `BranchingPrograms/` — a second paper in the area
+
+**Source.** Igor Razgon, *On the read-once property of branching programs and CNFs of
+bounded treewidth*, in `source/kc/razgon/FBDDJOURN.tex`. Line numbers below refer to that
+file.
+
+**What it proves.** For each `k ≥ 3` there are CNFs of primal-graph treewidth `≤ k` whose
+smallest non-deterministic read-once branching program has size `n^{Ω(k)}` — so the known
+`O(n^k)` upper bound cannot be improved to a fixed-parameter `g(k)·n^c`. The payoff for this
+area is `separ2` (`:1082`): a quasi-polynomial separation between FBDD and decision-DNNF,
+showing that the Beame–Li–Roy–Suciu simulation is essentially tight.
+
+It sits in this area because it is about how large a representation of a Boolean function
+must be. It shares **none** of the machinery of the rest of the area: no circuits, no
+v-trees, no rectangles, no communication complexity. The engine is *matching width* and a
+probabilistic covering bound.
+
+### 8.1 Module plan
+
+| Module | Contents | Status |
+| --- | --- | --- |
+| `Basic` | `phi` (φ(G), semantically), `IsVertexCover`, Observation 1, `CrossMatching`, `VertexOrder`, `prefixSet`, `MatchingWidthGe` | **done** |
+| `Covering` | `lbengine` (`:651`): a `t`-cover of `VC(H)` has `≥ 2^{t/f(x)}` members | **done**, unconditional |
+| `NROBP` | the model, `t`-nodes, `tnodecut` (`:600`), `nrobplbdmw` (`:515`) | **done**, conditional on `Uniform` — discharged in `Uniformize` |
+| `TreeProduct` | `T_r(H)`, `matchontheway`, `mincase`, `dmwtwstruct` (`:891`), and the bounds for `T_r(P_{2p})` | **done** |
+| `Separation` | `nrobplbdmw` discharged (of `hEngine`), and `maintheor` (`:476`) with explicit `r`, `p` | **done** |
+| `Uniformize` | Appendix A (`:1208`): arbitrary read-once NROBP → uniform, and `nrobplbdmw` with `Uniform` **removed** | **done** |
+| `Equivalence` | Appendix B (`:1360`): AROSRN ⟷ textbook two-leaf NROBP, both directions | **done** |
+| `Asymptotics` | `dmwtw` (`:525`), `maintheor` as `n^{k/c}`, `separ` (`:1063`), every threshold made explicit | **done** |
+| `DecisionDNNF` | decision-DNNF, ⊆ d-DNNF, FBDD ⊆ NROBP, `separ2` (`:1082`) | **done** |
+| `DecisionDNNFCompile` | Oztok–Darwiche CP 2014 Thm 1: `RootedTD`→decision-DNNF, sharp `2^w·n` (`exists_decisionDNNF_of_rootedTD_sharp`) | **done** |
+| `OztokDarwicheBundle` | explicit `RootedTD (T_r □ P_{2r})` via heap indexing; `separ2_quintic_unconditional` (both sides internal) | **done** |
+
+### 8.2 Three deliberate choices
+
+**Matching width is a predicate, not a number.** `mw(G)` is a min over orderings of a max
+over prefixes. We define only `MatchingWidthGe G t` — "every ordering has a prefix carrying a
+cross matching of size `t`". Every statement in the paper about matching width is a lower
+bound, and this is the form both the producer (`dmwtwstruct`) and the consumer (`tnodecut`)
+want. A numeric `mw` would sit between them as a `sSup` needing a boundedness side condition
+at each use, and would be unfolded to this predicate anyway.
+
+**`φ(G)` is semantic.** No CNF datatype is built. The paper replaces `φ(G)` by its
+Observation 1 immediately and never looks at the formula again, so `phi_iff_isVertexCover` —
+the satisfying assignments are exactly the vertex covers — is the entire bridge, and after it
+everything is graph theory.
+
+**Counting replaces probability.** `lbengine`'s proof is a probabilistic argument over
+orientations of the edges. It is formalized as an exact count, the same substitution
+`LowerBounds/ClaimPerm.lean` and `LowerBounds/AffinePerms.lean` already make elsewhere in
+this area. Independence — the paper's conditional-probability induction, eqs. (4)–(7) —
+becomes a single grafting bijection on `Ω × Ω`, which is shorter and drops the `Pr(·) > 0`
+side condition eq. (4) carries. An outcome is a *dependent* choice function
+`∀ e : Sym2 V, {x // x ∈ e}`; an orientation bit `Sym2 V → Bool` would need a linear order on
+`V` to say which endpoint the bit selects.
+
+### 8.3 What the paper leaves to the reader, and what is actually wrong
+
+Recorded because someone will otherwise re-derive them.
+
+- **The greedy independent set** (`:778`) — "there is an independent set `I ⊆ S` of size at
+  least `|S|/(x+1)`" — is asserted with no proof. Proved here by strong induction. Mathlib
+  v4.15 has no usable `Finset`-level independent-set API, so `TCover.IsIndep` is local.
+- **`mincase`'s "w.l.o.g." is false as written** (`:855`). The paper argues that the copies
+  of `H` containing only one class all lie in `V₁`; a non-partitioned copy may lie entirely
+  in `V₂`. The repair (`exists_rich_copy`): a copy homogeneous on the far side would already
+  contribute `|V(H)| ≥ p` far-side vertices, contradicting the standing assumption, so
+  far-side vertices live only in the `< p` split copies at `≤ p−1` apiece — under `p²`.
+- **`dmwtwstruct`'s "assume w.l.o.g. `u₁…u₄` occur in this order"** (`:965`) is not a
+  symmetry. The four subtrees are interchangeable but their cut points are not. What the
+  proof uses is a **median**, so `regionSplit_step` takes three subtrees and discards the
+  fourth grandchild subtree.
+- **The base case needs a discrete intermediate-value step.** "Just choose a prefix of size
+  `p²`" presumes the region-intersection count hits `p²` exactly, which needs that it starts
+  at `0` and grows by at most `1` per step.
+- **`tnodecut` needs the matching-width index clamped.** `MatchingWidthGe` hands back an
+  arbitrary `i : ℕ`; a path can only be cut at depth `≤ |V|`.
+- **`Path.split` is taken for granted** (`:614`, "let `a` be the head of the edge of `P`
+  whose label is a literal of `u`"). Unlabelled edges make "the node after the `i`-th
+  literal" non-canonical, so the split is stated existentially at a prescribed literal depth.
+
+### 8.4 The appendices, and what unwinding them turned up
+
+The four modules added after the core all correspond to steps the paper leaves to prose or
+to an appendix. Each closed an open end and each turned up something.
+
+- **Uniformity, discharged** (`Uniformize`, Appendix A `:1208`). `nrobplbdmw`'s `Uniform`
+  hypothesis is now removed: `uniformize_exists` turns an arbitrary read-once NROBP into a
+  uniform one of size `(size+2)·((size+2)·(2|V|+1)·(|V|+1)+1)`, and
+  `uniformize_two_rpow_le_size` is the lower bound with no uniformity assumption. The paper
+  does this by a per-edge induction that re-indexes the node set each step; that is
+  unworkable against a `Fin size` node type with a topological-order field, so the whole
+  construction is done in one fixed arithmetic layout instead. The paper's blow-up is stated
+  in *edges* (`2qn`); ours is in *nodes* and is looser, because tightening it needs a
+  `Fintype`/`DecidablePred` layer on the edge relation that `NROBP` does not carry.
+- **AROSRN ⟷ traditional NROBP** (`Equivalence`, Appendix B `:1360`). Forwards costs nothing
+  — same nodes, same edges — which is *stronger* than the paper's "≤ 3× edges", so
+  `traditional_maintheor` loses no constant. Backwards is an explicit node blow-up. Two
+  things the paper's "it is not hard to see" hid: the rejecting branch at a subdivision node
+  reads the complementary literal and is excluded only because the `false` leaf is a sink
+  distinct from the `true` leaf — a fact the paper never states — which forces the reflection
+  lemma to be a two-part conjunction proved by one induction; and the "not constantly false"
+  proviso is **unnecessary** here, because `Realises` speaks only of root–leaf paths, so
+  unreachable junk and the `false` leaf need not be deleted. `Uniform` transports forwards
+  but not backwards (a subdivision-node reflection lemma nothing consumes); flagged in the
+  module docstring.
+- **The `n^{k/c}` repackaging** (`Asymptotics`). `dmwtw`, `maintheor` and `separ` in the
+  paper's asymptotic shape, with every "sufficiently large" step made an explicit,
+  verified threshold. Findings, all in the module header: the paper's `k ≥ 50` is **not
+  needed** (`k ≥ 3` suffices, `b = 32` unchanged); two of its "sufficiently large `r`" steps
+  are **vacuous** (`log₂ n ≥ r` always); its `separ` chain **loses a factor of eight** by
+  substituting `r ≥ log n/2` too early, recovered by feeding the bound in directly; and
+  `maintheor`'s constant is `c = 64·f(5)`, **not** the paper's `32·f(5)` — a `Nat.log`
+  rounding artefact, since with real logarithms throughout the paper's constant is right.
+- **`separ2`, assembled** (`DecisionDNNF`). decision-DNNF as a predicate on the NNF DAG;
+  decision-DNNF ⊆ d-DNNF, which needs **no decomposability** (the decision condition alone
+  forces determinism); FBDD as the deterministic fragment of `NROBP`; and `separ2` two-sided,
+  its lower half from `maintheor` and its upper half from the Oztok–Darwiche bound.
+  Note the paper *names* the class `φ(T_r(P_r))` in both `separ` and `separ2` but both proofs
+  compute with `T_r(P_{2r})`; we follow the proofs.
+- **The Oztok–Darwiche bound, proved** (`DecisionDNNFCompile`). CP 2014 Theorem 1 is now
+  formalized constructively, so the upper half of `separ2` no longer depends on an imported
+  bundle. From a rooted tree decomposition `RootedTD G` of width `≤ w`, the separator-shared
+  Shannon-cascade compilation `compileNNFSharp` yields a decision-DNNF for `φ(G)` of size
+  `≤ 15·2^{w+1}·n + 1` (`exists_decisionDNNF_of_rootedTD_sharp`) — single-exponential in the
+  width, **linear** in the number of tree nodes, matching the paper's `2^{tw}·|V|`. A loose
+  `O(2^{2w}·n²)` variant (`exists_decisionDNNF_of_rootedTD`) is kept as the simpler artefact.
+- **`separ2_quintic`, unconditional** (`OztokDarwicheBundle`). Feeding an explicit
+  `RootedTD (T_r □ P_{2r})` — obtained by wrapping `treewidthLe_binTree_boxProd` through the
+  binary-heap indexing bijection `BinTreeNode r ≃ Fin(2^{r+1}−1)` — to the sharp compiler
+  gives an unconditional decision-DNNF for the separating class
+  (`exists_decisionDNNF_binTree_boxProd`). Combined with `maintheor`, this discharges **both**
+  sides of the separation: `separ2_quintic_unconditional` (hypothesis `1 ≤ r` only) exhibits a
+  decision-DNNF of size `≤ 15·16·n⁵ + 1` against every uniform read-once NROBP of real size
+  `≥ 2^{((r+1−⌈log₂r⌉)·r/2)/f(5)}`.
+
+### 8.5 What is still open
+
+1. ~~**The Oztok–Darwiche compilation bound is imported, not proved.**~~ **Resolved.** The
+   CP 2014 paper (`source/kc/darwiche/CP-45.pdf`, Oztok–Darwiche, *On compiling CNF into
+   decision-DNNF*) is now in the repo and its Theorem 1 is proved constructively in
+   `DecisionDNNFCompile` (`exists_decisionDNNF_of_rootedTD_sharp`, the sharp `2^w·n` bound).
+   The generic `DecisionDNNF.OztokDarwiche` bundle over an arbitrary graph is *not* discharged
+   — that would need a general tree-decomposition→`RootedTD` normalization plus an `O(|V|)`
+   node bound, and Mathlib (v4.15) has no treewidth API to build on. It is not needed: for the
+   actual separating class, `OztokDarwicheBundle.separ2_quintic_unconditional` bypasses the
+   bundle entirely by constructing the `RootedTD` explicitly, and is fully unconditional.
+2. **Backward uniformity transport** (`Equivalence`). `Uniform` does not cross the
+   AROSRN→traditional direction; nothing currently needs it, so it was left.
+3. `maintheor` exists in both shapes: `Separation.maintheor` (explicit `r`, `p`) and
+   `Asymptotics.maintheor` (`n^{k/c}`). Both are kept; §5 explains why the explicit one is
+   primary.
+
+---
+
+## 9. `Forgetting/` — a third paper: compiling DNNF by forgetting
+
+**Source.** Umut Oztok, Adnan Darwiche, *On Compiling DNNFs without Determinism*, in
+`source/kc/darwiche/draft.tex`. The constructive counterpart to the lower-bound work: to
+compile a DNNF for `f(X)`, find `g(X,Y)` with `f(X) ≡ ∃Y. g(X,Y)`, compile `g` to a
+*deterministic* DNNF, then forget `Y` — which on a decomposable circuit is a linear-time
+`⊤`-substitution and destroys determinism.
+
+### 9.1 Module plan
+
+| Module | Contents | Status |
+| --- | --- | --- |
+| `Basic` | `forgetNNF` (⊤-substitution), `decomposable_forgetNNF`, `eval_forgetNNF_iff`, `forgetFun`, `forgetNNF_spec` (a d-DNNF for `g` forgets to a DNNF for `∃Y.g`, no larger), `emf`, determinism-loss witness | **done** |
+| `Treewidth` | `Jointree`, `JointreeWidthLe`, `thm:width` (BVA raises treewidth by ≤ `k`), `thm:bva` clause (ii) | **done** |
+| `MinDegree` | finite-tree-leaf lemma, `min-degree ≤ treewidth` for jointrees, `thm:bva` clause (i) `treewidth(Δⁿₐ) ≥ n` (`jointreeWidthLe_deltaA_ge`) | **done** — closes §9.3 |
+| `Separation` | `sauerhoff`/`gFun`, `emf_sauerhoff_gFun`, `thm:sep`, `cor_forgetting` | **done**, `thm:sep` conditional on two inhabited bundles |
+
+### 9.2 Where decomposability is used
+
+The paper asserts (`:243`) that forgetting is a linear-time `⊤`-substitution and gives no
+reason. The reason is decomposability, and it enters at exactly one point: at an `∧`-node,
+`eval_forgetNNF_iff` needs the existential witness for the whole conjunction to be
+assembled from independent witnesses for the two children, which is only sound when the two
+children share no forgotten variable. Decomposability is precisely that non-sharing. Without
+it, `⊤`-substitution computes something strictly above `∃Y. g`. This is written up in
+`Basic`'s header.
+
+### 9.3 What is imported, and the one dropped item
+
+- **`thm:sep` rests on two imports**, both inhabited structures (§3 style), never axioms:
+  `SauerhoffdDNNFLowerBound` (Bova–Capelli–Mengel–Slivovsky: `f_n` needs exponential d-DNNF)
+  and `GndDNNFUpperBound` (`row_n`, `col_n` have polynomial OBDDs, so `g_n` a polynomial
+  d-DNNF). The *provable heart* — that `f_n` is emf to `g_n` through a single variable — is
+  proved outright (`emf_sauerhoff_gFun`), and turns only on `row_n`/`col_n` ignoring `Z`.
+
+- **`thm:bva` clause (i) is now proved** (`Forgetting/MinDegree.lean`,
+  `jointreeWidthLe_deltaA_ge`), closing what was the one place in the whole
+  knowledge-compilation area where a paper statement was neither proved nor carried as a
+  hypothesis. Clause (i) is the *unbounded* lower bound `treewidth(Δⁿₐ) ≥ n` (the proof in
+  fact gives `2n ≤ w`). It is the paper's `min-degree ≤ treewidth` argument on the primal
+  graph of `Δⁿₐ` (every vertex has degree `2n`). The two things Mathlib v4.15 lacks were
+  built from scratch: (1) a **finite-tree-leaf lemma** — the actual blocker, obtained via the
+  *farthest-vertex* route (a subtree's most-distant vertex from a fixed base has a unique
+  neighbour), needing neither a handshake/degree-sum count nor induced-subgraph subtypes; and
+  (2) the confined-vertex (**leaf-pruning**) form of `min-degree ≤ treewidth` for jointrees, a
+  strong induction over an active `Finset` of tree nodes, robust to junk cluster variables
+  (the case split threads `v ∈ cnfVars Δ` so the confined vertex is a genuine variable).
+  Clause (ii), the width-2 star jointree for `Δⁿᵦ`, was already proved in full.

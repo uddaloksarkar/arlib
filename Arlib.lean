@@ -38,7 +38,11 @@ aggregation of area roots — put content in the area modules, not here.
   chains.
 * `Arlib.KnowledgeCompilation` — representation languages for Boolean functions
   (NNF and its decomposable / deterministic / structured fragments), the
-  communication-complexity measures they are bounded by, and size lower bounds.
+  communication-complexity measures they are bounded by, size lower bounds, and
+  non-deterministic read-once branching programs.
+* `Arlib.Automata` — finite automata and the unambiguous fragment, and lower
+  bounds on the number of states needed to complement, to union, and to
+  separate, obtained through communication complexity.
 -/
 
 import Arlib.Prelude
@@ -50,3 +54,4 @@ import Arlib.InformationTheory
 import Arlib.Algorithms
 import Arlib.MarkovChains
 import Arlib.KnowledgeCompilation
+import Arlib.Automata

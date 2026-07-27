@@ -46,6 +46,7 @@ import Arlib.Probability.ProductSpace
 import Arlib.Probability.CoordIndep
 import Arlib.Probability.CondExpProd
 import Arlib.Probability.ReduceModel
+import Arlib.Probability.Reduce
 import Arlib.Probability.CondExpProdData
 import Arlib.Probability.RunProduct
 import Arlib.Probability.UniformCoin
@@ -62,3 +63,4 @@ import Arlib.Probability.IIDProduct
 import Arlib.Probability.EmpiricalFrequency
 import Arlib.Probability.SequentialDominate
 import Arlib.Probability.Poisson
+import Arlib.Probability.Chernoff
