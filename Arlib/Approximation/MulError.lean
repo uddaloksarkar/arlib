@@ -220,4 +220,42 @@ theorem Between.relErr_of_calibrated {ε a b : ℝ} {n : ℕ}
     a ∈ relErr ε b :=
   Between.mono hb (one_sub_div_pow_ge hε hε1) (one_add_div_pow_le hn hε hε1) h
 
+/-! ## Reciprocal windows
+
+The two facts a median-of-means / reciprocal-estimator argument runs on: passing a
+relative-error window through `x ↦ 1/x`, and the observation that a "loose" `(1±ε/2)`
+window sits inside the "failing" reciprocal interval `[b/(1+ε), b/(1-ε)]`.  Both are
+pure algebra over `ℝ`, independent of any probability model. -/
+
+/-- **Reciprocal of a relative-error interval.**  For `x, c > 0` and `0 ≤ ε < 1`,
+`1/x ∈ (1±ε)·c` iff `x ∈ [1/((1+ε)c), 1/((1-ε)c)]` — the passage between an estimate
+`1/median ∈ (1±ε)/N` and the median lying in the reciprocal window `(1±ε)⁻¹·N`. -/
+theorem recip_mem_relErr {x c ε : ℝ} (hx : 0 < x) (hc : 0 < c) (hε0 : 0 ≤ ε)
+    (hε1 : ε < 1) :
+    1 / x ∈ relErr ε c ↔ x ∈ Set.Icc (1 / ((1 + ε) * c)) (1 / ((1 - ε) * c)) := by
+  have hd1 : 0 < (1 - ε) * c := mul_pos (by linarith) hc
+  have hd2 : 0 < (1 + ε) * c := mul_pos (by linarith) hc
+  rw [mem_relErr, Set.mem_Icc, le_div_iff₀ hx, div_le_iff₀ hx, div_le_iff₀ hd2,
+    le_div_iff₀ hd1]
+  constructor <;> rintro ⟨ha, hb⟩ <;> constructor <;> nlinarith [ha, hb]
+
+/-- **Failing intervals are loose.**  For `0 ≤ ε < 1` and `b ≥ 0`, the loose interval
+`(1±ε/2)·b` is contained in the failing interval `[b/(1+ε), b/(1-ε)]`.  Hence a value
+outside the failing interval is outside `(1±ε/2)b` — the step that lets an `(1±ε/2)`
+concentration bound cap the `(1±ε)⁻¹` failure probability. -/
+theorem relErr_half_subset_recip {b ε : ℝ} (hb : 0 ≤ b) (hε0 : 0 ≤ ε) (hε1 : ε < 1) :
+    relErr (ε / 2) b ⊆ Set.Icc (b / (1 + ε)) (b / (1 - ε)) := by
+  intro y hy
+  rw [mem_relErr] at hy
+  rw [Set.mem_Icc]
+  refine ⟨?_, ?_⟩
+  · have h1 : b / (1 + ε) ≤ (1 - ε / 2) * b := by
+      rw [div_le_iff₀ (by linarith)]
+      nlinarith [mul_nonneg (mul_nonneg hb hε0) (show (0 : ℝ) ≤ 1 - ε by linarith)]
+    linarith [hy.1]
+  · have h2 : (1 + ε / 2) * b ≤ b / (1 - ε) := by
+      rw [le_div_iff₀ (by linarith)]
+      nlinarith [mul_nonneg (mul_nonneg hb hε0) (show (0 : ℝ) ≤ 1 + ε by linarith)]
+    linarith [hy.2]
+
 end Arlib.Approximation
