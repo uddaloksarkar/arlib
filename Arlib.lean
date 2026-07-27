@@ -32,6 +32,10 @@ aggregation of area roots — put content in the area modules, not here.
 * `Arlib.Algorithms` — analyses of specific algorithms, each split so that only
   the problem-independent half lives here. Currently the Tootsie Pop Algorithm:
   the Poisson law of its contraction counter, and almost-sure termination.
+* `Arlib.MDP` — finite Markov decision processes with reachability objectives:
+  the model over a `FinKernel`, end components, the hitting-time weight and the
+  contraction it supplies, `Q*` by value iteration, trajectory semantics, and
+  policy values.
 * `Arlib.MarkovChains` — finite Markov chains: kernels, the `L²(μ)` calculus,
   the Dirichlet form and the Poincaré inequality, decay of variance and of
   χ²-divergence, total variation and mixing time, and analyses of specific
@@ -55,3 +59,4 @@ import Arlib.Algorithms
 import Arlib.MarkovChains
 import Arlib.KnowledgeCompilation
 import Arlib.Automata
+import Arlib.MDP
