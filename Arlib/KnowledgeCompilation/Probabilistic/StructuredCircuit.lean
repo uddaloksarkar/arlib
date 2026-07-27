@@ -32,9 +32,10 @@ No `sorry`.
 -/
 import Arlib.Approximation.Coresets.RegionTree
 
-namespace Arlib.Approximation
+namespace Arlib.KnowledgeCompilation.Probabilistic
 
 open scoped BigOperators
+open Arlib.Approximation
 
 /-! ## V-trees -/
 
@@ -97,4 +98,4 @@ def toRegion : {V : Vtree} → {g : ℕ} → Circuit V g → Region (Fin g)
 
 end Circuit
 
-end Arlib.Approximation
+end Arlib.KnowledgeCompilation.Probabilistic

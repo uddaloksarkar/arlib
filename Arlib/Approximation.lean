@@ -39,7 +39,10 @@ around propagating a guarantee that does not know what it will be asked.
 | `Coresets.Tensor` | The Cartesian product of two weighted point sets with features combined **bilinearly**, the two Fubini identities that view a linear test on the product as a linear test on either factor, and hence the composition theorem: reducing each factor reduces the product. The Hadamard product is the diagonal special case. |
 | `Coresets.Linear` | Reparametrising features by a fixed matrix is free — `⟨y, Lv⟩ = ⟨Lᵀy, v⟩`, so a reduction survives with the same window and the same number of points. This is why a layer of sum gates costs nothing and only product steps are ever sparsified. |
 | `Coresets.RegionTree` | The assembled engine: a tree of regions whose feature map is bilinear in its children's, a bottom-up choice of reduced set at each internal node, and the **propagation invariant** — if every internal node was sparsified to within `(1 ± δ)`, the root reproduces every linear test on the entire exact domain to within `(1 ± δ)^{steps}`. |
-| `StructuredCircuit` | **V-trees** and **structured arithmetic circuits** over them: `Vtree`, its joint assignment space `Vtree.Assign`, and `Circuit V g` — a circuit whose scope decomposition *is* `V`. Two circuits share a v-tree exactly when indexed by the same `V`, the honest hypothesis under which a single coreset per region compares them; they may otherwise differ in gate counts and wiring. |
+
+The **structured (probabilistic) circuits** that ride on this engine — v-trees,
+single circuits, and pairs of circuits over a shared v-tree — live under
+`Arlib.KnowledgeCompilation.Probabilistic`, not here.
 
 This is the area root; it re-exports the modules below.
 -/
@@ -50,6 +53,5 @@ import Arlib.Approximation.Coresets.Embedding
 import Arlib.Approximation.Coresets.Tensor
 import Arlib.Approximation.Coresets.Linear
 import Arlib.Approximation.Coresets.RegionTree
-import Arlib.Approximation.StructuredCircuit
 
 import Arlib.Approximation.LewisWeights

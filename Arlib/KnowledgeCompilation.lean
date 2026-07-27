@@ -265,6 +265,7 @@ import Arlib.KnowledgeCompilation.Circuits.DNFSubst
 import Arlib.KnowledgeCompilation.Circuits.DNFMux
 import Arlib.KnowledgeCompilation.Circuits.Arithmetic
 import Arlib.KnowledgeCompilation.Circuits.Figure1
+import Arlib.KnowledgeCompilation.Probabilistic
 import Arlib.KnowledgeCompilation.Communication.Rectangle
 import Arlib.KnowledgeCompilation.Communication.Measures
 import Arlib.KnowledgeCompilation.Communication.NonnegRank
