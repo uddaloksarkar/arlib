@@ -4,3 +4,6 @@
 *.ilean
 *.trace
 .DS_Store
+
+# Local paper sources / build artifacts — never tracked (papers may be copyrighted)
+/source/
