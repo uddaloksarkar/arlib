@@ -315,7 +315,7 @@ theorem sat_of_sat_copyDNF {ψ : DNF ι} {choices : Finset (Lit ι) → List (ι
   exact ⟨t, ht, sat_of_sat_copyTerm hsat⟩
 
 /-- **Unambiguity of `ψ^∨`, in pairwise form** (paper's lemma at
-`source/kc/arXiv.tex:391`).
+`source/kc/arXiv.tex:392`).
 
 Two derived terms satisfied by the same assignment are *equal*.  The argument is
 the paper's: collapse `α`, use unambiguity of `ψ` to see both came from the same

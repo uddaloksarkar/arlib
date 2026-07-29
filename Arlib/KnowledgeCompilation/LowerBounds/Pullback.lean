@@ -7,7 +7,7 @@ Authors: Kuldeep S. Meel
 # Pulling rectangle covers back along a substitution
 
 The mechanism behind the proof of `thm: fixed_to_best`
-(`source/kc/arXiv.tex:445`), isolated from the particular substitution the paper
+(`source/kc/arXiv.tex:446`), isolated from the particular substitution the paper
 uses so that it can be stated once and reused.
 
 ## What the paper does, and what it really needs

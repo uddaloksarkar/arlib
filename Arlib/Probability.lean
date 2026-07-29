@@ -16,6 +16,25 @@ with minor drift, across several meelgroup formalization projects (`ApproxDNNF`,
 here is the `ApproxDNNF` copy; declarations were re-homed from the `ApproxDNNF.*`
 namespace into `Arlib.*` with no change to statements or proofs.
 
+## Two frameworks live here
+
+Most modules are built on the bespoke finite framework `FinProb`/`ProbSpace`:
+finite sums, no σ-algebras, everything decidable. A second, smaller group is
+built directly on **Mathlib's measure theory** (`MeasureTheory.Measure`,
+`Filtration`, `condexp`, `Martingale`), because the statements are genuinely
+about limits, conditional expectation and almost-sure convergence and have no
+finite surrogate:
+
+| Module | Content |
+| --- | --- |
+| `RobbinsMonro` | The deterministic half of stochastic approximation: `∏(1 − aₙ) → 0` under `∑ aₙ = ∞`, the recursion `Y_{n+1} = (1−aₙ)Yₙ + aₙc`, and criteria for establishing `∑ α = ∞` from a sparse set of active times. No measure theory. |
+| `StochasticApproximation` | **Robbins–Siegmund**, and `tendsto_zero_of_sa`: `W_{t+1} = (1−α_t)W_t + α_t ε_t → 0` a.s. Also `ae_exists_tendsto_of_nonneg_supermartingale`, which Mathlib states only in the `L¹`-bounded submartingale form. |
+| `CondExpFreshDraw` | A centred fresh draw independent of the history has conditional mean zero — *unbiasedness of a sampled target* — over an arbitrary space and sub-σ-algebra. |
+| `TorusProduct` | A **countably-indexed mutually independent uniform family**, as Haar measure on `ι → AddCircle 1`, with its time filtration. Mathlib v4.15 has no infinite product measure and no Kolmogorov extension, so there is no other route to this object. |
+| `InverseCDF` | An arbitrary finite law from one uniform coin, with `measure_drawOf_eq` proving the law exactly. |
+| `LevyBorelCantelli` | Lévy's conditional Borel–Cantelli re-indexed for events adapted one step late. |
+| `MeasurableIndex` | Measurability of `f (X ω) ω` — a quantity read at a random, countably-valued index. |
+
 This is the area root; it re-exports the individual modules below. Import it to
 get the whole probability toolkit, or import a single module for just one piece.
 -/
@@ -46,6 +65,7 @@ import Arlib.Probability.ProductSpace
 import Arlib.Probability.CoordIndep
 import Arlib.Probability.CondExpProd
 import Arlib.Probability.ReduceModel
+import Arlib.Probability.Reduce
 import Arlib.Probability.CondExpProdData
 import Arlib.Probability.RunProduct
 import Arlib.Probability.UniformCoin
@@ -57,8 +77,19 @@ import Arlib.Probability.MixedCondProd
 import Arlib.Probability.MixedCoordIndep
 import Arlib.Probability.KWiseChernoff
 import Arlib.Probability.SequentialCond
+import Arlib.Probability.FailureAmplification
+import Arlib.Probability.IIDProduct
+import Arlib.Probability.EmpiricalFrequency
 import Arlib.Probability.SequentialDominate
 import Arlib.Probability.Poisson
 import Arlib.Probability.PoissonEntropy
 import Arlib.Probability.TVDistance
 import Arlib.Probability.Rejection
+import Arlib.Probability.Chernoff
+import Arlib.Probability.RobbinsMonro
+import Arlib.Probability.StochasticApproximation
+import Arlib.Probability.CondExpFreshDraw
+import Arlib.Probability.MeasurableIndex
+import Arlib.Probability.TorusProduct
+import Arlib.Probability.InverseCDF
+import Arlib.Probability.LevyBorelCantelli

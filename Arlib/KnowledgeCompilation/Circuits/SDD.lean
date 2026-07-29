@@ -521,7 +521,7 @@ theorem IsSDDAt.deterministicFrom {C : NNF V} :
           rw [List.pairwise_cons] at hpw'
           exact hpw'.1 q hq α ⟨hα.1, hq1⟩
 
-/-- **SDD ⊆ d-SDNNF** (paper, `source/kc/arXiv.tex:266`: "it follows from the
+/-- **SDD ⊆ d-SDNNF** (paper, `source/kc/arXiv.tex:254`: "it follows from the
 definition that SDDs are deterministic and structured").  This is the
 containment that lets the paper's lower bound for d-SDNNF be read as a lower
 bound for SDD in `thm: sep` (`source/kc/arXiv.tex:465`).

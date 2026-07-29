@@ -33,7 +33,7 @@ with zero manual work — the finite proofs are untouched.  The continuous
 ## Derived surface
 
 Everything on the probability side is derived from `Ex` + the guarded axioms via
-`Pr p = Ex 𝟙_p`: `Pr`, `Pr_nonneg`, `Pr_le_one`, `Pr_mono`, `Pr_congr`,
+`Pr p = Ex 𝟙_p`: `Pr`, `Pr_nonneg`, `Pr_of_forall`, `Pr_le_one`, `Pr_mono`, `Pr_congr`,
 `Pr_union_le`, `Pr_biUnion_le`, `Pr_eq_Ex_indicator`, `markov`, `Var`,
 `Var_nonneg`, `chebyshev`.  The conditional-expectation surface is packaged as
 `ProbSpace.HasCondExp`, the `ProbSpace` counterpart of the `FinProb`
@@ -171,6 +171,14 @@ theorem Pr_eq_Ex_indicator (p : P.Ω → Prop) : P.Pr p = P.Ex (indic p) := rfl
 
 theorem Pr_nonneg (p : P.Ω → Prop) : 0 ≤ P.Pr p :=
   P.Ex_nonneg (fun ω => by rw [indic_apply]; by_cases h : p ω <;> simp [h])
+
+/-- An almost-everywhere-true event has probability `1`.  (Unconditional: the indicator
+of an always-true predicate is the constant `1`, so `Ex_const` applies with no `IsAdm`.) -/
+theorem Pr_of_forall {p : P.Ω → Prop} (h : ∀ ω, p ω) : P.Pr p = 1 := by
+  unfold Pr
+  have hind : indic p = fun _ => (1 : ℝ) := by
+    funext ω; rw [indic_apply, if_pos (h ω)]
+  rw [hind, P.Ex_const]
 
 theorem Pr_le_one (p : P.Ω → Prop) [IsAdm P (indic p)] : P.Pr p ≤ 1 := by
   have h : P.Ex (indic p) ≤ P.Ex (fun _ => (1 : ℝ)) :=

@@ -4,3 +4,10 @@
 *.ilean
 *.trace
 .DS_Store
+
+# Local paper sources / build artifacts — never tracked (papers may be copyrighted)
+/source/
+
+# Stray directory created by a mis-expanded ${env:HOME} in some tool invocation.
+# Contains Claude Code session data; belongs in $HOME, never in the repo.
+${env:HOME}/

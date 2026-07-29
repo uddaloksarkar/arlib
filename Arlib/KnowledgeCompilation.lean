@@ -14,7 +14,7 @@ Under Negation* (IJCAI 2024), in `source/kc/arXiv.tex`.  See `ROADMAP.md` for
 the design principles and `PAPER-INVENTORY.md` for the statement-by-statement
 catalogue of the source paper.
 
-The area is split three ways, mirroring the shape of the argument:
+The area is split seven ways, mirroring the shape of the argument:
 
 * **`Circuits/`** — the *objects*.  NNF and the syntactic restrictions that cut
   representation languages out of it: decomposability, determinism, v-trees and
@@ -25,6 +25,28 @@ The area is split three ways, mirroring the shape of the argument:
 * **`LowerBounds/`** — the *bridge and the argument*.  The rectangle lemma
   connecting circuit size to rectangle covers, the copy-and-permute lifting
   from fixed to best partition, and the separation theorems.
+* **`BranchingPrograms/`** — a *second paper*, Igor Razgon, *On the read-once
+  property of branching programs and CNFs of bounded treewidth*
+  (`source/kc/razgon/FBDDJOURN.tex`).  It shares the area's subject — how large
+  a representation of a Boolean function must be — but none of its machinery:
+  the engine is matching width and a probabilistic covering bound, not
+  communication complexity.
+* **`Forgetting/`** — a *third paper*, Oztok–Darwiche, *On Compiling DNNFs
+  without Determinism* (`source/kc/darwiche/draft.tex`): the constructive
+  counterpart, compiling a non-deterministic DNNF by forgetting auxiliary
+  variables from a deterministic one.
+* **`Tseitin/`** — a *fourth paper*, de Colnet–Mengel, *Characterizing
+  Tseitin-formulas with short regular resolution refutations*
+  (`source/kc/decolnet/main.tex`): the parity system `T(G, c)` of a charged
+  graph, whose lower-bound engine is the *branchwidth* of `G`.  See
+  `Tseitin/ROADMAP.md`.
+* **`Probabilistic/`** — a *different kind of circuit*.  V-trees with finite leaf
+  domains, structured arithmetic circuits over ℝ whose scope decomposition is the
+  v-tree, and pairs of circuits over a shared v-tree.  These are not the Boolean
+  d-DNNF/SDD objects of `Circuits/` and no lower bound is proved about them; the
+  semantics is routed through the region-tree engine of
+  `Arlib.Approximation.Coresets` so that a domain-reduction scheme can sparsify
+  them region by region.
 
 Two conventions are worth stating up front, because they shape everything.
 
@@ -108,6 +130,11 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
   powering trick of their Claim 16 — the latter with the source's logarithmic
   parameters replaced by the three inequalities its proof actually uses.  Also
   `deg⁺(f) ≤ UC₁(f)`, linking the file to `Circuits.DNF`.
+* `Communication.TwoParty` — rectangles, covers, partitions and non-negative rank
+  for a bare `F : X → Y → Bool` on two arbitrary types, with no ambient Boolean
+  cube.  The shape `Arlib.Automata` needs, where the split is at a position in a
+  word rather than at a variable, and where sparse set disjointness lives on the
+  `k`-subsets of `[n]`.
 * `Communication.Gadget` — composing a Boolean function with a two-party gadget,
   the construction lifting theorems are about, and the exactly-balanced partition
   it induces.  Stated for a general variable type, so that taking it to be
@@ -174,6 +201,89 @@ what is and is not proved here is visible in the statement.  See `ROADMAP.md`,
   bundles of data and hypotheses rather than axioms.  Every downstream theorem
   takes one as a parameter, so what a statement is conditional on is visible in
   the statement.
+
+### BranchingPrograms
+
+Razgon's theorem: CNFs of treewidth `k` need non-deterministic read-once
+branching programs of size `n^{Ω(k)}`, so the `O(n^k)` upper bound cannot be made
+fixed-parameter.  The consequence for this area is the last module: a
+quasi-polynomial separation between FBDD and decision-DNNF, showing the known
+simulation is essentially tight.
+
+* `BranchingPrograms.Basic` — `φ(G)`, the monotone 2-CNF of a graph, given
+  semantically; Observation 1, that its satisfying assignments are the vertex
+  covers of `G`; cross matchings; and matching width, defined *only* as the
+  lower-bound predicate `MatchingWidthGe`, since every use in the paper is a
+  lower bound.
+* `BranchingPrograms.Covering` — Theorem `lbengine`: a `t`-cover of the vertex
+  covers of a graph of max-degree `x` has at least `2^{t/f(x)}` members.  The
+  paper's probabilistic argument is replaced by an exact count, as
+  `LowerBounds/ClaimPerm.lean` and `LowerBounds/AffinePerms.lean` already do
+  elsewhere in this area; independence becomes a grafting bijection, and the
+  positivity side condition the paper's conditioning step carries disappears.
+  Razgon's unproved "every set contains an independent subset of size
+  `|S|/(x+1)`" is proved here.
+* `BranchingPrograms.NROBP` — the model (a DAG with literal-labelled edges, size
+  measured in nodes), `t`-nodes, and Lemma `tnodecut`: if `mw(G) ≥ t` then the
+  `t`-nodes form a root–leaf cut.  Uniformity is an explicit hypothesis; the
+  reduction of an arbitrary NROBP to a uniform one is the paper's Appendix B and
+  is not formalized.
+* `BranchingPrograms.TreeProduct` — the graphs `T_r(H)`, as Mathlib's box
+  product, and the matching-width induction `dmwtwstruct`, together with the
+  degree, treewidth and vertex-count bounds for `T_r(P_{2p})`.  Two steps of the
+  paper's proof needed repair rather than transcription; see the module
+  docstring.
+* `BranchingPrograms.Separation` — Theorem `nrobplbdmw` with its covering
+  hypothesis discharged, and Theorem `maintheor`.
+* `BranchingPrograms.Uniformize` — Appendix A: an arbitrary read-once NROBP is
+  turned into a *uniform* one of explicitly bounded size, which **discharges the
+  `Uniform` hypothesis** — `uniformize_two_rpow_le_size` is the lower bound with
+  no uniformity assumption at all.
+* `BranchingPrograms.Equivalence` — Appendix B: the AROSRN of `NROBP` and the
+  textbook two-leaf guessing-node NROBP compute the same functions, forwards at
+  no cost and backwards at an explicit blow-up.  The paper's "not constantly
+  false" proviso turns out to be unnecessary.
+* `BranchingPrograms.Asymptotics` — Theorems `dmwtw` and `maintheor` in the
+  paper's own `n^{k/c}` shape, and Lemma `separ`, with every "sufficiently
+  large" step replaced by an explicit threshold.  Several of the paper's are
+  vacuous and its `k ≥ 50` is not needed at all; the one constant that genuinely
+  changes (`maintheor`'s `c`) is a `Nat.log`-rounding artefact.
+* `BranchingPrograms.DecisionDNNF` — decision-DNNF as a predicate on the NNF DAG,
+  the containment decision-DNNF ⊆ d-DNNF (which needs no decomposability), FBDD
+  as the deterministic fragment of NROBP, and Theorem `separ2`: the
+  FBDD/decision-DNNF quasi-polynomial separation, conditional on the imported
+  Oztok–Darwiche compilation bound.
+* `BranchingPrograms.DecisionDNNFCompile` — towards Oztok–Darwiche, *On compiling
+  CNF into decision-DNNF* (CP 2014, `source/kc/darwiche/CP-45.pdf`): a finite
+  rooted tree decomposition `RootedTD` and the running-intersection
+  "decomposability engine" (`sibling_absent`) on which their compiler's
+  `∧`-decomposition rests — a variable forgotten strictly below a child is absent
+  from every sibling's subtree.
+* `BranchingPrograms.OztokDarwicheBundle` — the Oztok–Darwiche compilation bound
+  that `DecisionDNNF.separ2` imports, **discharged on the concrete class**
+  `T_r(P_{2p})`.  The general bundle would need an infinite→finite rooting of an
+  arbitrary tree decomposition, which Mathlib's lack of a treewidth API rules
+  out; instead the explicit finite decomposition of
+  `TreeProduct.treewidthLe_binTree_boxProd` is wrapped as a `RootedTD` and fed to
+  `exists_decisionDNNF_of_rootedTD_sharp`, yielding an **unconditional**
+  decision-DNNF for `φ(T_r(P_{2p}))`.  The one real construction is a heap index
+  `BinTreeNode r ≃ Fin (2^{r+1}-1)` under which the tree-parent has strictly
+  smaller index, which is what supplies `RootedTD.parent_lt`.  The payoff is
+  `separ2_quintic_unconditional`: Razgon's separation for `T_r(P_{2r})` with
+  *both* sides discharged inside Lean — the `O(n⁵)` decision-DNNF upper bound with
+  no Oztok–Darwiche oracle, and the `n^{Ω(log n)}` read-once lower bound from
+  `Razgon.maintheor` — leaving `1 ≤ r` as the only hypothesis.
+
+### Probabilistic
+
+* `Probabilistic.StructuredCircuit` — `Vtree` with leaf domains `Fin m`, its
+  joint assignment space `Vtree.Assign`, and the single structured circuit
+  `Circuit V g` whose scope decomposition *is* `V`.
+* `Probabilistic.CircuitPair` — two circuits over the *same* `V`, compared region
+  by region: the joint feature index `Coord`, the block-diagonal structure tensor
+  `blockTensor`, the joint region tree `pairRegion`, the pair
+  `CircuitPair V gP gQ` with its `valP`/`valQ` semantics, and its `Reduction`
+  execution object.
 -/
 
 import Arlib.KnowledgeCompilation.Basic
@@ -187,6 +297,7 @@ import Arlib.KnowledgeCompilation.Circuits.DNFSubst
 import Arlib.KnowledgeCompilation.Circuits.DNFMux
 import Arlib.KnowledgeCompilation.Circuits.Arithmetic
 import Arlib.KnowledgeCompilation.Circuits.Figure1
+import Arlib.KnowledgeCompilation.Probabilistic
 import Arlib.KnowledgeCompilation.Communication.Rectangle
 import Arlib.KnowledgeCompilation.Communication.Measures
 import Arlib.KnowledgeCompilation.Communication.NonnegRank
@@ -205,3 +316,17 @@ import Arlib.KnowledgeCompilation.LowerBounds.Pullback
 import Arlib.KnowledgeCompilation.LowerBounds.AffinePerms
 import Arlib.KnowledgeCompilation.LowerBounds.Imported
 import Arlib.KnowledgeCompilation.LowerBounds.UnionDerived
+import Arlib.KnowledgeCompilation.Forgetting
+import Arlib.KnowledgeCompilation.Tseitin
+import Arlib.KnowledgeCompilation.Communication.TwoParty
+import Arlib.KnowledgeCompilation.BranchingPrograms.Basic
+import Arlib.KnowledgeCompilation.BranchingPrograms.Covering
+import Arlib.KnowledgeCompilation.BranchingPrograms.NROBP
+import Arlib.KnowledgeCompilation.BranchingPrograms.TreeProduct
+import Arlib.KnowledgeCompilation.BranchingPrograms.Separation
+import Arlib.KnowledgeCompilation.BranchingPrograms.Uniformize
+import Arlib.KnowledgeCompilation.BranchingPrograms.Equivalence
+import Arlib.KnowledgeCompilation.BranchingPrograms.Asymptotics
+import Arlib.KnowledgeCompilation.BranchingPrograms.DecisionDNNF
+import Arlib.KnowledgeCompilation.BranchingPrograms.DecisionDNNFCompile
+import Arlib.KnowledgeCompilation.BranchingPrograms.OztokDarwicheBundle
