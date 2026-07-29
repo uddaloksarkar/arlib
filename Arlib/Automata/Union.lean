@@ -8,7 +8,7 @@ Authors: Kuldeep S. Meel
 
 Göös–Kiefer–Yuan §4 (`source/kc/goos/parts/union.tex`): two languages recognised
 by small UFAs whose *union* needs a huge one.  The paper's proof
-(`source/kc/goos/parts/union.tex:186`) is the §3 argument again, with three
+(`source/kc/goos/parts/union.tex:187`) is the §3 argument again, with three
 substitutions: conical juntas in place of DNF width, non-negative rank in place
 of rectangle covers, and `Par₁` — rectangular *partitions*, i.e. unambiguous
 protocols — in place of `Cov₀`.

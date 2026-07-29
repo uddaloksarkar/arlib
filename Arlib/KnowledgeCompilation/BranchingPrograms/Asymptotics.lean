@@ -140,7 +140,7 @@ theorem clog_le_log_succ (r : ℕ) : Nat.clog 2 r ≤ Nat.log 2 r + 1 :=
   (Nat.le_pow_iff_clog_le (by norm_num)).1 (Nat.lt_pow_succ_log_self (by norm_num) r).le
 
 /-- `2^r ≤ 2^{r+1} - 1`.  This one estimate replaces the whole of the paper's
-`log(n/20+1)` detour (`source/kc/razgon/FBDDJOURN.tex:1026`–`:1030`). -/
+`log(n/20+1)` detour (`source/kc/razgon/FBDDJOURN.tex:1022`–`:1025`). -/
 theorem pow_le_pred_pow (r : ℕ) : 2 ^ r ≤ 2 ^ (r + 1) - 1 := by
   have h1 : 1 ≤ 2 ^ r := Nat.one_le_two_pow
   have h2 : 2 ^ (r + 1) = 2 * 2 ^ r := by ring
@@ -534,7 +534,7 @@ theorem log_separNumVertices_le {r : ℕ} (hr : 1 ≤ r) :
 whenever `2s ≤ r` and `r ≥ 3`.
 
 With `s = ⌊log₂ r⌋` (so that `2s ≤ r` by `two_mul_log_le`) this is the whole of
-`source/kc/razgon/FBDDJOURN.tex:1073`–`:1078`, and the proof of it is the reason
+`source/kc/razgon/FBDDJOURN.tex:1074`–`:1078`, and the proof of it is the reason
 that step needs no "sufficiently large `r`".  Writing `u = r - s` and using
 `s ≤ u` — which is exactly `2s ≤ r` — the inequality becomes
 `(2s + u + 2)² ≤ 8u(s+u)`, and the slack is large: at `s = u` the two sides are

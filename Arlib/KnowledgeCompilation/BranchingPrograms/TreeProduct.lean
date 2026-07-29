@@ -789,7 +789,7 @@ structure SubtreeSystem (T : SimpleGraph α) where
     (∀ k, As k ⊆ A) ∧ (∀ k l, k ≠ l → Disjoint (As k) (As l)) ∧
       (∀ k, Sub h (As k)) ∧ (∀ k, ConnectedWithin T (A \ As k))
 
-/-- **Lemma `dmwtwstruct`, the induction** (`source/kc/razgon/FBDDJOURN.tex:918`).
+/-- **Lemma `dmwtwstruct`, the induction** (`source/kc/razgon/FBDDJOURN.tex:921`).
 
 For a subtree of height `⌈log p⌉ + 2x` the paper's strengthened statement holds
 with matching size `(x+1)p`.  Induction on `x` in steps of `2`, exactly as in
@@ -1087,7 +1087,7 @@ def binTreeSubtreeSystem (r : ℕ) : SubtreeSystem (binTree r) where
       refine connectedWithin_subtreeAt_sdiff (by omega) ?_
       rw [binTreeGrandchild_length]; omega
 
-/-- **Lemma `dmwtwstruct`** (`source/kc/razgon/FBDDJOURN.tex:911`).
+/-- **Lemma `dmwtwstruct`** (`source/kc/razgon/FBDDJOURN.tex:891`).
 
 For any `p ≥ 1`, any connected `H` on at least `2p` vertices, and any
 `r ≥ ⌈log p⌉`,
@@ -1199,7 +1199,7 @@ theorem maxDegreeLe_pathGraph (n : ℕ) : MaxDegreeLe (SimpleGraph.pathGraph n) 
     tauto
 
 /-- **The graphs `T_r(P_q)` have max degree at most `5`**
-(`source/kc/razgon/FBDDJOURN.tex:1004`): at most `2` neighbours inside the copy
+(`source/kc/razgon/FBDDJOURN.tex:998`): at most `2` neighbours inside the copy
 of the path, and at most `3` outside it. -/
 theorem maxDegreeLe_binTree_pathGraph (r q : ℕ) :
     MaxDegreeLe (binTree r □ SimpleGraph.pathGraph q) 5 :=
@@ -1239,7 +1239,7 @@ def TreewidthLe {V : Type*} (G : SimpleGraph V) (k : ℕ) : Prop :=
 
 omit [DecidableEq β] in
 /-- **The treewidth of `T_r(H)` is at most `2·|V(H)| - 1`**
-(`source/kc/razgon/FBDDJOURN.tex:997`).
+(`source/kc/razgon/FBDDJOURN.tex:993`).
 
 The paper's decomposition, verbatim: the decomposition tree is `T_r` itself and
 the bag at `t` is the copy of `H` at `t` together with the copy at `t`'s parent.

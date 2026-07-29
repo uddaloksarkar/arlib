@@ -207,7 +207,7 @@ theorem aRLe_le_card (f : (V → Bool) → Bool) (X : Finset V) (hX : X.Nonempty
 
 /-! ## Theorem 12: a complete DNNF bounds the game — as an imported result -/
 
-/-- **Theorem 12** (`source/kc/decolnet/main.tex:519`, `thm:DNNFlower`), as an
+/-- **`thm:DNNFlower`** (`source/kc/decolnet/main.tex:519`), as an
 imported hypothesis: a complete DNNF `D` computing `f` bounds the adversarial game
 by its size, `aR(f, S) ≤ |D|` for every `S ⊆ sat(f)`.
 

@@ -49,8 +49,8 @@ open Finset
 variable {V : Type*} [Fintype V] [DecidableEq V]
 variable (G : SimpleGraph V) [DecidableRel G.Adj]
 
-/-- **Lemma 11** (`source/kc/decolnet/main.tex:453`,
-`lemma:from_well_struct_1BP_to_DNNF`), imported with an explicit size bound: a
+/-- **`lemma:from_well_struct_1BP_to_DNNF`**
+(`source/kc/decolnet/main.tex:453`), imported with an explicit size bound: a
 well-structured 1-BP of size `s` for `SearchVertex(G,c)` gives a DNNF of size at
 most `c₀·s·|V(G)|` computing the satisfiable `T(G,c*)`.  Not inhabited — inhabiting
 is the reverse-topological BP induction itself; see the module docstring. -/
@@ -60,8 +60,8 @@ structure WellStructuredToDNNF (c cstar : V → ZMod 2) (c₀ : ℕ) : Prop wher
   toDNNF : ∀ s, HasWS1BPForSearchVertexLe G c s →
     DNNFSizeLe G cstar (c₀ * s * Fintype.card V)
 
-/-- **Theorem 5** (`source/kc/decolnet/main.tex:406`,
-`theorem:from_refutation_to_sat_DNNF`), **proved by composition**: for an
+/-- **`theorem:from_refutation_to_sat_DNNF`**
+(`source/kc/decolnet/main.tex:406`), **proved by composition**: for an
 unsatisfiable `T(G,c)` with `G` connected, a regular resolution refutation of
 length `S` yields a DNNF of size at most `c₀·S·|V(G)|` computing the satisfiable
 `T(G,c*)`.

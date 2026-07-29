@@ -167,7 +167,7 @@ which `GaloisField` does not carry. -/
 noncomputable instance instDecidableEqFld (n : ℕ) : DecidableEq (Fld n) := Classical.decEq _
 
 /-- **The `z`-block index**, `Zι = Fin 2t`: the paper's `2t`-bit encoding of a member of
-`𝒫 ⊆ F × F` (`source/kc/arXiv.tex:429`). -/
+`𝒫 ⊆ F × F` (`source/kc/arXiv.tex:423`). -/
 abbrev Zid (n : ℕ) : Type := Fin (2 * exponent n)
 
 instance instNeZeroCopies (n : ℕ) : NeZero (copies n) := ⟨by simp [copies]⟩

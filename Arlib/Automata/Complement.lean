@@ -210,7 +210,8 @@ theorem card_ge_of_complement
 
 /-! ## The theorem -/
 
-/-- **`thm:complement`** (`source/kc/goos/parts/complementation.tex:6`), with
+/-- **`thm:complement`** (stated at `source/kc/goos/parts/introduction.tex:10`,
+restated and proved at `source/kc/goos/parts/complementation.tex:6`), with
 both bounds explicit.
 
 Given the two imported results — an unambiguous `k`-DNF over `κ` with at most

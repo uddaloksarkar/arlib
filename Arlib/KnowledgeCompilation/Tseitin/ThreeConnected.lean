@@ -88,7 +88,7 @@ theorem IsTopMinor.refl (G : SimpleGraph V) : IsTopMinor G G := le_refl G
 
 variable (G : SimpleGraph V) [DecidableRel G.Adj]
 
-/-- **Lemma 6** (`source/kc/decolnet/main.tex:627`, `lemma:reduction_to_T(G,0)`,
+/-- **`lemma:reduction_to_T(G,0)`** (`source/kc/decolnet/main.tex:361`,
 [ItsyksonRSS19]), imported: for a satisfiable `T(G,c)` with `G` connected, the
 smallest DNNF size is independent of the charge — negating the edge variables along
 a path between two `1`-charged vertices gives a same-size DNNF for `T(G,0)`.
@@ -97,8 +97,8 @@ structure ReduceToZeroCharge (c : V → ZMod 2) : Prop where
   /-- DNNF size for `T(G,c)` equals DNNF size for `T(G,0)`. -/
   size_iff : ∀ s, DNNFSizeLe G c s ↔ DNNFSizeLe G 0 s
 
-/-- **Lemma 20** (`source/kc/decolnet/main.tex:639`,
-`lemma:safe_size_1_and_size_2_separators`, Bodlaender–Koster), imported as a
+/-- **`lemma:safe_size_1_and_size_2_separators`**
+(`source/kc/decolnet/main.tex:639`, Bodlaender–Koster), imported as a
 provenance marker: every size-1 separator is safe for treewidth, and absent
 size-1 separators every size-2 separator is safe.  The "safe" predicate
 (`tw(G[S∪V']+clique(S)) = tw(G)`) needs a clique-augmented induced-subgraph
@@ -108,8 +108,8 @@ structure SafeSeparators : Prop where
   /-- Opaque marker for the Bodlaender–Koster safe-separator theorem. -/
   imported : True
 
-/-- **Lemma 21** (`source/kc/decolnet/main.tex:649`,
-`lemma:DNNF_size_for_TS_on_topological_minors`), imported: a topological minor `H`
+/-- **`lemma:DNNF_size_for_TS_on_topological_minors`**
+(`source/kc/decolnet/main.tex:649`), imported: a topological minor `H`
 of `G` inherits a DNNF for `T(H,0)` no larger than one for `T(G,0)`.  Inhabited at
 the identity minor. -/
 structure TopMinorDNNF (H : SimpleGraph V) [DecidableRel H.Adj] : Prop where
@@ -118,8 +118,8 @@ structure TopMinorDNNF (H : SimpleGraph V) [DecidableRel H.Adj] : Prop where
   /-- A DNNF for `T(G,0)` transfers to one for `T(H,0)` of the same size. -/
   transfer : ∀ s, DNNFSizeLe G 0 s → DNNFSizeLe H 0 s
 
-/-- **Lemma 23** (`source/kc/decolnet/main.tex:658`,
-`lemma:tological_minor_3-connected`), imported: a graph of treewidth `≥ 3` has a
+/-- **`lemma:tological_minor_3-connected`**
+(`source/kc/decolnet/main.tex:658`), imported: a graph of treewidth `≥ 3` has a
 `3`-connected topological minor of the same treewidth.  Treewidth equality is
 `∀ t, TreewidthLe H t ↔ TreewidthLe G t`, and `tw(G) ≥ 3` is `¬ TreewidthLe G 2`.
 

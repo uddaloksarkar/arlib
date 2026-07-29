@@ -90,7 +90,7 @@ def phi (G : SimpleGraph V) (α : V → Bool) : Prop :=
   ∀ ⦃u v : V⦄, G.Adj u v → α u = true ∨ α v = true
 
 omit [DecidableEq V] in
-/-- **Observation 1** (`source/kc/razgon/FBDDJOURN.tex:568`): `α` satisfies
+/-- **`basicobs`** (`source/kc/razgon/FBDDJOURN.tex:568`): `α` satisfies
 `φ(G)` exactly when the vertices it sets true form a vertex cover of `G`.
 
 This is the whole bridge between the formula and the graph, and after it the

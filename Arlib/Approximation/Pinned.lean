@@ -39,6 +39,14 @@ This module supplies the un-quantified companions.
   surviving the hop.  Each returns a **conjunction**: the original conclusion,
   unchanged and proved by the original theorem, together with the pinned
   running-time statement about the very same composed algorithm.
+* `IsFPAUS.Charges` and `IsFPRAS.Charges` — *every* recorded step count is
+  positive.  A pinned upper bound is still only an upper bound, and
+  `IsFPAUS.pinnedTime_of_cost_zero` / `IsFPRAS.pinnedTime_of_cost_zero` show that
+  the algorithm recording `0` meets `PinnedTime size A c e` at **every** pair of
+  constants, including `(0, 0)`.  So a pinned conclusion pins a number only when
+  it is accompanied by something the zero-cost non-algorithm fails, and `Charges`
+  is the weakest such thing.  `Charges.map_add` carries it across the reduction,
+  so a caller can transport the sandwich and not just its upper half.
 * `IsFPRAS.comp_parsimonious_pinned_on` and `IsFPAUS.comp_bijection_pinned_on` —
   the same, with the *source* algorithm's pinned running time assumed only along
   the reduction, i.e. as
@@ -198,6 +206,125 @@ theorem of_pinnedTime
   polytime := h.polytime
 
 end IsFPAUS
+
+/-! ## The other half of the sandwich
+
+A pinned bound is still an upper bound, and an upper bound on a recorded step
+count says nothing about the algorithm unless the algorithm records something.
+`pinnedTime_of_cost_zero` makes the gap precise — the zero-cost non-algorithm
+satisfies `PinnedTime` at *every* pair of constants — and `Charges` is the
+minimal companion that excludes it. -/
+
+/-- **Every run records a positive step count.**
+
+Deliberately weak: not "records at least the pinned bound", which would be false
+for any algorithm with a fast path, but merely "records something".  That is
+already enough to separate a real analysis from `pinnedTime_of_cost_zero`, and
+being weak it survives every hop that only *adds* cost. -/
+def IsFPAUS.Charges {α : Type*} {Ω : Type v} (A : α → ℝ → PMF (Option Ω × ℕ)) : Prop :=
+  ∀ w, ∀ δ ∈ Set.Ioo (0:ℝ) 1, ∀ p ∈ (A w δ).support, 0 < p.2
+
+/-- **The degeneracy, stated.**
+
+An algorithm that records `0` steps satisfies `IsFPAUS.PinnedTime size A c e` for
+*every* `c` and `e`, including `c = e = 0`.  So no pinned running-time statement,
+however small its constants, is on its own evidence that a computation was
+performed — which is exactly the objection that applies to `IsFPAUS.polytime`,
+undiminished by pinning the constants.  What pinning buys is that the bound is a
+*number*; what excludes the non-algorithm is `Charges`. -/
+theorem IsFPAUS.pinnedTime_of_cost_zero {Ω : Type v} {size : α → ℕ}
+    {A : α → ℝ → PMF (Option Ω × ℕ)}
+    (h : ∀ w, ∀ δ ∈ Set.Ioo (0:ℝ) 1, ∀ p ∈ (A w δ).support, p.2 = 0) (c e : ℕ) :
+    IsFPAUS.PinnedTime size A c e := fun w δ hδ p hp => by
+  rw [h w δ hδ p hp]; exact Nat.zero_le _
+
+/-- **`Charges` rejects it.**  The two are incompatible as soon as the algorithm
+is run anywhere, and a `PMF`'s support is never empty, so this is not a vacuous
+incompatibility. -/
+theorem IsFPAUS.Charges.not_cost_zero {Ω : Type v} {A : α → ℝ → PMF (Option Ω × ℕ)}
+    (hA : IsFPAUS.Charges A) (w : α) {δ : ℝ} (hδ : δ ∈ Set.Ioo (0:ℝ) 1)
+    {p : Option Ω × ℕ} (hp : p ∈ (A w δ).support) : p.2 ≠ 0 :=
+  (hA w δ hδ p hp).ne'
+
+/-- **`Charges` survives the reduction.**
+
+The composed algorithms of `comp_bijection_pinned_on` and of
+`ParsimoniousReduction` all have the shape "run `B` at `h w`, relabel the sample,
+add `cost w`", and the relabelling does not touch the second component while the
+addition only increases it.  Stating it for an arbitrary decoder `dec` rather than
+for `decodeOpt` keeps it applicable to both, and to any future decoder. -/
+theorem IsFPAUS.Charges.map_add {Ω₁ : Type v} {Ω₂ : Type v}
+    {B : β → ℝ → PMF (Option Ω₂ × ℕ)} {hm : α → β} {cost : α → ℕ}
+    (dec : α → Option Ω₂ → Option Ω₁)
+    (hB : ∀ w : α, ∀ δ ∈ Set.Ioo (0:ℝ) 1, ∀ p ∈ (B (hm w) δ).support, 0 < p.2) :
+    IsFPAUS.Charges
+      (fun w δ => (B (hm w) δ).map (fun p => (dec w p.1, p.2 + cost w))) := by
+  intro w δ hδ p hp
+  obtain ⟨q, hq, rfl⟩ := mem_support_map hp
+  have := hB w δ hδ q hq
+  show 0 < q.2 + cost w
+  omega
+
+/-! ### The same, on the counting side
+
+`IsFPRAS` records a step count in exactly the way `IsFPAUS` does, and
+`IsFPRAS.polytime` bounds it from above in exactly the way `IsFPAUS.polytime`
+does, so the degeneracy and its remedy are the same three statements with `δ`
+replaced by `ε` and `Option Ω` by `ℝ`.  They are spelled out rather than derived
+from a common generalisation because `IsFPRAS.PinnedTime` and
+`IsFPAUS.PinnedTime` differ in their *second size parameter* — `⌈ε⁻¹⌉₊` against
+`⌈log (1/δ)⌉₊` — and a shared abstraction would have to be parameterised by that
+choice, which would obscure the two definitions this module exists to make
+readable. -/
+
+/-- **Every run of a counting algorithm records a positive step count.**
+
+The counting analogue of `IsFPAUS.Charges`, and deliberately as weak: it says
+only that the algorithm does *something* on every run, which is already enough to
+separate a real running-time analysis from `IsFPRAS.pinnedTime_of_cost_zero`, and
+being weak it survives every hop that only adds cost. -/
+def IsFPRAS.Charges {α : Type*} (A : α → ℝ → PMF (ℝ × ℕ)) : Prop :=
+  ∀ w, ∀ ε ∈ Set.Ioo (0:ℝ) 1, ∀ p ∈ (A w ε).support, 0 < p.2
+
+/-- **The degeneracy, stated, on the counting side.**
+
+An estimator that records `0` steps satisfies `IsFPRAS.PinnedTime size A c e` for
+*every* `c` and `e`, `(0, 0)` included.  Since a zero-cost estimator may also be
+*exact* — return the count itself with probability one — it satisfies the
+`accuracy` clause too, and is therefore a complete `IsFPRAS` at every pinned pair
+of constants.  So a pinned counting bound, however small its constants, is on its
+own no evidence that a computation was performed. -/
+theorem IsFPRAS.pinnedTime_of_cost_zero {size : α → ℕ} {A : α → ℝ → PMF (ℝ × ℕ)}
+    (h : ∀ w, ∀ ε ∈ Set.Ioo (0:ℝ) 1, ∀ p ∈ (A w ε).support, p.2 = 0) (c e : ℕ) :
+    IsFPRAS.PinnedTime size A c e := fun w ε hε p hp => by
+  rw [h w ε hε p hp]; exact Nat.zero_le _
+
+/-- **`Charges` rejects it.**  A `PMF`'s support is never empty, so the
+incompatibility is not vacuous: at any `w` and any `ε ∈ (0,1)` there is a point
+at which the two clauses contradict each other. -/
+theorem IsFPRAS.Charges.not_cost_zero {A : α → ℝ → PMF (ℝ × ℕ)}
+    (hA : IsFPRAS.Charges A) (w : α) {ε : ℝ} (hε : ε ∈ Set.Ioo (0:ℝ) 1)
+    {p : ℝ × ℕ} (hp : p ∈ (A w ε).support) : p.2 ≠ 0 :=
+  (hA w ε hε p hp).ne'
+
+/-- **`Charges` survives the reduction.**
+
+The composed algorithm of `IsFPRAS.comp_parsimonious_pinned_on` and of
+`ParsimoniousReduction` has the shape "run `B` at `h w`, keep the estimate, add
+`cost w`", and the addition only increases the second component.  As on the
+sampling side the estimate transformer `dec` is left arbitrary — parsimony makes
+it the identity here, but nothing in this lemma needs that, and a reduction that
+rescaled the estimate would still charge. -/
+theorem IsFPRAS.Charges.map_add {B : β → ℝ → PMF (ℝ × ℕ)} {hm : α → β} {cost : α → ℕ}
+    (dec : α → ℝ → ℝ)
+    (hB : ∀ w : α, ∀ ε ∈ Set.Ioo (0:ℝ) 1, ∀ p ∈ (B (hm w) ε).support, 0 < p.2) :
+    IsFPRAS.Charges
+      (fun w ε => (B (hm w) ε).map (fun p => (dec w p.1, p.2 + cost w))) := by
+  intro w ε hε p hp
+  obtain ⟨q, hq, rfl⟩ := mem_support_map hp
+  have := hB w ε hε q hq
+  show 0 < q.2 + cost w
+  omega
 
 /-! ## The composition constants
 

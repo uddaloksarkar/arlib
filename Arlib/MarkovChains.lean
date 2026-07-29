@@ -153,6 +153,14 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
   absolute continuity, without which it is false for these definitions.  This is
   the one module in the area that imports real calculus, and its docstring
   explains why the sharp constant cannot avoid it.
+* `Techniques.EntropyMixing` — nothing but the composition of the two modules
+  above, neither of which imports the other: the entropy-decay bound run at
+  `ε = 2δ²`, which is the whole of Pinsker's cost.  The `μ_min` dependence is
+  untouched at `ln ln(1/m)` — the point of the entropy route, and it survives —
+  but the coefficient of `ln(1/δ)` becomes `2ρ⁻¹` against `γ⁻¹` for the variance
+  route, since `klDiv` decays like `(1-ρ)^t` and Pinsker takes a square root.
+  That factor two is a genuine loss, not a bookkeeping artefact.  The chain is
+  never routed through `χ²`, which would cost a further `√2`.
 * `Techniques.EntropyVariational` — Young's inequality for entropy, the Gibbs
   variational principle, `Ent ≤ Var / E`, and hence `KL ≤ χ²`.
 

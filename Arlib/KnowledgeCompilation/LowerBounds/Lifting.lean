@@ -36,7 +36,7 @@ about images rather than about `Fintype.card`.
 
 **`rep` is a parameter, not a construction.**  The paper represents `σ ∈ 𝒫` by
 `2t` bits, having assumed `n' = |F| = 2^t` so that `𝒫 ⊆ F × F` is a set of
-`2t`-bit strings (`source/kc/arXiv.tex:429`).  Nothing in the argument uses
+`2t`-bit strings (`source/kc/arXiv.tex:423`).  Nothing in the argument uses
 anything about that encoding except that it is **injective on `𝒫`**: injectivity
 is what makes distinct `σ` give disjoint terms, and the width of the `z`-block is
 just `|Zι|`.  So `Zι` is an arbitrary finite index type and `rep : F × F →
@@ -184,7 +184,7 @@ noncomputable def canonChoices (m : ℕ) [NeZero m] (t : Finset (Lit ι)) : List
 variable {t : Finset (Lit ι)}
 
 /-- **The count**: `m^{|posPart t|}` choice functions, which for a `k`-DNF is the
-paper's `m^k` derived terms per term (`source/kc/arXiv.tex:416`). -/
+paper's `m^k` derived terms per term (`source/kc/arXiv.tex:415`). -/
 theorem canonChoices_length :
     (canonChoices m t).length = m ^ (Copies.posPart t).card := by
   classical
@@ -264,7 +264,7 @@ theorem sat_copiesDNF_of_sat {α : ι × Fin m → Bool} (hone : Copies.OneHot �
   rwa [Copies.copyTerm_congr hagree]
 
 /-- **Unambiguity of `ψ^∨` in the counting form** (paper's lemma at
-`source/kc/arXiv.tex:391`), which is what `Circuits/DNFtoCircuit.lean` consumes.
+`source/kc/arXiv.tex:392`), which is what `Circuits/DNFtoCircuit.lean` consumes.
 
 Step 1 proves the pairwise form for any enumeration; the counting form needs the
 enumeration to list each derived term once, which `canonChoices` does.  The
@@ -295,7 +295,7 @@ theorem unambiguous_copiesDNF (hψ : DNF.Unambiguous ψ) :
     obtain ⟨c, -, rfl⟩ := List.mem_map.mp hu
     exact decide_eq_true (Copies.sat_of_sat_copyTerm (of_decide_eq_true hpu))
 
-/-- **The term count** (paper `source/kc/arXiv.tex:416`): at most `m^k` derived
+/-- **The term count** (paper `source/kc/arXiv.tex:415`): at most `m^k` derived
 terms per term of a `k`-DNF, so `ℓ·m^k` in all. -/
 theorem numTerms_copiesDNF_le {k : ℕ} (hk : DNF.IsKDNF k ψ) (hm : 0 < m) :
     (copiesDNF m ψ).numTerms ≤ ψ.numTerms * m ^ k := by
@@ -306,7 +306,7 @@ theorem numTerms_copiesDNF_le {k : ℕ} (hk : DNF.IsKDNF k ψ) (hm : 0 < m) :
         Finset.card_le_card (fun i hi => Finset.mem_image_of_mem _ (Copies.mem_posPart.mp hi))
     _ ≤ Term.width t := Term.card_vars_le_width t
 
-/-- **The width** (paper's `O(km)`, `source/kc/arXiv.tex:417`): each of the at
+/-- **The width** (paper's `O(km)`, `source/kc/arXiv.tex:415`): each of the at
 most `k` variables of a term contributes `m` literals. -/
 theorem isKDNF_copiesDNF {k : ℕ} (hk : DNF.IsKDNF k ψ) :
     DNF.IsKDNF (k * m) (copiesDNF m ψ) := by
@@ -547,7 +547,7 @@ end Perm
 worth knowing that the requirement is satisfiable, and with the paper's own
 number of bits: for `|F| = 2^t` the hypothesis below reads `2^{2t} ≤ 2^{|Zι|}`,
 i.e. `|Zι| = 2t` suffices — the paper's `2t`-bit strings
-(`source/kc/arXiv.tex:429`), recovered rather than assumed. -/
+(`source/kc/arXiv.tex:423`), recovered rather than assumed. -/
 
 theorem exists_rep_injective (F Zι : Type*) [Fintype F] [DecidableEq F] [Fintype Zι]
     [DecidableEq Zι]

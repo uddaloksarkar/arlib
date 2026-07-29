@@ -117,6 +117,13 @@ count is sufficient, just larger by a `log|U| = poly(n,m)` factor.
 * `between_of_abs_sub_le`, `abs_sub_le_of_between` — Step 1, both directions.
 * `outProbR_retryPMF_none`, `outProbR_retryPMF`, `retryPMF_cost_le` — Step 2.
 * `PreprocessedSampler.isFPAUS` — Step 3.
+* `retryPMF_cost_ge`, `one_le_retryCount`, `retrySampler_cost_ge` — the cost
+  bound in the *other* direction.  An upper bound on a recorded step count is
+  satisfied by an algorithm that records nothing, so an upper bound alone is no
+  evidence that any work was done; `retrySampler_cost_ge` says that whatever the
+  attempts charge, the assembly charges at least as much, because `retryCount δ`
+  is never zero on `(0,1)` and so at least one attempt is always run.  Paired
+  with `retryPMF_cost_le` it sandwiches the assembled sampler's cost.
 -/
 
 universe u
@@ -494,6 +501,37 @@ theorem retryPMF_cost_le {B : ℕ} (h : ∀ p ∈ μ.support, p.2 ≤ B) :
         calc q.2 ≤ B := h q hp
           _ ≤ (k + 1) * B := Nat.le_mul_of_pos_left B (Nat.succ_pos k)
 
+/-- **At least one attempt is paid for.**
+
+The companion of `retryPMF_cost_le`, and the reason it is worth having: an
+*upper* bound on a recorded step count is satisfied by an algorithm that records
+`0`, so on its own it is no evidence that any work was done.  If every attempt
+charges at least `A`, then so does the loop — provided the loop runs at all,
+which is why the statement is about `k + 1` and not `k`.  At `k = 0` the loop
+returns `(none, 0)` and the conclusion is false for `A > 0`.
+
+No induction: whichever branch the first attempt takes, its own cost `p.2` is
+already a summand of the total. -/
+theorem retryPMF_cost_ge {A : ℕ} (h : ∀ p ∈ μ.support, A ≤ p.2) (k : ℕ) :
+    ∀ q ∈ (retryPMF μ (k + 1)).support, A ≤ q.2 := by
+  intro q hq
+  rw [retryPMF, PMF.mem_support_bind_iff] at hq
+  obtain ⟨p, hp, hq⟩ := hq
+  by_cases hpn : p.1 = none
+  · rw [if_neg (by simp [hpn])] at hq
+    obtain ⟨r, _, hrq⟩ := mem_support_map hq
+    have h1 := h p hp
+    rw [← hrq]
+    show A ≤ p.2 + r.2
+    omega
+  · have hsome : p.1.isSome = true := by
+      cases hq' : p.1 with
+      | none => exact absurd hq' hpn
+      | some _ => rfl
+    rw [if_pos hsome, PMF.mem_support_pure_iff] at hq
+    subst hq
+    exact h q hp
+
 end Retry
 
 /-! ## Calibrating the number of repetitions
@@ -520,6 +558,20 @@ theorem quarter_le_log_four_thirds : (1 : ℝ) / 4 ≤ Real.log (4 / 3) := by
 probability that *every* attempt returns `FAIL` below `δ/2`, starting from the
 per-attempt bound `3/4` of `lem:sampmain`. -/
 noncomputable def retryCount (δ : ℝ) : ℕ := ⌈Real.log (2 / δ) / Real.log (4 / 3)⌉₊
+
+/-- **The loop always runs.**  On `(0,1)` we have `2/δ > 2 > 1`, so
+`log (2/δ) > 0`, and `log (4/3) > 0` by `quarter_le_log_four_thirds`; the ceiling
+of a positive real is at least `1`.
+
+This is what `retrySampler_cost_ge` needs and `retryPMF_cost_ge` cannot supply:
+the lower bound on the loop's cost holds only because the loop is entered. -/
+theorem one_le_retryCount {δ : ℝ} (hδ : δ ∈ Set.Ioo (0:ℝ) 1) : 1 ≤ retryCount δ := by
+  obtain ⟨hδ0, hδ1⟩ := hδ
+  have hL : (0 : ℝ) < Real.log (4 / 3) :=
+    lt_of_lt_of_le (by norm_num) quarter_le_log_four_thirds
+  have h2 : (1 : ℝ) < 2 / δ := by
+    rw [lt_div_iff₀ hδ0]; linarith
+  exact Nat.ceil_pos.2 (div_pos (Real.log_pos h2) hL)
 
 /-- **The calibration.**  With `retryCount δ` attempts, `(3/4)^k ≤ δ/2`. -/
 theorem pow_retryCount_le {δ : ℝ} (hδ : δ ∈ Set.Ioo (0:ℝ) 1) :
@@ -633,6 +685,31 @@ theorem retrySampler_cost_le {Ω : Type u} {size : α → ℕ} {g : α → Finse
   rcases mem_support_mixPMF hp with h | h
   · exact retryPMF_cost_le _ hb _ p h
   · exact retryPMF_cost_le _ hg _ p h
+
+/-- **The assembled sampler charges at least what one attempt charges.**
+
+The mirror of `retrySampler_cost_le`, and the statement that distinguishes an
+algorithm from the non-algorithm that records `0`: both branches of the mixture
+are retry loops, `one_le_retryCount` says each of them runs at least one
+attempt, and `retryPMF_cost_ge` says a loop that runs charges at least what its
+attempt charges.
+
+Note that the hypotheses are at `preTol g w δ`, not at `δ`: that is the
+tolerance at which the assembly actually invokes `good` and `bad`, so this is
+the weakest form that suffices and the one a caller can discharge. -/
+theorem retrySampler_cost_ge {Ω : Type u} {g : α → Finset Ω}
+    {good bad : α → ℝ → PMF (Option Ω × ℕ)} {A : ℕ} (w : α) {δ : ℝ}
+    (hδ : δ ∈ Set.Ioo (0:ℝ) 1)
+    (hg : ∀ p ∈ (good w (preTol g w δ)).support, A ≤ p.2)
+    (hb : ∀ p ∈ (bad w (preTol g w δ)).support, A ≤ p.2) :
+    ∀ p ∈ (retrySampler g good bad w δ).support, A ≤ p.2 := by
+  intro p hp
+  obtain ⟨k, hk⟩ : ∃ k, retryCount δ = k + 1 :=
+    ⟨retryCount δ - 1, (Nat.succ_pred_eq_of_pos (one_le_retryCount hδ)).symm⟩
+  rw [retrySampler, hk] at hp
+  rcases mem_support_mixPMF hp with h | h
+  · exact retryPMF_cost_ge _ hb k p h
+  · exact retryPMF_cost_ge _ hg k p h
 
 /-! ### The hypotheses of `thm:samplemain` -/
 

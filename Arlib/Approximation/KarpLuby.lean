@@ -67,8 +67,14 @@ but needs Hoeffding's lemma for the sharp constant, which is a development in it
 own right.  Following the house style of `Arlib.Approximation.Amplification`,
 **imported results are hypotheses, never axioms**: every theorem that uses it
 carries it in its statement, and `#print axioms` still returns only Mathlib's
-three.  Discharging `HoeffdingBound` makes everything below unconditional with no
-other change.
+three.
+
+**And it is now discharged.**  `Arlib.Approximation.Hoeffding` proves
+`hoeffdingBound : HoeffdingBound` at exactly this constant, so `estimateAlg_accuracy`,
+`isFPRAS_unionAlg` and `isFPRAS_union_of_isUnion` become unconditional once it is
+supplied, with `sampleCount` unchanged.  That module imports this one, so this
+module stays independent of it and the bundle remains a parameter here; pass
+`hoeffdingBound` at any call site.
 
 Note the bundle is stated for a `{0,1}`-valued `PMF (ℝ × ℕ)` and the `repeatPMF`
 of `Amplification`, i.e. in exactly the vocabulary `Concentration` already works
@@ -498,15 +504,17 @@ If a single run outputs `1` with probability `q` and otherwise `0`, then the mea
 of `h` independent runs deviates from `q` by more than `t` with probability at
 most `2 exp(-2 h t²)`.
 
-**This is not proved here.**  `Arlib.Approximation.Concentration` proves the
+**Not proved here — but proved.**  `Arlib.Approximation.Concentration` proves the
 one-sided, fixed-threshold bound `MajorityConcentration` directly on the
 `repeatPMF` tower by a Chernoff argument through `pexp_repeatPMF_pow`; the
 two-sided *relative* deviation bound with the sharp constant `2` in the exponent
 needs Hoeffding's lemma, which is a self-contained development with no bearing on
-the union estimator.  So, in the house style of
-`Arlib.Approximation.Amplification`, it is imported as a hypothesis rather than
-assumed as an axiom, and every theorem below that uses it says so in its
-statement.
+the union estimator.  That development is `Arlib.Approximation.Hoeffding`, and it
+supplies `hoeffdingBound : HoeffdingBound` at this very constant.  So, in the
+house style of `Arlib.Approximation.Amplification`, it is imported as a hypothesis
+rather than assumed as an axiom, and every theorem below that uses it says so in
+its statement; that module imports this one, so pass `hoeffdingBound` at the call
+site and every such theorem becomes unconditional.
 
 At `h = 0` the bound reads `-1 ≤ outProbR …`, which is vacuous, so the statement
 is consistent at the degenerate end. -/

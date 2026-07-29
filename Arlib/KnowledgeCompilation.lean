@@ -14,7 +14,7 @@ Under Negation* (IJCAI 2024), in `source/kc/arXiv.tex`.  See `ROADMAP.md` for
 the design principles and `PAPER-INVENTORY.md` for the statement-by-statement
 catalogue of the source paper.
 
-The area is split five ways, mirroring the shape of the argument:
+The area is split seven ways, mirroring the shape of the argument:
 
 * **`Circuits/`** — the *objects*.  NNF and the syntactic restrictions that cut
   representation languages out of it: decomposability, determinism, v-trees and
@@ -40,6 +40,13 @@ The area is split five ways, mirroring the shape of the argument:
   (`source/kc/decolnet/main.tex`): the parity system `T(G, c)` of a charged
   graph, whose lower-bound engine is the *branchwidth* of `G`.  See
   `Tseitin/ROADMAP.md`.
+* **`Probabilistic/`** — a *different kind of circuit*.  V-trees with finite leaf
+  domains, structured arithmetic circuits over ℝ whose scope decomposition is the
+  v-tree, and pairs of circuits over a shared v-tree.  These are not the Boolean
+  d-DNNF/SDD objects of `Circuits/` and no lower bound is proved about them; the
+  semantics is routed through the region-tree engine of
+  `Arlib.Approximation.Coresets` so that a domain-reduction scheme can sparsify
+  them region by region.
 
 Two conventions are worth stating up front, because they shape everything.
 
@@ -252,6 +259,31 @@ simulation is essentially tight.
   "decomposability engine" (`sibling_absent`) on which their compiler's
   `∧`-decomposition rests — a variable forgotten strictly below a child is absent
   from every sibling's subtree.
+* `BranchingPrograms.OztokDarwicheBundle` — the Oztok–Darwiche compilation bound
+  that `DecisionDNNF.separ2` imports, **discharged on the concrete class**
+  `T_r(P_{2p})`.  The general bundle would need an infinite→finite rooting of an
+  arbitrary tree decomposition, which Mathlib's lack of a treewidth API rules
+  out; instead the explicit finite decomposition of
+  `TreeProduct.treewidthLe_binTree_boxProd` is wrapped as a `RootedTD` and fed to
+  `exists_decisionDNNF_of_rootedTD_sharp`, yielding an **unconditional**
+  decision-DNNF for `φ(T_r(P_{2p}))`.  The one real construction is a heap index
+  `BinTreeNode r ≃ Fin (2^{r+1}-1)` under which the tree-parent has strictly
+  smaller index, which is what supplies `RootedTD.parent_lt`.  The payoff is
+  `separ2_quintic_unconditional`: Razgon's separation for `T_r(P_{2r})` with
+  *both* sides discharged inside Lean — the `O(n⁵)` decision-DNNF upper bound with
+  no Oztok–Darwiche oracle, and the `n^{Ω(log n)}` read-once lower bound from
+  `Razgon.maintheor` — leaving `1 ≤ r` as the only hypothesis.
+
+### Probabilistic
+
+* `Probabilistic.StructuredCircuit` — `Vtree` with leaf domains `Fin m`, its
+  joint assignment space `Vtree.Assign`, and the single structured circuit
+  `Circuit V g` whose scope decomposition *is* `V`.
+* `Probabilistic.CircuitPair` — two circuits over the *same* `V`, compared region
+  by region: the joint feature index `Coord`, the block-diagonal structure tensor
+  `blockTensor`, the joint region tree `pairRegion`, the pair
+  `CircuitPair V gP gQ` with its `valP`/`valQ` semantics, and its `Reduction`
+  execution object.
 -/
 
 import Arlib.KnowledgeCompilation.Basic

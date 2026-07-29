@@ -94,7 +94,7 @@ theorem pow_le_of_total_le_mul {b kstar r : ℕ} (h : 2 ^ (b + kstar) ≤ r * 2 
 
 /-! ## Lemma 22 -/
 
-/-- **Lemma 22** (`source/kc/decolnet/main.tex:672`, `lem:dnnf_lower`), with the
+/-- **`lem:dnnf_lower`** (`source/kc/decolnet/main.tex:672`), with the
 paper's **explicit** exponent `k = 2·tw(G)/(9Δ)` (`:676`).
 
 A complete DNNF `D` computing a satisfiable `T(G,c)` — `G` connected, maximum

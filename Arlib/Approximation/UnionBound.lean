@@ -50,7 +50,7 @@ vocabulary of `Arlib.Approximation.Counting`.
 
 ## The ACJR instance
 
-`theo:fpras-bta` (`fpras2.tex:394-438`) carries the invariant
+`theo:fpras-bta` (`fpras2.tex:385`, invariant at `400-403`) carries the invariant
 `Pr[⋀_{j ≤ i}(ℰ¹_j ∧ ℰ²_j)] ≥ 1 - 2^{-γ+2i}`, closed by
 `(1 - 2^{-γ+1})·(1 - 2^{-γ+2(i-1)}) ≥ 1 - 2^{-γ+2i}`.  Two observations, both
 formalized below.

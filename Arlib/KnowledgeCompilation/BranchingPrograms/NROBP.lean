@@ -97,7 +97,7 @@ bound for arbitrary {\sc nrobp}s needs Appendix B.
 
 ## The `lbengine` hypothesis
 
-Razgon's Theorem 4 (`source/kc/razgon/FBDDJOURN.tex:657`) — a `t`-cover of the family of
+Razgon's Theorem `lbengine` (`source/kc/razgon/FBDDJOURN.tex:651`) — a `t`-cover of the family of
 all vertex covers of a graph of max-degree `x` has at least `2^{t/f(x)}` members — is
 proved by a probabilistic argument in a separate file of this development.  Following the
 discipline of `Arlib/KnowledgeCompilation/ROADMAP.md` §1.3 (*imported results are
@@ -229,7 +229,7 @@ variable {V : Type*} [DecidableEq V]
 /-- `Var(A(P))`: the set of variables whose literals occur in a literal list. -/
 def varSet (ls : List (Lit V)) : Finset V := (ls.map Prod.fst).toFinset
 
-/-- `VC(P)` (paper §5, `source/kc/razgon/FBDDJOURN.tex:583`): the set of vertices
+/-- `VC(P)` (paper §5, `source/kc/razgon/FBDDJOURN.tex:575`): the set of vertices
 occurring **positively** in a literal list.  Observation 1 of the paper is the statement
 that, for a root-leaf path, this is a vertex cover; see `NROBP.vcOf_isVertexCover`. -/
 def vcOf (ls : List (Lit V)) : Finset V := ((ls.filter fun p => p.2).map Prod.fst).toFinset
@@ -310,7 +310,7 @@ structure Uniform (Z : NROBP V size) : Prop where
   full_vars : ∀ {ls : List (Lit V)}, Z.Path Z.root Z.leaf ls → varSet ls = Finset.univ
 
 /-- **`Z` implements `φ(G)`** (paper Definition 1,
-`source/kc/razgon/FBDDJOURN.tex:268`).  Two clauses, exactly the paper's:
+`source/kc/razgon/FBDDJOURN.tex:262`).  Two clauses, exactly the paper's:
 
 * *soundness*: every total assignment extending the literals of a root-leaf path
   satisfies `φ(G)` — the paper's "any set of literals `A ⊇ A(P)` with `Var(A) = Var(F)`
@@ -324,7 +324,7 @@ structure Realises (Z : NROBP V size) (G : SimpleGraph V) : Prop where
   /-- Every satisfying assignment extends some root-leaf path. -/
   complete : ∀ α : V → Bool, phi G α → ∃ ls, Z.Path Z.root Z.leaf ls ∧ Agree ls α
 
-/-- **Observation 1, first half** (paper §5, `source/kc/razgon/FBDDJOURN.tex:568`):
+/-- **`basicobs`, first half** (paper §5, `source/kc/razgon/FBDDJOURN.tex:568`):
 the vertices read positively on a root-leaf path form a vertex cover of `G`.
 
 Uniformity is *not* needed: the canonical assignment of the path already extends it, by
@@ -345,7 +345,7 @@ theorem exists_path_vcOf_subset (hR : Z.Realises G) {C : Finset V} (hC : IsVerte
   have := hag _ (mem_vcOf.mp hv)
   simpa using this
 
-/-- **Observation 1, second half** (paper §5, `source/kc/razgon/FBDDJOURN.tex:570`):
+/-- **`basicobs`, second half** (paper §5, `source/kc/razgon/FBDDJOURN.tex:570`):
 `V'` is the set of vertices occurring positively on a root-leaf path *if and only if* `V'`
 is a vertex cover.  The forward direction is `vcOf_isVertexCover`; this is the converse,
 and here uniformity is genuinely needed — without it a path may simply not read a vertex
@@ -509,7 +509,7 @@ theorem exists_split_crossMatching (hro : Z.ReadOnce) (hu : Z.Uniform)
   rw [hpre] at hMi
   exact hMi
 
-/-- **Lemma 2, `tnodecut`** (paper §5, `source/kc/razgon/FBDDJOURN.tex:600`).
+/-- **`tnodecut`** (paper §5, `source/kc/razgon/FBDDJOURN.tex:600`).
 If the matching width of `G` is at least `t`, then every root-leaf path of a uniform
 read-once program implementing `φ(G)` passes through a `t`-node — equivalently, the
 `t`-nodes form a root-leaf cut.
@@ -628,7 +628,7 @@ section LowerBound
 
 variable {V : Type*} [Fintype V] [DecidableEq V]
 
-/-- **Theorem 3, `nrobplbdmw`** (paper §5, `source/kc/razgon/FBDDJOURN.tex:668`):
+/-- **`nrobplbdmw`** (paper §5, `source/kc/razgon/FBDDJOURN.tex:515`):
 a uniform read-once nondeterministic branching program implementing `φ(G)`, for a graph
 `G` of matching width at least `t`, has at least `bound` **nodes**, where `bound` is any
 lower bound on the size of a `t`-cover of the family of vertex covers of `G`.

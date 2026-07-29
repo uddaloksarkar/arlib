@@ -257,7 +257,7 @@ def Clean (Z : NROBP V size) : Prop :=
   ∀ {u v : Fin size} {x : Lit V}, Z.edge u v (some x) →
     ∀ {u' : Fin size} {l' : Option (Lit V)}, Z.edge u' v l' → u' = u ∧ l' = some x
 
-/-- **A relevant edge** (paper Appendix A, `source/kc/razgon/FBDDJOURN.tex:1220`): one
+/-- **A relevant edge** (paper Appendix A, `source/kc/razgon/FBDDJOURN.tex:1221`): one
 whose head has in-degree greater than one. -/
 def Relevant (Z : NROBP V size) (u v : Fin size) : Prop :=
   (∃ l, Z.edge u v l) ∧ 1 < InDegree Z v
@@ -1015,7 +1015,7 @@ The four properties are:
 * `hWroot`, `hWleaf`: the weight is empty at the root and everything at the leaf, which is
   exactly what the two clauses of `NROBP.Uniform` need.
 
-This is Razgon's Appendix-A theorem (`source/kc/razgon/FBDDJOURN.tex:1337`) with the
+This is Razgon's Appendix-A theorem (`source/kc/razgon/FBDDJOURN.tex:1338`) with the
 one-irregular-edge-at-a-time induction replaced by a single simultaneous transformation;
 see the module docstring. -/
 theorem uniformize_of_weight {G : SimpleGraph V} {Z : NROBP V m} (W : Fin m → Finset V)
@@ -1221,7 +1221,7 @@ theorem uniformizeSize_eq (m nv : ℕ) :
     uniformizeSize m nv = m * (m * (2 * nv + 1) * (nv + 1) + 1) := rfl
 
 /-- **From an arbitrary read-once NROBP to a uniform one** (paper Appendix A,
-`source/kc/razgon/FBDDJOURN.tex:1337`).
+`source/kc/razgon/FBDDJOURN.tex:1338`).
 
 A read-once `NROBP` on `size` nodes realising `φ(G)` has a read-once **and uniform**
 transform realising `φ(G)` on

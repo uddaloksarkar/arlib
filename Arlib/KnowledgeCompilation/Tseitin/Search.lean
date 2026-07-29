@@ -24,7 +24,7 @@ problems*: given a falsifying assignment, name a reason it fails.
 A **1-BP** is a deterministic read-once branching program; "a 1-BP computes
 `SearchVertex(G,c)`" means its `V`-labelled sinks give a violated vertex on every
 input.  The BP model with `V`-labelled sinks, and the **well-structured** refinement
-(`source/kc/decolnet/main.tex:434`, where each node computes `SearchVertex(G_k,c_k)`
+(`source/kc/decolnet/main.tex:435`, where each node computes `SearchVertex(G_k,c_k)`
 for a connected unsatisfiable subgraph and decision nodes route to the unique
 unsatisfiable component of `G_k − e`), are heavy to build against the repository's
 `NROBP`/`FBDD` (whose sinks are `0/1`).  They are carried as **opaque size
@@ -77,7 +77,7 @@ the Step-1 chain (`source/kc/decolnet/main.tex:370`). -/
 opaque Has1BPForSearchVertexLe (G : SimpleGraph V) (c : V → ZMod 2) (s : ℕ) : Prop
 
 /-- **`SearchVertex(G,c)` is computed by a *well-structured* 1-BP of size at most
-`s`** (`source/kc/decolnet/main.tex:434`).  Opaque carrier, as above. -/
+`s`** (`source/kc/decolnet/main.tex:435`).  Opaque carrier, as above. -/
 opaque HasWS1BPForSearchVertexLe (G : SimpleGraph V) (c : V → ZMod 2) (s : ℕ) : Prop
 
 /-! ## Imported results -/
@@ -94,8 +94,8 @@ structure LovaszNNW (c : V → ZMod 2) (F : List (Clause {e // e ∈ G.edgeSet})
   vertex coarsening). -/
   refute_to_bp : ∀ S, RegRefutationLen F S → Has1BPForSearchVertexLe G c S
 
-/-- **Corollary 8** (`source/kc/decolnet/main.tex:397`,
-`corollary:1BP_size_searchvx`), imported: the smallest 1-BP for `SearchVertex(G,c)`
+/-- **`corollary:1BP_size_searchvx`**
+(`source/kc/decolnet/main.tex:397`), imported: the smallest 1-BP for `SearchVertex(G,c)`
 has size at most the shortest regular resolution refutation length of `T(G,c)`.
 Not inhabited (opaque 1-BP carrier). -/
 structure Corollary8 (c : V → ZMod 2) (F : List (Clause {e // e ∈ G.edgeSet})) :
@@ -103,8 +103,8 @@ structure Corollary8 (c : V → ZMod 2) (F : List (Clause {e // e ∈ G.edgeSet}
   /-- Regular refutation of length `S` ⟹ a 1-BP of size `≤ S` for `SearchVertex`. -/
   bp_le_refutation : ∀ S, RegRefutationLen F S → Has1BPForSearchVertexLe G c S
 
-/-- **Lemma 10** (`source/kc/decolnet/main.tex:445`,
-`lemma:1BP_are_well_structured`, [ItsyksonRSS19]), imported: a minimal-size 1-BP
+/-- **`lemma:1BP_are_well_structured`**
+(`source/kc/decolnet/main.tex:445`, [ItsyksonRSS19]), imported: a minimal-size 1-BP
 computing `SearchVertex(G,c)` is well-structured, so a well-structured 1-BP of size
 `≤ s` exists whenever any 1-BP of size `≤ s` does.  Not inhabited (opaque carriers). -/
 structure Lemma10 (c : V → ZMod 2) : Prop where

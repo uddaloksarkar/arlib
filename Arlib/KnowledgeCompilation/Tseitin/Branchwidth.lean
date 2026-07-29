@@ -84,7 +84,7 @@ variable (G)
 
 /-! ## Lemma 2: branchwidth versus treewidth — as an imported bridge -/
 
-/-- **Lemma 2** (`source/kc/decolnet/main.tex:326`, `lemma:bw_vs_tw`, Harvey–Wood
+/-- **`lemma:bw_vs_tw`** (`source/kc/decolnet/main.tex:326`, Harvey–Wood
 `[HarveyW17, Lemma 12]`), as an imported hypothesis: for `bw(G) ≥ 2`,
 `bw(G) − 1 ≤ tw(G) ≤ (3/2)·bw(G)`.  This is the bridge letting a branchwidth bound
 be read as a treewidth bound (and back), stated here as the two implications

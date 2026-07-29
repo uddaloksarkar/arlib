@@ -46,7 +46,7 @@ open Finset
 variable {V : Type*} [Fintype V] [DecidableEq V]
 variable {G : SimpleGraph V} [DecidableRel G.Adj]
 
-/-! ## Sub-constraints (`source/kc/decolnet/main.tex:542`) -/
+/-! ## Sub-constraints (`source/kc/decolnet/main.tex:543`) -/
 
 /-- **A sub-constraint of `χ_v`** as a predicate: the parity of the edge variables
 in a set `S` equals `c₁`.  A genuine *sub-constraint* additionally requires `S` to
@@ -71,8 +71,8 @@ def IsEdgeRectangle (E₁ : Finset {e // e ∈ G.edgeSet})
     (R : Assignment G → Prop) : Prop :=
   ∀ α β, R α → R β → R (fun e => if e ∈ E₁ then α e else β e)
 
-/-- **Lemma 15** (`source/kc/decolnet/main.tex:546`,
-`lemma:rectangle_sub_constraints`).  Let `T(G,c)` be satisfiable and let `R` be a
+/-- **`lemma:rectangle_sub_constraints`**
+(`source/kc/decolnet/main.tex:546`).  Let `T(G,c)` be satisfiable and let `R` be a
 rectangle for the edge-partition `(E₁, E₂)` with `R ⊆ sat(T(G,c))`.  If a vertex
 `v` is incident both to edges in `E₁` and to edges in `E₂`, then `E₁(v) := E(v) ∩ E₁`
 is the index of a genuine sub-constraint of `χ_v`, and there is a charge `c₁` such
@@ -213,8 +213,8 @@ and (where a witness is cheaper than the imported theorem) inhabited below. -/
 
 variable (G)
 
-/-- **Lemma 16** (`source/kc/decolnet/main.tex:560`,
-`lemma:graph_splitting_equals_subconstraint`), as an imported hypothesis:
+/-- **`lemma:graph_splitting_equals_subconstraint`**
+(`source/kc/decolnet/main.tex:560`), as an imported hypothesis:
 splitting `v` along `(N₁, N₂)` with charges `c₁ + c₂ = c(v)` produces `T(G', c')`
 whose models are in bijection — via the edge-variable renaming `ρ` of the
 paper — with the models of `T(G, c) ∧ χ¹_v`, where `χ¹_v` is the sub-constraint on
@@ -270,8 +270,8 @@ structure IndepSplitModelCount (c : V → ZMod 2) (k : ℕ) (verts : Fin k → V
       = Nat.card {α : Assignment G // Formula G c α ∧ ∀ i, chiSub (Ssub i) (charges i) α}
         * 2 ^ (Fintype.card V + k)
 
-/-- **Lemma 19** (`source/kc/decolnet/main.tex:599`,
-`lemma:choose_vertices_from_3-connected_graph`), as an imported hypothesis.  If `G`
+/-- **`lemma:choose_vertices_from_3-connected_graph`**
+(`source/kc/decolnet/main.tex:599`), as an imported hypothesis.  If `G`
 is `3`-connected and `{v₁, …, v_k}` is an independent set with a proper
 neighbour-partition at each `v_i`, then some subset `S` of the indices with
 `k ≤ 3·|S|` (i.e. `|S| ≥ k/3`) can be split while keeping `G` connected.

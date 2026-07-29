@@ -213,8 +213,8 @@ private theorem even_filter_card (K : G.ConnectedComponent)
       rw [hset]
       simp
 
-/-- **Proposition 3, the easy direction** (`source/kc/decolnet/main.tex:343`,
-`proposition:satisfiability_tseitin_formula`, one direction).  If `T(G, c)` is
+/-- **`proposition:satisfiability_tseitin_formula`, the easy direction**
+(`source/kc/decolnet/main.tex:343`).  If `T(G, c)` is
 satisfiable, then every connected component `U` of `G` has even total charge,
 `∑_{v ∈ U} c(v) = 0 (mod 2)`.
 
@@ -259,7 +259,8 @@ inhabited below so the conditional is not vacuous. -/
 
 variable (G)
 
-/-- **Proposition 3, the converse** (`source/kc/decolnet/main.tex:343`), as an
+/-- **`proposition:satisfiability_tseitin_formula`, the converse**
+(`source/kc/decolnet/main.tex:343`), as an
 imported hypothesis: if every connected component of `G` has even total charge,
 then `T(G, c)` is satisfiable.  Not proved here; see the section docstring. -/
 structure TseitinSatisfiabilityConverse (c : V → ZMod 2) : Prop where
@@ -268,8 +269,8 @@ structure TseitinSatisfiabilityConverse (c : V → ZMod 2) : Prop where
     (∀ K : G.ConnectedComponent, ∑ v ∈ componentFinset G K, c v = 0) →
     ∃ α, Formula G c α
 
-/-- **Proposition 3** (`source/kc/decolnet/main.tex:343`,
-`proposition:satisfiability_tseitin_formula`), the full biconditional: `T(G, c)`
+/-- **`proposition:satisfiability_tseitin_formula`**
+(`source/kc/decolnet/main.tex:343`), the full biconditional: `T(G, c)`
 is satisfiable iff every connected component has even total charge.  The forward
 direction is `even_charge_of_sat`; the converse is supplied by the imported
 `TseitinSatisfiabilityConverse`. -/
@@ -281,8 +282,8 @@ theorem tseitin_satisfiable_iff {c : V → ZMod 2}
 
 /-! ## Proposition 4, the model count — as an inhabited import -/
 
-/-- **Proposition 4** (`source/kc/decolnet/main.tex:347`,
-`proposition:number_model_tseitin_formula`, from Glinskih–Itsykson), as an
+/-- **`proposition:number_model_tseitin_formula`**
+(`source/kc/decolnet/main.tex:347`, from Glinskih–Itsykson), as an
 imported hypothesis: a satisfiable Tseitin-formula `T(G, c)` has exactly
 `2^{|E| − |V| + K}` models, where `K` is the number of connected components.
 

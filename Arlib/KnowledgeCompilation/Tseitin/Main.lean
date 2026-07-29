@@ -88,8 +88,8 @@ structure AlekhnovichR11 (F : List (Clause {e // e ∈ G.edgeSet})) (t : ℕ) : 
   /-- A short regular refutation exists. -/
   upper : ∃ c₁ c₂ : ℕ, RegRefutationLen F (2 ^ (c₁ * t) * Fintype.card V ^ c₂)
 
-/-- **Theorem 1** (`source/kc/decolnet/main.tex:304`, `theorem:main_result`),
-**proved by composition**, with the explicit constant of Lemma 22.  For an
+/-- **`theorem:main_result`** (`source/kc/decolnet/main.tex:304`),
+**proved by composition**, with the explicit constant of `lem:dnnf_lower`.  For an
 unsatisfiable `T(G,c)` (`G` connected, maximum degree `≤ Δ`, treewidth `t`) and a
 satisfiable `T(G,c*)`, any regular resolution refutation of `T(G,c)` of length `S`
 satisfies
