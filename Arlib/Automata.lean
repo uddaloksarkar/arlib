@@ -135,6 +135,27 @@ counting projects rather than by the lower bounds.
   that are now genuinely finite types — `restrict` composed with `relabelTo` —
   and `ncard_langOfSize_presentation` is the statement that it counts the same
   thing at every `n`.
+* `Automata.TreeAutomatonRelabelPreserves` — the two things the re-indexing must
+  *not* disturb, which a counting statement can do without and a **sampling**
+  statement cannot.  `LTree.isBinary_mapLabel_iff` is binarity — the source
+  papers' `𝒯rees_b[Σ]` — as an invariant, with **no hypothesis on the relabelling
+  map at all**: it is a condition on the shape and `mapLabel` touches only labels,
+  so injectivity is irrelevant, and the *reflecting* direction is the one that
+  earns its keep, a caller having the binarity guard downstream on `L_n(A)` and
+  needing it upstream on `L_n(relabelTo A Λ)`.  `ncard_reachableStates_relabelTo`
+  and `ncard_usedLabels_restrictAlphabet` are the two counts a `#TA` size measure
+  is built from, preserved **on the nose** rather than merely bounded — otherwise
+  a polynomial-time claim carried across the re-indexing would silently say less
+  than it appears to.  The first needs `A.usedLabels ⊆ Λ`, and that hypothesis is
+  not decorative: without it `relabelTo` can only *lose* transitions, and the
+  count can drop.  **What is not proved here**: nothing about the *cost* of the
+  re-indexing — the size data is shown invariant, not the construction shown cheap
+  — and nothing that supplies the `Fintype` instances, which is a separate
+  question and answerable only after `restrict`.  Both counting results are
+  one-line consequences of `TreeAutomatonRelabel`; they are stated rather than
+  left to the caller because the second passes through `Set.ncard_univ` and
+  `Set.Nat.card_coe_set_eq`, the used labels of the re-indexed automaton being
+  `Set.univ` *in the subtype* and not the original set.
 * `Automata.SuccinctNFA` — NFAs whose transitions are labelled by *sets*, given
   by an abstract representation type with a decoding map rather than by
   `Set Γ` itself.  That is forced, not stylistic: the whole point of the model
