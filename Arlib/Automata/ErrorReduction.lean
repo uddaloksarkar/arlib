@@ -12,7 +12,7 @@ rank is *wildly* non-monotone in the error parameter: there is a matrix whose
 `10⁻⁵`-approximate nonnegative rank is `2^Ω̃(m²)` while its `1/4`-approximate
 nonnegative rank is only `2^O(m)`.  The hard half — the `10⁻⁵` lower bound — is
 §4's machinery.  This file supplies the *easy* half, and it really is easy: it
-is a three-line calculation in the paper (`applications.tex:24`) whose entire
+is a three-line calculation in the paper (`applications.tex:25`) whose entire
 content is that the arithmetic mean of two bits is never more than `1/4` away
 from their `∨`, once shifted by `1/4`.
 
@@ -20,7 +20,7 @@ from their `∨`, once shifted by `1/4`.
 
 The paper states the idea twice: once for nonnegative *degree*, as `cl: or`
 (`applications.tex:9`), and once for nonnegative *rank*, in the closing
-paragraph (`applications.tex:24`).  Only the second is here.  The first lives on
+paragraph (`applications.tex:25`).  Only the second is here.  The first lives on
 the one-party side — conical juntas over `{0,1}^n` — which is
 `Communication/ConicalJunta.lean`'s territory, not this area's, and the two
 statements have literally the same proof.  Formalizing the rank version alone is
@@ -139,7 +139,7 @@ theorem nnRankLE_const {c : ℝ} (hc : 0 ≤ c) :
 
 /-! ## The `∨`-extension and its cheap approximation -/
 
-/-- **`F^∨`** (`source/kc/goos/parts/applications.tex:24`): Alice holds a pair
+/-- **`F^∨`** (`source/kc/goos/parts/applications.tex:25`): Alice holds a pair
 `(x, x')`, Bob a pair `(y, y')`, and the value is `F x y ∨ F x' y'`.
 
 Note which coordinates are paired: Alice's *first* with Bob's *first*.  The
@@ -151,7 +151,7 @@ def orExtend (F : X → Y → Bool) : X × X → Y × Y → Bool :=
 @[simp] lemma orExtend_apply {F : X → Y → Bool} {p : X × X} {q : Y × Y} :
     orExtend F p q = (F p.1 q.1 || F p.2 q.2) := rfl
 
-/-- **The approximating matrix `G`** of `source/kc/goos/parts/applications.tex:24`:
+/-- **The approximating matrix `G`** of `source/kc/goos/parts/applications.tex:25`:
 `G(xx', yy') := (F(x,y) + F(x',y'))/2 + 1/4`.
 
 It takes the value `1/4` when both bits are `0`, `3/4` when exactly one is, and
@@ -169,7 +169,7 @@ theorem orMatrix_nonneg (F : X → Y → Bool) (p : X × X) (q : Y × Y) :
   linarith
 
 /-- **`G` is a `1/4`-approximation to `F^∨`** (`cl: or` in matrix form,
-`source/kc/goos/parts/applications.tex:24`).
+`source/kc/goos/parts/applications.tex:25`).
 
 All three branches are tight: `|0 − 1/4| = |1 − 3/4| = |1 − 5/4| = 1/4`. -/
 theorem approximatesTP_orMatrix (F : X → Y → Bool) :
@@ -203,7 +203,7 @@ theorem nnRankLE_orMatrix {F : X → Y → Bool} {r : ℕ}
   exact this
 
 /-- **The half of `thm: error` this file owns**
-(`source/kc/goos/parts/applications.tex:24`): from any nonnegative
+(`source/kc/goos/parts/applications.tex:25`): from any nonnegative
 factorization of `F` into `r` rank-one terms, `F^∨` is `1/4`-approximated by a
 matrix of nonnegative rank at most `2r + 1`. -/
 theorem hasApproxNNRankLE_orExtend {F : X → Y → Bool} {r : ℕ}

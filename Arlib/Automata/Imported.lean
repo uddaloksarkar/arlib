@@ -41,7 +41,7 @@ the parameters at the very end.
 ## CNFs do not appear, and that is deliberate
 
 `C₀(f)` is the least width of a CNF for `f`.  The paper itself observes
-`C₀(f) = C₁(¬f)` (`source/kc/goos/parts/complementation.tex:22`), and *that* is
+`C₀(f) = C₁(¬f)` (`source/kc/goos/parts/complementation.tex:23`), and *that* is
 the form both the hypothesis and its consumer use: the lifting theorem is fed a
 lower bound on `C₀(f)`, and the only way a lower bound on a width is ever used is
 to say that no formula of smaller width computes the function.  So this file
@@ -94,7 +94,7 @@ open Arlib.KnowledgeCompilation
 /-- **`f` has no CNF of width `w`**, i.e. the paper's `C₀(f) > w`.
 
 Stated through `C₀(f) = C₁(¬f)`
-(`source/kc/goos/parts/complementation.tex:22`): no DNF all of whose terms have
+(`source/kc/goos/parts/complementation.tex:23`): no DNF all of whose terms have
 at most `w` literals computes `¬f`.  See the module docstring for why no CNF
 datatype is introduced.
 
@@ -135,7 +135,7 @@ proportional to (see the note below); and `cnfBound` is the paper's `Ω̃(k²)`.
 
 *On `termBound`.*  An unambiguous `k`-DNF over `n` variables has at most
 `(2n+1)^k` terms — the paper makes exactly this count for the *composed* formula
-at `source/kc/goos/parts/complementation.tex:84` — so no generality is lost by
+at `source/kc/goos/parts/complementation.tex:85` — so no generality is lost by
 carrying the count as a parameter, and carrying it is what keeps the final state
 bound explicit rather than `n^{O(bk)}`.
 

@@ -74,6 +74,98 @@ Alice's variables are *not* a contiguous block of word positions.
 * `Automata.ErrorReduction` — the upper-bound half of `thm: error`: approximate
   non-negative rank admits no efficient error reduction, because `∨` is easy to
   approximate at error `1/4` and hard at error `10⁻⁵`.
+
+## Tree automata
+
+The area also carries the *tree* automaton model, which shares nothing with the
+communication-complexity development above and is used by the approximate
+counting projects rather than by the lower bounds.
+
+* `Automata.TreeAutomaton` — finite `Γ`-labelled **unranked ordered** trees
+  `LTree Γ` with their size and eliminator, and nondeterministic **top-down**
+  tree automata over them: `init : S → Prop` and `step : S → Γ → List S → Prop`,
+  matching the shape `Δ ⊆ S × Σ × S*` in which a tree decomposition produces an
+  automaton.  Acceptance is an inductive predicate whose children condition is
+  a `List.Forall₂`, so no termination argument and no length side condition
+  appear.  Includes the language `L(A)`, the `n`-slice `L_n(A)` that a counting
+  problem asks about, and `LTree.attachMap`, which relabels every node by a
+  function of the subtree rooted there — the shape a reduction needs when the
+  label it writes at a node depends on which node it is.
+* `Automata.TreeAutomatonOps` — two normalising constructions that the source
+  papers assert without proof.  `singleInit` collapses a *set* of initial states
+  to one fresh state at the cost of copying the root transitions, and is proved
+  to preserve the language *and every size slice*, which is what a parsimonious
+  reduction needs.  `LTree.toBinary` is the first-child/next-sibling
+  (`@`-extension) encoding of an unranked tree as a binary tree over `Γ ⊕ Unit`,
+  with its decoder `LTree.ofBinary`, the resulting `Equiv` onto the decodable
+  binary trees, and the size identity `|toBinary t| = 2·|t| − 1` — the
+  reparameterisation under which the TATA reduction is parsimonious, and which
+  does not fit the papers' own definition of that word.
+* `Automata.TreeAutomatonFinite` — the finiteness side conditions that the
+  source papers fold into the phrase "a tree automaton `(S, Σ, Δ, s_init)`" and
+  that the model above deliberately omits: `TreeAutomaton.IsFinite A k` asks for
+  finitely many *reachable* states, a finite *used* alphabet, and branching
+  degree `≤ k` at reachable states.  The reachability qualification is forced,
+  not cosmetic — for an automaton whose states carry an ambient tree, the
+  unqualified arity bound is false at every `k`.  `TreeAutomaton.restrict`
+  re-indexes onto `↥A.reachableStates`, where the bound *does* hold at every
+  state of the type, and preserves every size slice; `IsFinite.langOfSize_finite`
+  is then the finiteness of `L_n(A)` that a counting problem needs, and it needs
+  no decidability hypotheses at all.
+* `Automata.TreeAutomatonBinarize` — the unranked-to-binary reduction, lifted
+  from trees to *automata*: states `S ⊕ (Γ × List S)`, alphabet `Γ ⊕ Unit` with
+  `Sum.inr ()` playing the `@` of the TATA construction, and the spine peeling
+  the comb from the right.  `ncard_langOfSize_binarize` is the counting identity
+  `|L_{2n−1}(binarize A)| = |L_n(A)|` that the source papers cite to `[tata2007]`
+  without proof; `isFPRAS_of_binary` / `isFPAUS_of_binary` transport both
+  guarantees along it.  The decoding — which those papers assert can be done in
+  polynomial time and never argue — is the proved bijection `finsetEncodeEquiv`,
+  whose inverse is literally `LTree.ofBinary`, not `Classical.choice`.  Two
+  incidentals: the usual side condition `n ≥ 1` is unnecessary (both slices are
+  empty at `n = 0`), and `odd_size_toBinary` settles the question of whether an
+  encoded tree always has odd size — it does.
+* `Automata.TreeAutomatonRelabel` — the alphabet re-indexing that
+  `TreeAutomatonFinite` declines to do, because `LTree.mapLabel` changes the
+  *type* of the trees, so the two slices compare by a bijection and never by an
+  equality: `bijOn_langOfSize_relabelTo`, injective because `mapLabel` of an
+  injection is, and surjective because `labelsIn_of_mem_langOfSize` forbids an
+  accepted tree any label outside `A.usedLabels`.  `accepts_relabelTo_iff`
+  transports acceptance both ways with no finiteness hypothesis at all.
+  `presentation A` is the source papers' tuple `(S, Σ, Δ, S₀)` on two carriers
+  that are now genuinely finite types — `restrict` composed with `relabelTo` —
+  and `ncard_langOfSize_presentation` is the statement that it counts the same
+  thing at every `n`.
+* `Automata.SuccinctNFA` — NFAs whose transitions are labelled by *sets*, given
+  by an abstract representation type with a decoding map rather than by
+  `Set Γ` itself.  That is forced, not stylistic: the whole point of the model
+  is that `|A|` is exponential in the representation size `‖A‖`, and a `Set Γ`
+  carries no representation and hence no `‖·‖`.  Carries `W(s)` (the language
+  ending at `s`), its recurrence `W_eq` — and the corrected base case
+  `W(s_init) = {λ}`, `N(s_init) = 1`.  A source paper asserts `W(s_init) = ∅`;
+  `W_init_nonempty` shows that is unsatisfiable and
+  `W_eq_empty_of_W_init_eq_empty` shows it would collapse every `W(s)` to empty.
+  `IsUnrolled` is the **graded** condition `lvl s = lvl s' + 1`, strictly
+  stronger than the literal "levels strictly decrease" — and the strengthening
+  is needed, since only grading makes all runs between two states equally long.
+* `Automata.SuccinctNFAMembership` — deciding `w ∈ W(s)` by forward reachability,
+  with an explicit cost model.  The bound `O(|Δ|·T)` holds — with **no** `|w|`
+  factor — precisely because the automaton is unrolled: the frontier after `i`
+  symbols sits entirely at one level, so distinct steps scan disjoint subsets of
+  `Δ` and the sum telescopes.  Needs only `DecidableEq S`; decidability of
+  `a ∈ decode A` comes from the `def:prop` membership oracle.
+* `Automata.SuccinctNFAWitness` — models for the two hypothesis bundles the
+  succinct-NFA development runs on, `Encoding` and `def:prop`'s `LabelProps`,
+  which otherwise sit to the left of every turnstile with nothing known to
+  satisfy them.  The witness is chosen to *bite*: its used label decodes to two
+  distinct symbols and its sampler is deliberately non-uniform, sitting on both
+  endpoints of the `(1 ± ε₀)` window, so `sampler_uniform` is an equality
+  constraint rather than `p = p`; `labelProps_witness_le_eps/_g/_T` prove no
+  smaller `ε₀`, `g` or `T` works.  It also settles why
+  `LabelProps.sampler_mem` needs its `(N.decode A).Nonempty` guard: a `PMF` has
+  nonempty support, so the unguarded clause *asserts* `A ≠ ∅`, and
+  `not_unguarded_sampler_mem_dead` shows it admits no oracle at all on an
+  automaton with a dead transition — which `labelProps_dead` then satisfies once
+  the guard is in place.
 -/
 
 import Arlib.Automata.Basic
@@ -85,3 +177,11 @@ import Arlib.Automata.Complement
 import Arlib.Automata.Union
 import Arlib.Automata.Disjointness
 import Arlib.Automata.ErrorReduction
+import Arlib.Automata.TreeAutomaton
+import Arlib.Automata.TreeAutomatonOps
+import Arlib.Automata.TreeAutomatonFinite
+import Arlib.Automata.TreeAutomatonBinarize
+import Arlib.Automata.TreeAutomatonRelabel
+import Arlib.Automata.SuccinctNFA
+import Arlib.Automata.SuccinctNFAMembership
+import Arlib.Automata.SuccinctNFAWitness
