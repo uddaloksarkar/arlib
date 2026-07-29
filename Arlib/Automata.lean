@@ -182,6 +182,7 @@ import Arlib.Automata.TreeAutomatonOps
 import Arlib.Automata.TreeAutomatonFinite
 import Arlib.Automata.TreeAutomatonBinarize
 import Arlib.Automata.TreeAutomatonRelabel
+import Arlib.Automata.TreeAutomatonRelabelPreserves
 import Arlib.Automata.SuccinctNFA
 import Arlib.Automata.SuccinctNFAMembership
 import Arlib.Automata.SuccinctNFAWitness
