@@ -5,9 +5,6 @@ distilled from the meelgroup formalization projects. The goal is a single,
 clean, `sorry`-free library that others can `import` and build on — rather than
 re-proving the same infrastructure in every new project.
 
-> **Status.** Early. The first area — finite/discrete **probability** — is
-> migrated, building green, and axiom-clean. More areas follow (see
-> [Roadmap](#roadmap)).
 
 ## Design philosophy
 
@@ -397,25 +394,6 @@ lake build           # builds everything; the root re-exports every area
 ```
 
 `import Arlib` in your own file to use the library.
-
-## Verifying "done" (axiom hygiene)
-
-Arlib holds itself to the project standard: `sorry`-free and axiom-clean. Every
-result depends only on Mathlib's three foundational axioms.
-
-```bash
-lake build   # must emit zero `declaration uses 'sorry'` warnings
-```
-
-```lean
-import Arlib
-#print axioms Arlib.FinProb.markov
--- 'Arlib.FinProb.markov' depends on axioms: [propext, Classical.choice, Quot.sound]
-```
-
-Anything other than `[propext, Classical.choice, Quot.sound]` (a `sorryAx` or a
-stray custom axiom) means a result is not actually proved.
-
 
 
 
