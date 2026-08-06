@@ -5,6 +5,7 @@ Authors: Kuldeep S. Meel
 -/
 import Arlib.Convexity.LogConcave
 import Arlib.Convexity.Isoperimetry
+import Arlib.Convexity.IsoExponential
 
 /-
 # Arlib.Convexity
@@ -25,4 +26,7 @@ Brunn–Minkowski, so this area starts from the definitions.
   the one-dimensional isoperimetric inequality of Kannan–Lovász–Simonovits stated as an
   interface. The inequality itself is **not** proved here; see that file's docstring for
   precisely what is assumed and why.
+* `Arlib.Convexity.IsoExponential` — the one-dimensional isoperimetric inequality proved
+  outright for the exponential density: the extremal case, with the sharp constant
+  `λ = 1/E|X|` that fixes the coefficient in the general theorem.
 -/
