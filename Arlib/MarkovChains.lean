@@ -67,6 +67,10 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
 * `Techniques.Comparison` — transfer of a Poincaré inequality along a comparison
   of Dirichlet forms.
 * `Techniques.Conductance` — the easy direction of Cheeger's inequality.
+* `Continuous.Flow` — flow, cut, conductance and reversibility for a Markov *kernel* on
+  an arbitrary measurable space, i.e. the general-state-space analogue of
+  `Techniques.Conductance`'s definitions. For geometric random walks (ball walk,
+  hit-and-run), whose state space is a convex body rather than a `Fintype`.
 * `Techniques.PotentialDecay` — the Lyapunov/supermartingale route to a
   *hitting-time* bound rather than a mixing bound: a drift condition
   `K Φ ≤ λ·Φ` self-improves to `K^t Φ ≤ λ^t·Φ`, and a finite Markov inequality
@@ -264,6 +268,7 @@ import Arlib.MarkovChains.Techniques.LocalWalk
 import Arlib.MarkovChains.Techniques.Entropy
 import Arlib.MarkovChains.Techniques.Comparison
 import Arlib.MarkovChains.Techniques.Conductance
+import Arlib.MarkovChains.Continuous.Flow
 import Arlib.MarkovChains.Techniques.Coupling
 import Arlib.MarkovChains.Techniques.MixingTime
 import Arlib.MarkovChains.Techniques.PotentialDecay
