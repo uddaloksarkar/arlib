@@ -8,6 +8,7 @@ import Arlib.Convexity.Isoperimetry
 import Arlib.Convexity.IsoExponential
 import Arlib.Convexity.Unimodal
 import Arlib.Convexity.IsoScaling
+import Arlib.Convexity.Tails
 
 /-
 # Arlib.Convexity
@@ -39,4 +40,7 @@ Brunn–Minkowski, so this area starts from the definitions.
   the "scaling down to variance 1 can only lower the coefficient" step of
   Cousins–Vempala's `thm:iso`. Transfer lemmas only — no instance of `OneDimIsoperimetry`
   is constructed.
+* `Arlib.Convexity.Tails` — log-concave functions decay at least exponentially away from
+  a point where they are large. This is the pointwise input the endpoint-density bound
+  needs; the bound itself (`hend` of `oneDim_iso_of_endpoint_bound`) is still open.
 -/
