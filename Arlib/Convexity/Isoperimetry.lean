@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kuldeep S. Meel
 -/
 import Arlib.Convexity.LogConcave
+import Mathlib.MeasureTheory.Integral.IntervalIntegral
 
 /-
 # Isoperimetry for log-concave measures: the elementary reductions
@@ -88,6 +89,58 @@ theorem min_le_of_prod_le {c p₁ p₂ p₃ : ℝ} (hc : 0 < c)
   · rw [min_eq_right hab, div_mul_eq_mul_div, div_le_iff₀ hc2]
     refine key p₂ p₁ h2 hab (by linarith) ?_
     rw [show c * p₂ * p₁ = c * p₁ * p₂ by ring]; exact h
+
+/-! ## Toward the one-dimensional inequality
+
+The one-dimensional isoperimetric inequality asks, for a log-concave density `f` and
+`u ≤ v` separating the two outer sets,
+
+  `∫ᵤᵛ f  ≥  c · (v − u) · (∫_{-∞}^u f) · (∫_v^∞ f)`.
+
+Its proof splits in two. The **first half** is the mass the separating interval must carry
+purely because `f` is log-concave, and it is proved below: unimodality
+(`Arlib.LogConcave.min_le_of_mem_Icc`) says `f` does not dip between `u` and `v`, so the
+interval carries at least `(v − u) · min (f u) (f v)`.
+
+The **second half** — bounding `min (f u) (f v)` below by a multiple of the product of the
+two tail masses — is where the theorem actually lives, and where the normalisation (the
+isotropy / `E|x|` constant of Kannan–Lovász–Simonovits) enters. It is not proved here. -/
+
+/-- **The mass of a separating interval, from log-concavity alone.**
+
+Since a log-concave `f` cannot dip below its endpoint values on `[u,v]`, the interval
+carries mass at least `(v − u) · min (f u) (f v)`.
+
+This is the first half of the one-dimensional isoperimetric inequality (see the section
+docstring). Combined with a lower bound on `min (f u) (f v)` in terms of the tail masses,
+it gives the full statement. -/
+theorem le_intervalIntegral_of_logConcave {f : ℝ → ℝ} (hf0 : ∀ x, 0 ≤ f x)
+    (hf : LogConcave f) {u v : ℝ} (huv : u ≤ v)
+    (hint : IntervalIntegrable f MeasureTheory.volume u v) :
+    (v - u) * min (f u) (f v) ≤ ∫ x in u..v, f x := by
+  have hconst : IntervalIntegrable (fun _ => min (f u) (f v)) MeasureTheory.volume u v :=
+    intervalIntegrable_const
+  have hmono := intervalIntegral.integral_mono_on huv hconst hint
+    (fun x hx => LogConcave.min_le_of_mem_Icc hf0 hf hx)
+  simpa [intervalIntegral.integral_const, smul_eq_mul] using hmono
+
+/-- **The one-dimensional isoperimetric inequality, modulo the endpoint-density bound.**
+
+Everything around the missing step, proved. `A` and `B` are the two tail masses (instantiate
+with `∫_{-∞}^u f` and `∫_v^∞ f`); `hend` is the residual — that the smaller endpoint density
+dominates `c · A · B`. Given it, the isoperimetric inequality follows from unimodality alone.
+
+This isolates exactly what a proof of the one-dimensional inequality still has to supply.
+`hend` is the half where the normalisation constant of Kannan–Lovász–Simonovits lives, and
+it is **not** proved here. -/
+theorem oneDim_iso_of_endpoint_bound {f : ℝ → ℝ} (hf0 : ∀ x, 0 ≤ f x)
+    (hf : LogConcave f) {u v c A B : ℝ} (huv : u ≤ v)
+    (hint : IntervalIntegrable f MeasureTheory.volume u v)
+    (hend : c * A * B ≤ min (f u) (f v)) :
+    c * A * B * (v - u) ≤ ∫ x in u..v, f x := by
+  refine le_trans (mul_le_mul_of_nonneg_right hend (by linarith)) ?_
+  rw [mul_comm]
+  exact le_intervalIntegral_of_logConcave hf0 hf huv hint
 
 /-- **The one-dimensional isoperimetric inequality for log-concave densities**
 (Kannan–Lovász–Simonovits 1995, Theorem 5.1), as an interface.

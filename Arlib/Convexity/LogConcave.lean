@@ -58,6 +58,38 @@ theorem logConcave_const {c : ℝ} (hc : 0 ≤ c) : LogConcave (fun _ => c) := b
   · rw [← Real.rpow_add h]
     simp
 
+/-- **Log-concave functions are unimodal**: on any interval, the value is at least the
+smaller of the two endpoint values.
+
+This is the pointwise fact underneath the one-dimensional isoperimetric inequality — it is
+what stops a log-concave density from dipping in the middle of the separating interval,
+and hence what makes the middle set carry mass. -/
+theorem LogConcave.min_le_of_mem_Icc {f : ℝ → ℝ} (hf0 : ∀ x, 0 ≤ f x) (hf : LogConcave f)
+    {u v t : ℝ} (ht : t ∈ Set.Icc u v) : min (f u) (f v) ≤ f t := by
+  obtain ⟨htu, htv⟩ := ht
+  rcases eq_or_lt_of_le (le_trans htu htv) with huv | huv
+  · have htu' : t = u := le_antisymm (huv ▸ htv) htu
+    subst htu'
+    exact min_le_left _ _
+  · have hvu : (0 : ℝ) < v - u := by linarith
+    set s := (t - u) / (v - u) with hsdef
+    have hs0 : 0 ≤ s := div_nonneg (by linarith) hvu.le
+    have hs1 : s ≤ 1 := by rw [hsdef, div_le_one hvu]; linarith
+    have hts : (1 - s) * u + s * v = t := by
+      rw [hsdef]; field_simp; ring
+    have hm0 : 0 ≤ min (f u) (f v) := le_min (hf0 u) (hf0 v)
+    rcases eq_or_lt_of_le hm0 with hm | hm
+    · rw [← hm]; exact hf0 t
+    · calc min (f u) (f v)
+          = min (f u) (f v) ^ (1 - s) * min (f u) (f v) ^ s := by
+            rw [← Real.rpow_add hm]; simp
+        _ ≤ f u ^ (1 - s) * f v ^ s := by
+            refine mul_le_mul (Real.rpow_le_rpow hm0 (min_le_left _ _) (by linarith))
+              (Real.rpow_le_rpow hm0 (min_le_right _ _) hs0)
+              (Real.rpow_nonneg hm0 _) (Real.rpow_nonneg (hf0 u) _)
+        _ ≤ f ((1 - s) * u + s * v) := hf u v s hs0 hs1
+        _ = f t := by rw [hts]
+
 /-- **A product of log-concave functions is log-concave.**
 
 This is the closure property the analysis of Gaussian-restricted densities needs: if `f`
