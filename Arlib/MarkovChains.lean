@@ -74,6 +74,8 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
 * `Continuous.Dirichlet` — the Dirichlet form for a kernel, in pair form, and
   `dirichlet_indicator`: the Dirichlet form of `1_A` is the cut across `A`. This is the
   identity Cheeger's inequality turns on.
+* `Continuous.SpectralGap` — the Poincaré inequality for a kernel, variance in pair form,
+  and the easy direction of Cheeger: a bottleneck caps the spectral gap.
 * `Techniques.PotentialDecay` — the Lyapunov/supermartingale route to a
   *hitting-time* bound rather than a mixing bound: a drift condition
   `K Φ ≤ λ·Φ` self-improves to `K^t Φ ≤ λ^t·Φ`, and a finite Markov inequality
@@ -273,6 +275,7 @@ import Arlib.MarkovChains.Techniques.Comparison
 import Arlib.MarkovChains.Techniques.Conductance
 import Arlib.MarkovChains.Continuous.Flow
 import Arlib.MarkovChains.Continuous.Dirichlet
+import Arlib.MarkovChains.Continuous.SpectralGap
 import Arlib.MarkovChains.Techniques.Coupling
 import Arlib.MarkovChains.Techniques.MixingTime
 import Arlib.MarkovChains.Techniques.PotentialDecay
