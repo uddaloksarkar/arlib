@@ -110,7 +110,8 @@ instance isMarkovKernel_lazy (κ : Kernel Ω Ω) [IsMarkovKernel κ] : IsMarkovK
 
 /-! ## Flow, cut and conductance -/
 
-private theorem half_ne_top : (1 / 2 : ℝ≥0∞) ≠ ⊤ := by norm_num
+/-- `½` is finite — the side condition that lets `½` be pulled out of a lower integral. -/
+theorem one_div_two_ne_top : (1 / 2 : ℝ≥0∞) ≠ ⊤ := by norm_num
 
 /-- The `μ`-integral over `A` of the Dirac mass of `B` counts exactly the points of `A` that
 lie in `B`. -/
@@ -133,8 +134,8 @@ theorem flow_lazy (μ : Measure Ω) (κ : Kernel Ω Ω) {A B : Set Ω} (hB : Mea
     ((Measure.measurable_coe hB).comp Measure.measurable_dirac).const_mul _
   rw [flow]
   simp_rw [lazy_apply' κ _ B]
-  rw [lintegral_add_left hmeas, lintegral_const_mul' _ _ half_ne_top,
-    lintegral_const_mul' _ _ half_ne_top, lintegral_dirac_apply μ A hB, flow]
+  rw [lintegral_add_left hmeas, lintegral_const_mul' _ _ one_div_two_ne_top,
+    lintegral_const_mul' _ _ one_div_two_ne_top, lintegral_dirac_apply μ A hB, flow]
 
 /-- **Laziness halves the cut exactly.**
 
@@ -181,8 +182,8 @@ theorem lazy_invariant {μ : Measure Ω} {κ : Kernel Ω Ω}
     ((Measure.measurable_coe hA).comp Measure.measurable_dirac).const_mul _
   rw [Measure.bind_apply hA (Kernel.measurable (lazy κ))]
   simp_rw [lazy_apply' κ _ A]
-  rw [lintegral_add_left hmeas, lintegral_const_mul' _ _ half_ne_top,
-    lintegral_const_mul' _ _ half_ne_top, ← hbindκ, h, hdirac, ← add_mul,
+  rw [lintegral_add_left hmeas, lintegral_const_mul' _ _ one_div_two_ne_top,
+    lintegral_const_mul' _ _ one_div_two_ne_top, ← hbindκ, h, hdirac, ← add_mul,
     ENNReal.add_halves, one_mul]
 
 /-! ## The Dirichlet form and the spectral gap -/
@@ -219,10 +220,10 @@ theorem dirichlet_lazy (μ : Measure Ω) (κ : Kernel Ω Ω) (f : Ω → ℝ) :
       hzero, mul_zero, zero_add]
   rw [dirichlet_apply, dirichlet_apply]
   simp_rw [hinner]
-  rw [lintegral_const_mul' _ _ half_ne_top]
+  rw [lintegral_const_mul' _ _ one_div_two_ne_top]
 
 /-- Rearrangement used twice below: `γ/2 · a = ½ · (γ · a)`. -/
-private theorem div_two_mul_eq (γ a : ℝ≥0∞) : γ / 2 * a = 1 / 2 * (γ * a) := by
+theorem div_two_mul (γ a : ℝ≥0∞) : γ / 2 * a = 1 / 2 * (γ * a) := by
   rw [div_eq_mul_inv, one_div, mul_comm γ ((2 : ℝ≥0∞)⁻¹), mul_assoc]
 
 /-- **Laziness halves the spectral gap.** A Poincaré constant `γ` for `κ` yields the constant
@@ -233,7 +234,7 @@ lazy walks carry a factor of two. -/
 theorem lazy_spectralGapAtLeast {μ : Measure Ω} {κ : Kernel Ω Ω} {γ : ℝ≥0∞}
     (h : SpectralGapAtLeast μ κ γ) : SpectralGapAtLeast μ (lazy κ) (γ / 2) := by
   intro f
-  rw [dirichlet_lazy, div_two_mul_eq]
+  rw [dirichlet_lazy, div_two_mul]
   exact mul_le_mul_left' (h f) _
 
 /-- **The halving loses nothing.** `lazy κ` has Poincaré constant at least `γ/2` exactly when
@@ -245,7 +246,7 @@ theorem lazy_spectralGapAtLeast_iff {μ : Measure Ω} {κ : Kernel Ω Ω} {γ : 
     SpectralGapAtLeast μ (lazy κ) (γ / 2) ↔ SpectralGapAtLeast μ κ γ := by
   refine ⟨fun h f => ?_, lazy_spectralGapAtLeast⟩
   have hf := h f
-  rw [dirichlet_lazy, div_two_mul_eq] at hf
-  exact (ENNReal.mul_le_mul_left (by norm_num) half_ne_top).mp hf
+  rw [dirichlet_lazy, div_two_mul] at hf
+  exact (ENNReal.mul_le_mul_left (by norm_num) one_div_two_ne_top).mp hf
 
 end Arlib.Kernel

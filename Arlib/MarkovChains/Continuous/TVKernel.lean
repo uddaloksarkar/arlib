@@ -43,7 +43,7 @@ allowed and there are no finiteness side conditions.
 
 ## Scope
 
-* Only one step. There is no iterated version `TVLe (μ.bind κ^[n]) (ν.bind κ^[n]) ε` here,
+* Only one step. There is no iterated (see `Continuous.Mixing.TVLe.bind_iterate`, now proved) version `TVLe (μ.bind κ^[n]) (ν.bind κ^[n]) ε` here,
   though it follows from this one by induction; nothing yet needs it.
 * No *contraction*: this says the kernel does not **increase** the distance, not that it
   strictly decreases it. Quantifying the decrease is the Dobrushin coefficient, which is
