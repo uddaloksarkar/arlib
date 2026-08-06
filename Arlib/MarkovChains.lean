@@ -76,6 +76,10 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
   identity Cheeger's inequality turns on.
 * `Continuous.SpectralGap` — the Poincaré inequality for a kernel, variance in pair form,
   and the easy direction of Cheeger: a bottleneck caps the spectral gap.
+* `Continuous.TotalVariation` — total variation distance between measures, in bounded form
+  (`TVLe`), with the transfer lemmas a sampler analysis needs. Note the convention: this
+  bounds `sup_S |μ S − ν S|`, matching `Techniques/TotalVariation.lean`'s `d_TV`, i.e. half
+  the L¹ distance.
 * `Techniques.PotentialDecay` — the Lyapunov/supermartingale route to a
   *hitting-time* bound rather than a mixing bound: a drift condition
   `K Φ ≤ λ·Φ` self-improves to `K^t Φ ≤ λ^t·Φ`, and a finite Markov inequality
@@ -276,6 +280,7 @@ import Arlib.MarkovChains.Techniques.Conductance
 import Arlib.MarkovChains.Continuous.Flow
 import Arlib.MarkovChains.Continuous.Dirichlet
 import Arlib.MarkovChains.Continuous.SpectralGap
+import Arlib.MarkovChains.Continuous.TotalVariation
 import Arlib.MarkovChains.Techniques.Coupling
 import Arlib.MarkovChains.Techniques.MixingTime
 import Arlib.MarkovChains.Techniques.PotentialDecay

@@ -6,6 +6,7 @@ Authors: Uddalok Sarkar
 import Arlib.Convexity.LogConcave
 import Arlib.Convexity.Isoperimetry
 import Arlib.Convexity.IsoExponential
+import Arlib.Convexity.Unimodal
 
 /-
 # Arlib.Convexity
@@ -29,4 +30,7 @@ Brunn–Minkowski, so this area starts from the definitions.
 * `Arlib.Convexity.IsoExponential` — the one-dimensional isoperimetric inequality proved
   outright for the exponential density: the extremal case, with the sharp constant
   `λ = 1/E|X|` that fixes the coefficient in the general theorem.
+* `Arlib.Convexity.Unimodal` — structural facts: quasi-concavity (superlevel sets are
+  convex), convexity of the support, and invariance under affine reparametrisation and
+  scaling. These are the localise-to-a-chord moves the isoperimetry reduction needs.
 -/
