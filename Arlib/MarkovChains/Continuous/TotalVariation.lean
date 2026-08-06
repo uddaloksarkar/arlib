@@ -49,8 +49,9 @@ This is a foundational layer and deliberately thin. What is **not** proved here:
 * No `sSup` definition of the distance itself, and hence no theorem that `TVLe` is
   equivalent to a bound on such a definition. There is nothing deep in this — it is
   omitted because nothing needs it.
-* No data-processing inequality for a Markov *kernel*: `TVLe μ ν ε → TVLe (μ.bind κ)
-  (ν.bind κ) ε`. Only the deterministic case `TVLe.map` is here. The kernel case needs a
+* The data-processing inequality for a Markov *kernel* is **now proved**, in
+  `Arlib.MarkovChains.Continuous.TVKernel` (`TVLe.bind`). Only the deterministic case
+  `TVLe.map` is in this file. The kernel case needs a
   layer-cake argument to move the set-wise bound past a lower integral, which is a genuine
   proof and not attempted.
 * No coupling characterisation (TV distance = minimum disagreement probability), no
@@ -211,7 +212,8 @@ theorem TVLe.compl (h : TVLe μ ν ε) (hS : MeasurableSet S) :
 /-- **Post-processing cannot increase the distance.** Pushing both measures forward along
 a measurable map `f` — reporting `f x` instead of the sample `x` — preserves the bound.
 
-The corresponding statement for a Markov kernel in place of `f` is true but is not proved
+The corresponding statement for a Markov kernel in place of `f` is proved in
+`Arlib.MarkovChains.Continuous.TVKernel` as `TVLe.bind`; it is not proved
 here; see the module docstring. -/
 theorem TVLe.map (h : TVLe μ ν ε) {f : Ω → Ω'} (hf : Measurable f) :
     TVLe (μ.map f) (ν.map f) ε := by

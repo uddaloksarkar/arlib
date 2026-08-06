@@ -80,6 +80,12 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
   (`TVLe`), with the transfer lemmas a sampler analysis needs. Note the convention: this
   bounds `sup_S |μ S − ν S|`, matching `Techniques/TotalVariation.lean`'s `d_TV`, i.e. half
   the L¹ distance.
+* `Continuous.TVKernel` — the data-processing inequality for a Markov kernel: one step of
+  the same kernel cannot increase total variation distance.
+* `Continuous.TVBridge` — the finite theory embeds in the measure-theoretic one. Confirms
+  that `Techniques.tvDist` (half the L¹ distance) and `TVLe` measure the *same* quantity —
+  the relating factor is **1**, not 2 — and proves it as an `iff` so neither side is
+  silently weaker.
 * `Techniques.PotentialDecay` — the Lyapunov/supermartingale route to a
   *hitting-time* bound rather than a mixing bound: a drift condition
   `K Φ ≤ λ·Φ` self-improves to `K^t Φ ≤ λ^t·Φ`, and a finite Markov inequality
@@ -281,6 +287,8 @@ import Arlib.MarkovChains.Continuous.Flow
 import Arlib.MarkovChains.Continuous.Dirichlet
 import Arlib.MarkovChains.Continuous.SpectralGap
 import Arlib.MarkovChains.Continuous.TotalVariation
+import Arlib.MarkovChains.Continuous.TVKernel
+import Arlib.MarkovChains.Continuous.TVBridge
 import Arlib.MarkovChains.Techniques.Coupling
 import Arlib.MarkovChains.Techniques.MixingTime
 import Arlib.MarkovChains.Techniques.PotentialDecay

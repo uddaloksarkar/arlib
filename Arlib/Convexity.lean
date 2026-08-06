@@ -7,6 +7,7 @@ import Arlib.Convexity.LogConcave
 import Arlib.Convexity.Isoperimetry
 import Arlib.Convexity.IsoExponential
 import Arlib.Convexity.Unimodal
+import Arlib.Convexity.IsoScaling
 
 /-
 # Arlib.Convexity
@@ -33,4 +34,9 @@ Brunn–Minkowski, so this area starts from the definitions.
 * `Arlib.Convexity.Unimodal` — structural facts: quasi-concavity (superlevel sets are
   convex), convexity of the support, and invariance under affine reparametrisation and
   scaling. These are the localise-to-a-chord moves the isoperimetry reduction needs.
+* `Arlib.Convexity.IsoScaling` — how the isoperimetric coefficient transforms under
+  rescaling of the variable: rescaling by `c` multiplies the coefficient by `c`. This is
+  the "scaling down to variance 1 can only lower the coefficient" step of
+  Cousins–Vempala's `thm:iso`. Transfer lemmas only — no instance of `OneDimIsoperimetry`
+  is constructed.
 -/
