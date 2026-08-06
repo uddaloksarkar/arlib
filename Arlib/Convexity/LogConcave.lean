@@ -1,7 +1,7 @@
 /-
-Copyright (c) 2026 Kuldeep S. Meel. All rights reserved.
+Copyright (c) 2026 Uddalok Sarkar. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kuldeep S. Meel
+Authors: Uddalok Sarkar
 -/
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Mathlib.Analysis.Convex.Basic
