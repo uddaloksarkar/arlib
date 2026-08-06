@@ -49,9 +49,11 @@ reason, and pays for it with the factor of two recorded in `cut_lazy` and
 
 Hypotheses that are invisible in the finite analogue and are genuinely needed here:
 
-* `flow_lazy` and its consequences require `A` (and `B`) to be **measurable**. On a `Fintype`
-  every set is measurable; here `δ_x B` is only pinned down by `Measure.dirac_apply'` for
-  measurable `B`, and `μ (A ∩ B)` must be a measure of a measurable set.
+* `flow_lazy` requires the **target** `B` to be measurable, and `cut_lazy` therefore requires
+  `A` to be. On a `Fintype` every set is measurable; here `δ_x B` is only pinned down by
+  `Measure.dirac_apply'` when `B` is. (The *source* set of a flow need not be measurable —
+  it only restricts the outer integral — which is why `flow_lazy` takes one hypothesis and
+  not two.)
 * Conversely, `cut_lazy`, `conductance_lazy`, `lazy_reversible` and `lazy_invariant` need
   **no** `IsMarkovKernel` hypothesis, unlike `cut_le` and its relatives in
   `Arlib.MarkovChains.Continuous.Flow`. Halving the cut is a statement about where the
@@ -124,9 +126,8 @@ theorem lintegral_dirac_apply (μ : Measure Ω) (A : Set Ω) {B : Set Ω} (hB : 
 
   `flow μ (lazy κ) A B = ½ μ (A ∩ B) + ½ flow μ κ A B`.
 
-Both sets must be measurable; see the module docstring. -/
-theorem flow_lazy (μ : Measure Ω) (κ : Kernel Ω Ω) {A B : Set Ω}
-    (_hA : MeasurableSet A) (hB : MeasurableSet B) :
+Only the *target* `B` needs to be measurable; see the module docstring. -/
+theorem flow_lazy (μ : Measure Ω) (κ : Kernel Ω Ω) {A B : Set Ω} (hB : MeasurableSet B) :
     flow μ (lazy κ) A B = 1 / 2 * μ (A ∩ B) + 1 / 2 * flow μ κ A B := by
   have hmeas : Measurable fun x : Ω => 1 / 2 * Measure.dirac x B :=
     ((Measure.measurable_coe hB).comp Measure.measurable_dirac).const_mul _
@@ -146,7 +147,7 @@ This is where the factor of two in every lazy-chain mixing bound comes from. Not
 `IsMarkovKernel` hypothesis is needed. -/
 theorem cut_lazy (μ : Measure Ω) (κ : Kernel Ω Ω) {A : Set Ω} (hA : MeasurableSet A) :
     cut μ (lazy κ) A = 1 / 2 * cut μ κ A := by
-  rw [cut_apply, flow_lazy μ κ hA hA.compl, Set.inter_compl_self, measure_empty, mul_zero,
+  rw [cut_apply, flow_lazy μ κ hA.compl, Set.inter_compl_self, measure_empty, mul_zero,
     zero_add, cut_apply]
 
 /-- **Laziness halves the conductance exactly**: `Φ_{lazy κ}(A) = ½ Φ_κ(A)`.
@@ -163,7 +164,7 @@ in `A` and `B` on the nose. -/
 theorem lazy_reversible {μ : Measure Ω} {κ : Kernel Ω Ω} (h : Reversible μ κ) :
     Reversible μ (lazy κ) := by
   intro A B hA hB
-  rw [flow_lazy μ κ hA hB, flow_lazy μ κ hB hA, h A B hA hB, Set.inter_comm]
+  rw [flow_lazy μ κ hB, flow_lazy μ κ hA, h A B hA hB, Set.inter_comm]
 
 /-- **Laziness preserves invariance.** One step of `lazy κ` leaves half of `μ` where it is and
 pushes the other half through `κ`, which returns `μ`; the two halves reassemble.

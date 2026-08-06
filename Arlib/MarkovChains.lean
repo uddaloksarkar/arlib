@@ -86,6 +86,9 @@ real-symmetric-diagonalization machinery that would otherwise be needed.
   that `Techniques.tvDist` (half the L¹ distance) and `TVLe` measure the *same* quantity —
   the relating factor is **1**, not 2 — and proves it as an `iff` so neither side is
   silently weaker.
+* `Continuous.Mixing` — the iterated kernel and `MixesWithin`, the frame a mixing-time
+  theorem would land in. **No such theorem is proved**: conductance is not connected to
+  mixing anywhere.
 * `Techniques.PotentialDecay` — the Lyapunov/supermartingale route to a
   *hitting-time* bound rather than a mixing bound: a drift condition
   `K Φ ≤ λ·Φ` self-improves to `K^t Φ ≤ λ^t·Φ`, and a finite Markov inequality
@@ -289,6 +292,7 @@ import Arlib.MarkovChains.Continuous.SpectralGap
 import Arlib.MarkovChains.Continuous.TotalVariation
 import Arlib.MarkovChains.Continuous.TVKernel
 import Arlib.MarkovChains.Continuous.TVBridge
+import Arlib.MarkovChains.Continuous.Mixing
 import Arlib.MarkovChains.Techniques.Coupling
 import Arlib.MarkovChains.Techniques.MixingTime
 import Arlib.MarkovChains.Techniques.PotentialDecay
