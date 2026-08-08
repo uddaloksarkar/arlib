@@ -58,6 +58,5 @@ import Arlib.InformationTheory
 import Arlib.Algorithms
 import Arlib.MarkovChains
 import Arlib.KnowledgeCompilation
-import Arlib.Numerics
 import Arlib.Automata
 import Arlib.MDP

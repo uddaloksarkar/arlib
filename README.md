@@ -281,27 +281,6 @@ self-reducibility product estimator, whose output is a product of scaled
 binomials, by a single Poisson random variable — which is why its analysis is
 sharp, and why it is worth having as reusable infrastructure.
 
-### `Arlib.Numerics` — finite-precision error analysis
-
-Reasoning about the error incurred when a real-valued expression is evaluated in
-finite precision rather than exactly. The area is abstract over the rounding
-scheme: a rounding map is *any* function satisfying the relative-error contract
-`|rnd x - x| ≤ ε·|x|`, so the results apply to IEEE-754 arithmetic, to
-correctly-rounded special functions, and to anything else meeting that contract.
-
-| Module | Content |
-| --- | --- |
-| `ErrorPropagation` | The **multiplicative** computational-DAG framework: an expression language `Expr` over `+ - × ÷ √ log`, its ideal (`eval`) and rounded (`evalRnd`) evaluators, the symbolic bottom-up relative-error bound `errBound`, and the master theorem `abs_evalRnd_sub_eval_le` bounding the true relative error of a fully-rounded evaluation by `errBound` plus an explicit, tracked `O(ε²)` term. All six operation rules are proved, including the two hard cases: `sub`, where cancellation genuinely amplifies the error by `1/(g−h)`, and `log`, which is controllable only because each node carries a lower bound `lb ≤ |log g|`. |
-
-This extends Bauer's (1974) classical computational-DAG analysis, which tracks
-*additive* errors. Multiplicative errors are what sampling-accuracy arguments
-need, since there the quantity of interest is a ratio of probabilities.
-
-Two modeling choices are documented rather than hidden: exact constants are not
-rounded at all (`θ = 0`), and the `log` node carries its own lower bound instead
-of a separate side-map. `errBound` is parameterized by the environment, not just
-the syntax tree, because the subtraction rule mentions the intermediate *values*
-and not merely their error bounds.
 ### `Arlib.Approximation` — relative-error approximation
 
 6 modules. An approximation algorithm's guarantee is a *window*: the value it
@@ -423,8 +402,6 @@ arlib/                    # repo folder (Lake package name stays lowercase)
       Circuits/*.lean       # the representation languages themselves
       Communication/*.lean  # rectangles and the complexity measures
       LowerBounds/*.lean    # the bridge, the lifting, the separations
-    Numerics.lean         # area root
-    Numerics/*.lean       # ErrorPropagation
       BranchingPrograms/*.lean  # NROBP size lower bounds via matching width
       Forgetting/*.lean     # compiling DNNF by forgetting auxiliary variables
     Automata.lean         # area root
