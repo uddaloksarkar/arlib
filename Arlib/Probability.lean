@@ -84,7 +84,6 @@ import Arlib.Probability.SequentialDominate
 import Arlib.Probability.Poisson
 import Arlib.Probability.PoissonEntropy
 import Arlib.Probability.TVDistance
-import Arlib.Probability.Rejection
 import Arlib.Probability.Chernoff
 import Arlib.Probability.RobbinsMonro
 import Arlib.Probability.StochasticApproximation
