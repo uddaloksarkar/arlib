@@ -1,44 +1,47 @@
 # arlib
 
-A Lean 4 + Mathlib library of reusable results in **randomised algorithms and
-their analysis**: finite probability and concentration, approximate counting and
-sampling, Markov chain mixing, knowledge compilation and circuit size lower
-bounds, communication complexity, automata state lower bounds, information
-theory, finite MDPs, and coresets. It is written the way Mathlib is written —
-general statements, one namespace per module path, a docstring on every
-declaration. 
+Arlib is a Lean 4 + Mathlib library of reusable mathematical foundations for
+formalized algorithms. It provides general-purpose probability, finite and
+continuous Markov-chain infrastructure, combinatorics, communication and
+information theory, approximation primitives, representation types, and
+supporting algebra and analysis.
 
-Currently 310 modules and roughly 115,000 lines, `sorry`-free, and dependent on
-no axiom beyond the three Mathlib itself uses.
+Named algorithms, concrete reductions and chains, and their correctness or
+resource analyses live in the companion
+[`arlib-community`](https://github.com/meelgroup/arlib-community) repository.
+The permanent dependency direction is:
 
-## What's inside
+```text
+Mathlib -> Arlib -> ArlibCommunity
+```
 
-Twelve areas, in dependency order: `Prelude`, `Combinatorics`, `Communication`,
-`Probability`, `InformationTheory`, `MarkovChains`, `Approximation`, `MDP`,
-`GameTheory`, `Algorithms`, `KnowledgeCompilation`, `Automata`.
+See [`BOUNDARY.md`](BOUNDARY.md) for the ownership rule and
+[`BOUNDARY_MANIFEST.tsv`](BOUNDARY_MANIFEST.tsv) for the initial disposition of
+every module considered during the hard split.
 
-Each is a directory `Arlib/<Area>/` with an area root `Arlib/<Area>.lean` that
-re-exports it. `import Arlib` gives you everything; `import Arlib.MarkovChains`
-gives you one area; importing a single module gives you one piece.
+## Public imports
 
-**[ARCHITECTURE.md § 1](ARCHITECTURE.md#1-the-shape-of-the-library) has the table:
-what each area contains and how large it is**, with § 3 expanding every area into a
-module-by-module map. The area roots themselves carry the real documentation — each
-is a long docstring on what its subject is for and how it is organised.
+`import Arlib` gives the complete core. Narrower roots include:
+
+```lean
+import Arlib.Probability
+import Arlib.MarkovChains
+import Arlib.MarkovChains.Continuous
+import Arlib.Convexity.Polytope
+```
+
+Finite Markov-chain declarations use `Arlib.MarkovChains`; continuous-state
+declarations use `Arlib.MarkovChains.Continuous`. This explicit namespace split
+allows both APIs to be imported together without short-name collisions.
+
+The source tree contains 144 Lean files under `Arlib/`. It is `sorry`-free and
+declares no project axiom; the semantic axiom audit permits only Mathlib's
+standard `propext`, `Classical.choice`, and `Quot.sound` foundations.
 
 ## Getting started
 
-arlib is not tied to a fixed Lean release: it follows Mathlib, and the Mathlib
-revision it is currently built against is locked in `lake-manifest.json`. The one
-place a Lean version is written down is `lean-toolchain`, which must match
-Mathlib's own — today that is:
-
-```
-leanprover/lean4:v4.33.0
-```
-
-Your project must use the same toolchain, so copy that line into its
-`lean-toolchain`, then add arlib to your `lakefile.toml`:
+Arlib currently follows Lean and Mathlib `v4.33.0`, pinned by
+`lean-toolchain` and `lake-manifest.json`.
 
 ```toml
 [[require]]
@@ -47,112 +50,49 @@ git = "https://github.com/meelgroup/arlib.git"
 rev = "main"
 ```
 
-If you prefer SSH, use `git = "git@github.com:meelgroup/arlib.git"` instead.
-arlib requires Mathlib itself, so you do not need to require Mathlib separately
-unless you want to pin it yourself — if you do, pin it to the revision in
-arlib's `lake-manifest.json`.
-
-Then:
+Then run:
 
 ```bash
-lake exe cache get   # fetch prebuilt Mathlib oleans
-lake build
+lake update arlib
+lake build Arlib
 ```
 
-Always run `lake exe cache get` first. Without it, Lake will compile Mathlib from
-source, which takes hours.
+For the paired hard-split branches, consumers should pin the exact reviewed
+core commit rather than `main` until the core PR has merged.
 
-### A worked example
+## Contributing
 
-Finite probability in arlib is deliberately elementary: a `FinProb` is a finite
-outcome type with an explicit mass function, events are `Finset`s, probabilities
-are real sums, and everything is decidable. That is what lets combinatorial
-arguments go through with no measure theory.
+Before adding a declaration, apply the statement test from `BOUNDARY.md`: if the
+statement refers to a named procedure, concrete construction, or explicit cost
+model, it normally belongs in ArlibCommunity. Mixed developments should place
+generic representations and lemmas here and the consuming algorithmic analysis
+there.
 
-```lean
-import Arlib.Probability
+Run these release checks before submitting a core change:
 
-open Arlib.Probability Arlib.Probability.FinProb
-
-/-- A fair coin. This is the whole interface: a finite outcome type `Ω`, and a
-law on it — a nonnegative mass function summing to one. -/
-noncomputable def fairCoin : FinProb where
-  Ω := Bool
-  μ :=
-    { p := fun _ => 1 / 2
-      p_nonneg := by intro _; norm_num
-      p_sum := by simp }
-
-example : fairCoin.Pr {true} = 1 / 2 := by
-  simp [FinProb.Pr, FinProb.mass, fairCoin]
-  rfl
-
-/-- The union bound over a `Finset` of events — the workhorse of the area. -/
-example (P : FinProb) (s : Finset ℕ) (E : ℕ → P.Event) :
-    P.Pr (s.biUnion E) ≤ ∑ i ∈ s, P.Pr (E i) :=
-  P.Pr_biUnion_le s E
+```bash
+scripts/BoundaryAudit.sh
+lake build Arlib
+lake env lean scripts/AxiomAudit.lean
 ```
 
-
-## Documentation
-
-- `ARCHITECTURE.md` — the structure of the library: every area, every directory,
-  and § 5 on the results imported from the literature as explicit hypotheses
-  rather than proved here, with the theorems that take each one.
-- `CONVENTIONS.md` — the house style: naming, namespacing, statement shape,
-  docstrings, and the standing design commitments.
-- `CONTRIBUTING.md` — how to build, test, audit and submit.
-- `CONTRIBUTORS.md` — who wrote what, and how authorship is recorded.
-- `REFERENCES.md` — every paper the library formalizes or cites, with the short
-  key used in the docstrings. Its last section, **Known gaps**, lists the places
-  where a result is stated without its source; those are outstanding defects, and
-  one of them covers a whole area.
-- The **area roots** (`Arlib/Probability.lean`, `Arlib/MarkovChains.lean`, and so
-  on) are the real reference. Each carries a substantial docstring explaining
-  what the area is for, how it is organised, and what its conventions are, with a
-  module-by-module table. Working notes and statement-by-statement paper
-  inventories live under `docs/dev/`.
-- API documentation is generated by doc-gen4 in CI from the default branch.
-
-## Versioning and stability
-
-arlib is pre-1.0 and there is no stable API. Names move, namespaces are
-normalized, and lemmas are hoisted between modules as the library is
-consolidated. If you depend on it, pin a specific commit.
-
-Every rename is recorded in `MIGRATION.md`, old name to new name, so an upgrade
-is a mechanical edit rather than a search.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md),
+[`CONVENTIONS.md`](CONVENTIONS.md), and [`ARCHITECTURE.md`](ARCHITECTURE.md) for
+the remaining contributor guidance. Namespace changes introduced by the split
+are summarized at the top of [`MIGRATION.md`](MIGRATION.md).
 
 ## Citing
 
 ```bibtex
 @software{meel2026arlib,
   author = {Meel, Kuldeep S.},
-  title  = {arlib: a Lean 4 library for randomised algorithms and their analysis},
+  title  = {arlib: reusable Lean foundations for formalized algorithms},
   year   = {2026},
   url    = {https://github.com/meelgroup/arlib}
 }
 ```
 
-## License
+## License and origins
 
-Released under the [Apache License 2.0](LICENSE), following Mathlib.
-
-Copyright © 2026 the arlib contributors. The per-file headers are authoritative
-for who holds copyright in which module.
-
-## Origins
-
-arlib was started by Kuldeep Meel, and has since evolved with contributions from
-Suguman Bansal and Uddalok Sarkar. See [CONTRIBUTORS.md](CONTRIBUTORS.md) for who
-wrote what.
-
-It was distilled from formalization projects in author's works, where the same
-probability and combinatorics infrastructure had been copy-pasted, with drift,
-across several developments. Those copies were deduplicated, re-namespaced and
-generalised into what is here. 
-
-
-## Acknowledgements
-
-Built with the assistance of **Claude** (Anthropic's Claude Code).
+Released under the [Apache License 2.0](LICENSE). Per-file headers are
+authoritative for copyright and authorship; see [`CONTRIBUTORS.md`](CONTRIBUTORS.md).

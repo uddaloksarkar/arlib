@@ -1,5 +1,28 @@
 # MIGRATION — the `api-overhaul` pass
 
+## Hard split: Arlib and ArlibCommunity
+
+Named algorithms, reductions, concrete-chain analyses, and explicit resource
+bounds moved from core Arlib to the companion `ArlibCommunity` package. For each
+row marked `community` in `BOUNDARY_MANIFEST.tsv`, change the module and
+declaration prefix mechanically:
+
+```text
+Arlib.<path> -> ArlibCommunity.<path>
+```
+
+Continuous Markov foundations that remain in core moved from
+`Arlib.MarkovChains.<name>` to
+`Arlib.MarkovChains.Continuous.<name>`. Continuous algorithm declarations use
+`ArlibCommunity.MarkovChains.Continuous.<name>`. Finite declarations retain the
+non-`Continuous` Markov namespaces.
+
+Use `import Arlib` for foundations and `import ArlibCommunity` for the complete
+algorithm collection. The latter depends on the former; core must never import
+community.
+
+The remainder of this document records the earlier API-overhaul renames.
+
 This records every externally visible name change made by the `api-overhaul`
 pass, which landed as a single commit on top of `a0ca41b`. It exists so that a
 downstream repository importing `arlib` can be updated mechanically: everything
