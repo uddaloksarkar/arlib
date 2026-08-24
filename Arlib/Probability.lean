@@ -118,3 +118,25 @@ import Arlib.Probability.DisjointCoords
 import Arlib.Probability.ProductFiber
 
 import Arlib.Probability.CouplingFamily
+
+-- Measure-theoretic probability modules developed in kr-25-ssm.
+import Arlib.Probability.TV
+import Arlib.Probability.Rejection
+import Arlib.Probability.SubgaussianTail
+import Arlib.Probability.UniformOn
+import Arlib.Probability.RunPlumbing
+import Arlib.Probability.Geometric
+import Arlib.Probability.RejectionRounds
+import Arlib.Probability.TVTensor
+import Arlib.Probability.TVKernel
+import Arlib.Probability.DeltaIndependence
+import Arlib.Probability.DependenceCovariance
+import Arlib.Probability.InhomogeneousMarkov
+import Arlib.Probability.AccuracyRecursion
+import Arlib.Probability.AccuracySecondMoment
+import Arlib.Probability.AccuracyLowerRecursion
+import Arlib.Probability.TVKernelHeterogeneous
+import Arlib.Probability.TVTimeout
+import Arlib.Probability.AdaptiveTVTelescope
+import Arlib.Probability.AdaptiveTVTelescopeMixture
+import Arlib.Probability.NuIndepTensor

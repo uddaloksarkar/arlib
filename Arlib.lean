@@ -102,3 +102,8 @@ import Arlib.MDP
 import Arlib.GameTheory
 import Arlib.KnowledgeCompilation
 import Arlib.Automata
+
+-- Areas developed in kr-25-ssm and merged into this standalone distribution.
+import Arlib.Lattice
+import Arlib.Convexity
+import Arlib.Topology.HamSandwich
