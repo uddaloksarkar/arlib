@@ -131,7 +131,7 @@ usable; note that `sInf ∅ = 0` still means `spectralGap = 0` on a space with n
   volume*, §4.1.
 -/
 
-namespace Arlib.MarkovChains
+namespace Arlib.MarkovChains.Continuous
 
 open MeasureTheory ProbabilityTheory
 open scoped ENNReal
@@ -1627,4 +1627,4 @@ theorem sq_conductance_div_two_le_spectralGap_const_piHalf :
   rw [conductance_const_piHalf]
   norm_num
 
-end Arlib.MarkovChains
+end Arlib.MarkovChains.Continuous

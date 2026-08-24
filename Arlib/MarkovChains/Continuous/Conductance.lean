@@ -74,7 +74,7 @@ the ball walk, by Cousins–Vempala, *Gaussian cooling and `O*(n³)` algorithms 
 volume and Gaussian volume*, §4.1.
 -/
 
-namespace Arlib.MarkovChains
+namespace Arlib.MarkovChains.Continuous
 
 open MeasureTheory ProbabilityTheory
 open scoped ENNReal
@@ -440,4 +440,4 @@ theorem exists_conductance_pos :
   · rw [conductance_const_piHalf]; norm_num
   · exact conductance_le_one _ _ ⟨{true}, singleton_mem_smallSets true⟩
 
-end Arlib.MarkovChains
+end Arlib.MarkovChains.Continuous

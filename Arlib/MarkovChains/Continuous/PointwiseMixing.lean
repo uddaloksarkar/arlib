@@ -125,7 +125,7 @@ nothing about a chain.  Nothing here imports or mentions `ballWalk`: the verdict
 analysis, recorded in prose, with the abstract half of it mechanised.
 -/
 
-namespace Arlib.MarkovChains
+namespace Arlib.MarkovChains.Continuous
 
 open MeasureTheory ProbabilityTheory Set Filter
 open scoped ENNReal Topology
@@ -747,4 +747,4 @@ theorem mixesWithin_of_pointwiseClose {P : Kernel Ω Ω} {pi μ₀ : Measure Ω}
     (h : PointwiseClose (iterate P μ₀ t) pi ε) : MixesWithin P pi μ₀ t ε :=
   h.tvLe
 
-end Arlib.MarkovChains
+end Arlib.MarkovChains.Continuous

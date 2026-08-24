@@ -101,7 +101,7 @@ hard direction `gap ≥ phi²/2`, and the passage from a spectral gap to `L²` �
   volume*, §4.1 (`vol3_journal.tex:514–746`).
 -/
 
-namespace Arlib.MarkovChains
+namespace Arlib.MarkovChains.Continuous
 
 open MeasureTheory ProbabilityTheory
 open scoped ENNReal
@@ -312,4 +312,4 @@ theorem conductanceOn_eq_dirichletForm_div {P : Kernel Ω Ω} {pi : Measure Ω}
     conductanceOn P pi S = dirichletForm P pi (Set.indicator S (fun _ => (1 : ℝ))) / pi S := by
   rw [conductanceOn, dirichletForm_indicator_of_isReversible hrev hS]
 
-end Arlib.MarkovChains
+end Arlib.MarkovChains.Continuous

@@ -77,7 +77,7 @@ classify() {
     Arlib/MarkovChains/Continuous/PointwiseMixing.lean|\
     Arlib/MarkovChains/Continuous/Warmness.lean)
       printf 'core\tgeneric Markov-chain theory\n' ;;
-    Arlib/MarkovChains.lean)
+    Arlib/MarkovChains.lean|Arlib/MarkovChains/Continuous.lean)
       printf 'core\tcore area root\n' ;;
     Arlib/MarkovChains/*)
       printf 'community\tconcrete chain or specialized analysis\n' ;;

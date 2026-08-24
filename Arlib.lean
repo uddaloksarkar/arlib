@@ -100,6 +100,7 @@ import Arlib.Communication
 import Arlib.Probability
 import Arlib.InformationTheory
 import Arlib.MarkovChains
+import Arlib.MarkovChains.Continuous
 import Arlib.Approximation
 import Arlib.MDP
 import Arlib.GameTheory

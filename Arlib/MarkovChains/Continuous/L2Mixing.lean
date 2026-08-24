@@ -67,7 +67,7 @@ simultaneously, so none of the statements below is vacuous.
   volume*, §4.1.
 -/
 
-namespace Arlib.MarkovChains
+namespace Arlib.MarkovChains.Continuous
 
 open MeasureTheory ProbabilityTheory
 open scoped ENNReal
@@ -1013,4 +1013,4 @@ theorem exists_hasNonnegSpectrum_and_conductance :
     isReversible_const piHalf, hasNonnegSpectrum_const piHalf,
     rayleighSet_const_piHalf_nonempty, conductance_const_piHalf, spectralGap_const_piHalf⟩
 
-end Arlib.MarkovChains
+end Arlib.MarkovChains.Continuous

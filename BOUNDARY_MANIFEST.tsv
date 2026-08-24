@@ -194,6 +194,7 @@ Arlib/MDP/Termination.lean	community	MDP algorithm and convergence analysis
 Arlib/MDP/Trajectory.lean	community	MDP algorithm and convergence analysis
 Arlib/MDP/WeightedNorm.lean	community	MDP algorithm and convergence analysis
 Arlib/MarkovChains.lean	core	core area root
+Arlib/MarkovChains/Continuous.lean	core	core area root
 Arlib/MarkovChains/Chains/BernoulliLaplace.lean	community	concrete chain or specialized analysis
 Arlib/MarkovChains/Chains/BlockDynamics.lean	community	concrete chain or specialized analysis
 Arlib/MarkovChains/Chains/Glauber.lean	community	concrete chain or specialized analysis

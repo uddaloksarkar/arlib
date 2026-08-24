@@ -81,7 +81,7 @@ file is the *target* of.  There is no spectral theory, no `s`-conductance, no lo
 on the mixing time, and no continuous-time chain.
 -/
 
-namespace Arlib.MarkovChains
+namespace Arlib.MarkovChains.Continuous
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal
@@ -423,4 +423,4 @@ theorem exists_mixesWithin_and_conductance_eq :
     inferInstance, inferInstance, invariant_const piHalf, mixesWithin_const _ _,
     conductance_const_piHalf⟩
 
-end Arlib.MarkovChains
+end Arlib.MarkovChains.Continuous
