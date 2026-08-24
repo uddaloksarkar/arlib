@@ -5,7 +5,6 @@ Authors: Kuldeep S. Meel
 -/
 import Arlib.InformationTheory.Basic
 import Arlib.InformationTheory.SupportBound
-import Arlib.InformationTheory.QueryLowerBound
 import Arlib.InformationTheory.Fano
 import Arlib.InformationTheory.DataProcessing
 import Arlib.InformationTheory.Submodular

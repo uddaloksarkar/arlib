@@ -103,6 +103,5 @@ import Arlib.MarkovChains
 import Arlib.Approximation
 import Arlib.MDP
 import Arlib.GameTheory
-import Arlib.Algorithms
 import Arlib.KnowledgeCompilation
 import Arlib.Automata

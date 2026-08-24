@@ -1,0 +1,355 @@
+module	owner	reason
+Arlib/Algorithms.lean	community	named algorithm
+Arlib/Algorithms/TPA.lean	community	named algorithm
+Arlib/Algorithms/TPA/Count.lean	community	named algorithm
+Arlib/Algorithms/TPA/TwoPhase.lean	community	named algorithm
+Arlib/Algorithms/TPA/UniformProduct.lean	community	named algorithm
+Arlib/Approximation.lean	core	core area root
+Arlib/Approximation/Amplification.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/Concentration.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/CondDraw.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/Coresets/Basic.lean	core	reusable weighted-set and embedding infrastructure
+Arlib/Approximation/Coresets/Embedding.lean	core	reusable weighted-set and embedding infrastructure
+Arlib/Approximation/Coresets/Linear.lean	core	reusable weighted-set and embedding infrastructure
+Arlib/Approximation/Coresets/RegionTree.lean	core	reusable weighted-set and embedding infrastructure
+Arlib/Approximation/Coresets/Tensor.lean	core	reusable weighted-set and embedding infrastructure
+Arlib/Approximation/CountLaw.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/Counting.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/DepSampling.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/Hoeffding.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/KarpLuby.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/KarpLubyApprox.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/KarpLubyFpras.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/Bernstein.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/Concentration.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/Contraction.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/Duality.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/Embed.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/EmbedAux.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/Existence.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/HighProb.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/Khintchine.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/LinAlg.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/MNet.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/MomentReduct.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/Net.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/Probability.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/Projection.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/Rademacher.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/RouteA.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/SampleConc.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/Sampler.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/Sensitivity.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/SupBridge.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/SymmSwap.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/Symmetrize.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/LewisWeights/Trace.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/MulError.lean	core	generic approximation relation
+Arlib/Approximation/Parsimonious.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/Pinned.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/PinnedSampling.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/RejectionCollect.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/Sampling.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/SelfReducible.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Approximation/UnionBound.lean	community	algorithm, reduction, coreset, or sampling analysis
+Arlib/Automata.lean	core	core area root
+Arlib/Automata/Basic.lean	core	reusable representation and semantics
+Arlib/Automata/Complement.lean	community	transformation, procedure, or state lower bound
+Arlib/Automata/DNFtoUFA.lean	community	transformation, procedure, or state lower bound
+Arlib/Automata/Disjointness.lean	community	transformation, procedure, or state lower bound
+Arlib/Automata/ErrorReduction.lean	community	transformation, procedure, or state lower bound
+Arlib/Automata/Imported.lean	community	transformation, procedure, or state lower bound
+Arlib/Automata/Simulation.lean	community	transformation, procedure, or state lower bound
+Arlib/Automata/SuccinctNFA.lean	community	transformation, procedure, or state lower bound
+Arlib/Automata/SuccinctNFAMembership.lean	community	transformation, procedure, or state lower bound
+Arlib/Automata/SuccinctNFAWitness.lean	community	transformation, procedure, or state lower bound
+Arlib/Automata/TreeAutomaton.lean	core	reusable representation and semantics
+Arlib/Automata/TreeAutomatonBinarize.lean	community	transformation, procedure, or state lower bound
+Arlib/Automata/TreeAutomatonFinite.lean	community	transformation, procedure, or state lower bound
+Arlib/Automata/TreeAutomatonOps.lean	community	transformation, procedure, or state lower bound
+Arlib/Automata/TreeAutomatonRelabel.lean	community	transformation, procedure, or state lower bound
+Arlib/Automata/TreeAutomatonRelabelPreserves.lean	community	transformation, procedure, or state lower bound
+Arlib/Automata/Union.lean	community	transformation, procedure, or state lower bound
+Arlib/Automata/WordCoding.lean	community	transformation, procedure, or state lower bound
+Arlib/Combinatorics.lean	core	generic shared foundation
+Arlib/Combinatorics/Atoms.lean	core	generic shared foundation
+Arlib/Combinatorics/BigOperators.lean	core	generic shared foundation
+Arlib/Combinatorics/DistinctSamples.lean	core	generic shared foundation
+Arlib/Combinatorics/FinSnoc.lean	core	generic shared foundation
+Arlib/Combinatorics/Finset.lean	core	generic shared foundation
+Arlib/Combinatorics/FoldMax.lean	core	generic shared foundation
+Arlib/Combinatorics/ListFold.lean	core	generic shared foundation
+Arlib/Communication.lean	core	core area root
+Arlib/Communication/BooleanFunction.lean	core	reusable communication representation
+Arlib/Communication/Gadget.lean	community	lower-bound method or gadget application
+Arlib/Communication/Measures.lean	community	lower-bound method or gadget application
+Arlib/Communication/NonnegRank.lean	community	lower-bound method or gadget application
+Arlib/Communication/Rectangle.lean	core	reusable communication representation
+Arlib/Communication/TwoParty.lean	community	lower-bound method or gadget application
+Arlib/Convexity/BrunnSharp.lean	core	generic convex geometry
+Arlib/Convexity/CrossRatio.lean	core	generic convex geometry
+Arlib/Convexity/GaussianCooling/Estimator.lean	community	walk or estimator analysis
+Arlib/Convexity/HitAndRunStep.lean	community	walk or estimator analysis
+Arlib/Convexity/Isoperimetry.lean	core	generic convex geometry
+Arlib/Convexity/KLS97Sharp.lean	core	generic convex geometry
+Arlib/Convexity/LogConcave.lean	core	generic convex geometry
+Arlib/Convexity/Polytope.lean	core	generic convex geometry
+Arlib/Convexity/PrekopaLeindler.lean	core	generic convex geometry
+Arlib/Convexity/PrekopaLeindlerN.lean	core	generic convex geometry
+Arlib/Convexity/StepLength.lean	community	walk or estimator analysis
+Arlib/GameTheory.lean	core	generic minimax theory
+Arlib/GameTheory/YaoMinimax.lean	core	generic minimax theory
+Arlib/InformationTheory.lean	core	generic information theory
+Arlib/InformationTheory/Basic.lean	core	generic information theory
+Arlib/InformationTheory/ChainRule.lean	core	generic information theory
+Arlib/InformationTheory/CondVariational.lean	core	generic information theory
+Arlib/InformationTheory/DataProcessing.lean	core	generic information theory
+Arlib/InformationTheory/Defs.lean	core	generic information theory
+Arlib/InformationTheory/Entropy.lean	core	generic information theory
+Arlib/InformationTheory/Fano.lean	core	generic information theory
+Arlib/InformationTheory/Gibbs.lean	core	generic information theory
+Arlib/InformationTheory/QueryLowerBound.lean	community	query lower-bound application
+Arlib/InformationTheory/Refinement.lean	core	generic information theory
+Arlib/InformationTheory/Relabel.lean	core	generic information theory
+Arlib/InformationTheory/Submodular.lean	core	generic information theory
+Arlib/InformationTheory/SupportBound.lean	core	generic information theory
+Arlib/InformationTheory/Uniform.lean	core	generic information theory
+Arlib/InformationTheory/Variational.lean	core	generic information theory
+Arlib/InformationTheory/VariationalExceptional.lean	core	generic information theory
+Arlib/KnowledgeCompilation.lean	core	core area root
+Arlib/KnowledgeCompilation/BranchingPrograms/Asymptotics.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/BranchingPrograms/Basic.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/BranchingPrograms/Covering.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/BranchingPrograms/DecisionDNNF.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/BranchingPrograms/DecisionDNNFCompile.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/BranchingPrograms/Equivalence.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/BranchingPrograms/NROBP.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/BranchingPrograms/OztokDarwicheBundle.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/BranchingPrograms/Separation.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/BranchingPrograms/TreeProduct.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/BranchingPrograms/Uniformize.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Circuits/Arithmetic.lean	core	reusable circuit representation and semantics
+Arlib/KnowledgeCompilation/Circuits/DNF.lean	core	reusable circuit representation and semantics
+Arlib/KnowledgeCompilation/Circuits/DNFMap.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Circuits/DNFMux.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Circuits/DNFSubst.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Circuits/DNFtoCircuit.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Circuits/Figure1.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Circuits/NNF.lean	core	reusable circuit representation and semantics
+Arlib/KnowledgeCompilation/Circuits/SDD.lean	core	reusable circuit representation and semantics
+Arlib/KnowledgeCompilation/Circuits/VTree.lean	core	reusable circuit representation and semantics
+Arlib/KnowledgeCompilation/Forgetting.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Forgetting/Basic.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Forgetting/MinDegree.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Forgetting/Separation.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Forgetting/Treewidth.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/LowerBounds/AffinePerms.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/LowerBounds/Arithmetic.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/LowerBounds/BalancedCut.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/LowerBounds/ClaimPerm.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/LowerBounds/ConicalJunta.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/LowerBounds/Copies.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/LowerBounds/Imported.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/LowerBounds/Instance.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/LowerBounds/Lifting.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/LowerBounds/Pullback.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/LowerBounds/RectangleLemma.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/LowerBounds/Separation.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/LowerBounds/Union.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/LowerBounds/UnionDerived.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Probabilistic.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Probabilistic/CircuitPair.lean	core	reusable circuit representation and semantics
+Arlib/KnowledgeCompilation/Probabilistic/StructuredCircuit.lean	core	reusable circuit representation and semantics
+Arlib/KnowledgeCompilation/Tseitin.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Tseitin/Basic.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Tseitin/Branchwidth.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Tseitin/DNNFLowerBound.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Tseitin/Main.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Tseitin/RectangleGame.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Tseitin/Regular.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Tseitin/Search.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Tseitin/Splitting.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Tseitin/ThreeConnected.lean	community	compilation, transformation, or representation lower bound
+Arlib/KnowledgeCompilation/Tseitin/UnsatToSat.lean	community	compilation, transformation, or representation lower bound
+Arlib/Lattice/KV97/Defs.lean	core	reusable lattice representation
+Arlib/Lattice/KV97/Escape.lean	community	rounding procedure or KV97 analysis
+Arlib/Lattice/KV97/Inflate.lean	community	rounding procedure or KV97 analysis
+Arlib/Lattice/KV97/Theorem2.lean	community	rounding procedure or KV97 analysis
+Arlib/Lattice/Rounding/ContTent.lean	community	rounding procedure or KV97 analysis
+Arlib/Lattice/Rounding/KernelIntegral.lean	community	rounding procedure or KV97 analysis
+Arlib/Lattice/Rounding/ProdKernel.lean	community	rounding procedure or KV97 analysis
+Arlib/Lattice/Rounding/RoundLaw.lean	community	rounding procedure or KV97 analysis
+Arlib/Lattice/Rounding/Tent.lean	community	rounding procedure or KV97 analysis
+Arlib/MDP.lean	core	core area root
+Arlib/MDP/Basic.lean	core	reusable MDP representation
+Arlib/MDP/Bellman.lean	community	MDP algorithm and convergence analysis
+Arlib/MDP/Contraction.lean	community	MDP algorithm and convergence analysis
+Arlib/MDP/EndComponent.lean	community	MDP algorithm and convergence analysis
+Arlib/MDP/FixedPoint.lean	community	MDP algorithm and convergence analysis
+Arlib/MDP/HittingWeight.lean	community	MDP algorithm and convergence analysis
+Arlib/MDP/PolicyValue.lean	community	MDP algorithm and convergence analysis
+Arlib/MDP/Reachability.lean	community	MDP algorithm and convergence analysis
+Arlib/MDP/Termination.lean	community	MDP algorithm and convergence analysis
+Arlib/MDP/Trajectory.lean	community	MDP algorithm and convergence analysis
+Arlib/MDP/WeightedNorm.lean	community	MDP algorithm and convergence analysis
+Arlib/MarkovChains.lean	core	core area root
+Arlib/MarkovChains/Chains/BernoulliLaplace.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/BlockDynamics.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/Glauber.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/GlauberTensorization.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/GlauberToSpectralIndependence.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/GlauberViaLevels.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/HardCore.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/IndependentSampler.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/LevelEncoding.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/Metropolis.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/OptimalMixingTV.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/PinnedGlauber.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/Pinning.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/ProductEntropy.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/ProductMeasure.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/ProductOptimalMixing.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/ProductSpectralIndependence.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/SpectralIndependenceMixing.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/SpectralIndependenceMixingSharp.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/SpinSystem.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/TwoSiteSpectralIndependence.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/TwoState.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Chains/UniformComplex.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Continuous/BallWalk.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Continuous/BallWalkConductance.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Continuous/Cheeger.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Continuous/Conductance.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Continuous/ConductanceToTV.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Continuous/HitAndRun.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Continuous/HitAndRunConductance.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Continuous/HitAndRunMixing.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Continuous/HoldingTime.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Continuous/L2Mixing.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Continuous/MixingFromConductance.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Continuous/PointwiseMixing.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Continuous/PointwiseRoute.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Continuous/SpeedyWalk.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Continuous/SphereCoord.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Continuous/Warmness.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Techniques/Adjoint.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Techniques/Comparison.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Techniques/Conductance.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Techniques/Dirichlet.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Techniques/Entropy.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Techniques/EntropyDecay.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Techniques/EntropyMixing.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Techniques/EntropyVariational.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Techniques/FirstStep.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Techniques/HittingTime.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Techniques/ImprovedRandomWalk.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Techniques/ImprovedRandomWalkSharp.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Techniques/Lazy.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Techniques/LevelVariance.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Techniques/Levels.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Techniques/LinkRestriction.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Techniques/LocalSpectralIndependence.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Techniques/LocalToGlobal.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Techniques/LocalWalk.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Techniques/LocalWalkBridge.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Techniques/MixingTime.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Techniques/Mixture.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Techniques/MultiStep.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Techniques/Pinsker.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Techniques/PotentialDecay.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Techniques/ProgressPath.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Techniques/PsdOrder.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Techniques/RankingSupermartingale.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Techniques/ReachDistance.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Techniques/SinusoidalPotential.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Techniques/SpectralGap.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Techniques/SpectralIndependence.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Techniques/SpectralIndependenceConverse.lean	community	concrete chain or specialized analysis
+Arlib/MarkovChains/Techniques/TotalVariation.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Techniques/Transport.lean	core	generic Markov-chain theory
+Arlib/MarkovChains/Techniques/UpDownDownUp.lean	community	concrete chain or specialized analysis
+Arlib/Prelude.lean	core	generic shared foundation
+Arlib/Probability.lean	core	generic probability foundation
+Arlib/Probability/Bilinear.lean	core	generic probability foundation
+Arlib/Probability/BinaryLevel.lean	core	generic probability foundation
+Arlib/Probability/BinomialCount.lean	core	generic probability foundation
+Arlib/Probability/Chernoff.lean	core	generic probability foundation
+Arlib/Probability/CondEvent.lean	core	generic probability foundation
+Arlib/Probability/CondExp.lean	core	generic probability foundation
+Arlib/Probability/CondExpConstruction.lean	core	generic probability foundation
+Arlib/Probability/CondExpFreshDraw.lean	core	generic probability foundation
+Arlib/Probability/CondExpLinear.lean	core	generic probability foundation
+Arlib/Probability/CondExpProd.lean	core	generic probability foundation
+Arlib/Probability/CondExpProdData.lean	core	generic probability foundation
+Arlib/Probability/CondLaw.lean	core	generic probability foundation
+Arlib/Probability/Conditioning.lean	core	generic probability foundation
+Arlib/Probability/ContCoinProto.lean	community	randomized procedure or procedure-specific analysis
+Arlib/Probability/CoordIndep.lean	core	generic probability foundation
+Arlib/Probability/Coupling.lean	core	generic probability foundation
+Arlib/Probability/CouplingFamily.lean	core	generic probability foundation
+Arlib/Probability/CouplingFinProb.lean	core	generic probability foundation
+Arlib/Probability/DeltaIndependence.lean	community	Gaussian-cooling dependence analysis
+Arlib/Probability/DependenceCovariance.lean	community	Gaussian-cooling dependence analysis
+Arlib/Probability/DisjointCoords.lean	core	generic probability foundation
+Arlib/Probability/EmpiricalFrequency.lean	community	randomized procedure or procedure-specific analysis
+Arlib/Probability/EvenMoment.lean	core	generic probability foundation
+Arlib/Probability/FailureAmplification.lean	community	randomized procedure or procedure-specific analysis
+Arlib/Probability/FinDist.lean	core	generic probability foundation
+Arlib/Probability/FinDistFunctional.lean	core	generic probability foundation
+Arlib/Probability/FinDistTV.lean	core	generic probability foundation
+Arlib/Probability/FinKernelAlgebra.lean	core	generic probability foundation
+Arlib/Probability/FinProb.lean	core	generic probability foundation
+Arlib/Probability/FinProbProd.lean	core	generic probability foundation
+Arlib/Probability/FirstBad.lean	community	randomized procedure or procedure-specific analysis
+Arlib/Probability/FourthMomentTail.lean	core	generic probability foundation
+Arlib/Probability/Freedman.lean	core	generic probability foundation
+Arlib/Probability/IIDProduct.lean	core	generic probability foundation
+Arlib/Probability/Independence.lean	core	generic probability foundation
+Arlib/Probability/IntersectionTailBound.lean	core	generic probability foundation
+Arlib/Probability/InverseCDF.lean	community	randomized procedure or procedure-specific analysis
+Arlib/Probability/KWiseChernoff.lean	core	generic probability foundation
+Arlib/Probability/KWiseIndependent.lean	core	generic probability foundation
+Arlib/Probability/Law.lean	core	generic probability foundation
+Arlib/Probability/LevelCoupling.lean	core	generic probability foundation
+Arlib/Probability/LevyBorelCantelli.lean	core	generic probability foundation
+Arlib/Probability/Markov.lean	core	generic probability foundation
+Arlib/Probability/MeasurableIndex.lean	core	generic probability foundation
+Arlib/Probability/Median.lean	community	randomized procedure or procedure-specific analysis
+Arlib/Probability/MixedCoinSpace.lean	community	randomized procedure or procedure-specific analysis
+Arlib/Probability/MixedCondCELinear.lean	community	randomized procedure or procedure-specific analysis
+Arlib/Probability/MixedCondProd.lean	community	randomized procedure or procedure-specific analysis
+Arlib/Probability/MixedCoordIndep.lean	community	randomized procedure or procedure-specific analysis
+Arlib/Probability/MixedRunProduct.lean	community	randomized procedure or procedure-specific analysis
+Arlib/Probability/MomentMethod.lean	core	generic probability foundation
+Arlib/Probability/MomentToTail.lean	core	generic probability foundation
+Arlib/Probability/NuIndepTensor.lean	community	Gaussian-cooling dependence analysis
+Arlib/Probability/Poisson.lean	core	generic probability foundation
+Arlib/Probability/PoissonEntropy.lean	core	generic probability foundation
+Arlib/Probability/PoissonSplitting.lean	community	randomized procedure or procedure-specific analysis
+Arlib/Probability/PoissonThinning.lean	core	generic probability foundation
+Arlib/Probability/PolyHash.lean	community	randomized procedure or procedure-specific analysis
+Arlib/Probability/ProbSpace.lean	core	generic probability foundation
+Arlib/Probability/ProbSpaceValidation.lean	core	generic probability foundation
+Arlib/Probability/ProdPushforward.lean	core	generic probability foundation
+Arlib/Probability/ProductFiber.lean	core	generic probability foundation
+Arlib/Probability/ProductSpace.lean	core	generic probability foundation
+Arlib/Probability/Reduce.lean	community	randomized procedure or procedure-specific analysis
+Arlib/Probability/ReduceModel.lean	core	generic probability foundation
+Arlib/Probability/Rejection.lean	core	generic probability foundation
+Arlib/Probability/RobbinsMonro.lean	community	randomized procedure or procedure-specific analysis
+Arlib/Probability/RunProduct.lean	community	randomized procedure or procedure-specific analysis
+Arlib/Probability/SequentialCond.lean	core	generic probability foundation
+Arlib/Probability/SequentialDominate.lean	community	randomized procedure or procedure-specific analysis
+Arlib/Probability/SequentialKernel.lean	core	generic probability foundation
+Arlib/Probability/StirlingMoment.lean	core	generic probability foundation
+Arlib/Probability/StochasticApproximation.lean	community	randomized procedure or procedure-specific analysis
+Arlib/Probability/SubgaussianTail.lean	core	generic probability foundation
+Arlib/Probability/TV.lean	core	generic probability foundation
+Arlib/Probability/TVCoupling.lean	core	generic probability foundation
+Arlib/Probability/TVDistance.lean	core	generic probability foundation
+Arlib/Probability/TVKernel.lean	core	generic probability foundation
+Arlib/Probability/TorusProduct.lean	core	generic probability foundation
+Arlib/Probability/UniformCoin.lean	community	randomized procedure or procedure-specific analysis
+Arlib/Probability/UniformOn.lean	core	generic probability foundation
+Arlib/Probability/UnionBound.lean	core	generic probability foundation

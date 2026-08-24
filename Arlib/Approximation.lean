@@ -134,23 +134,3 @@ import Arlib.Approximation.Coresets.Embedding
 import Arlib.Approximation.Coresets.Tensor
 import Arlib.Approximation.Coresets.Linear
 import Arlib.Approximation.Coresets.RegionTree
-
-import Arlib.Approximation.LewisWeights
-
-import Arlib.Approximation.Counting
-import Arlib.Approximation.Parsimonious
-import Arlib.Approximation.Pinned
-import Arlib.Approximation.Amplification
-import Arlib.Approximation.Concentration
-import Arlib.Approximation.KarpLuby
-import Arlib.Approximation.Hoeffding
-import Arlib.Approximation.SelfReducible
-import Arlib.Approximation.UnionBound
-import Arlib.Approximation.Sampling
-import Arlib.Approximation.RejectionCollect
-import Arlib.Approximation.CountLaw
-import Arlib.Approximation.KarpLubyApprox
-import Arlib.Approximation.KarpLubyFpras
-import Arlib.Approximation.DepSampling
-import Arlib.Approximation.PinnedSampling
-import Arlib.Approximation.CondDraw

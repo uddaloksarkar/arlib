@@ -117,7 +117,3 @@ layer with no consumer.  Everything here stays in `ℕ`.
 
 import Arlib.Communication.BooleanFunction
 import Arlib.Communication.Rectangle
-import Arlib.Communication.Measures
-import Arlib.Communication.NonnegRank
-import Arlib.Communication.Gadget
-import Arlib.Communication.TwoParty

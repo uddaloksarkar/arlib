@@ -199,20 +199,4 @@ counting projects rather than by the lower bounds.
 -/
 
 import Arlib.Automata.Basic
-import Arlib.Automata.Simulation
-import Arlib.Automata.DNFtoUFA
-import Arlib.Automata.WordCoding
-import Arlib.Automata.Imported
-import Arlib.Automata.Complement
-import Arlib.Automata.Union
-import Arlib.Automata.Disjointness
-import Arlib.Automata.ErrorReduction
 import Arlib.Automata.TreeAutomaton
-import Arlib.Automata.TreeAutomatonOps
-import Arlib.Automata.TreeAutomatonFinite
-import Arlib.Automata.TreeAutomatonBinarize
-import Arlib.Automata.TreeAutomatonRelabel
-import Arlib.Automata.TreeAutomatonRelabelPreserves
-import Arlib.Automata.SuccinctNFA
-import Arlib.Automata.SuccinctNFAMembership
-import Arlib.Automata.SuccinctNFAWitness
