@@ -92,7 +92,7 @@ theorem isWarm_map_smul_coolLaw_self {sigmaSq : Nat → Real}
     ENNReal.mul_inv_cancel ha0 hatop
   calc
     (cold Set.univ)⁻¹ * cold S ≤ (cold Set.univ)⁻¹ * warm S :=
-      mul_le_mul_left' (hbase S) _
+      mul_le_mul_right (hbase S) _
     _ = ENNReal.ofReal ((c⁻¹) ^ n) *
         (((ENNReal.ofReal ((c⁻¹) ^ n))⁻¹ * (cold Set.univ)⁻¹) * warm S) := by
       symm

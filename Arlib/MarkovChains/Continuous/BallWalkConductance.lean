@@ -610,7 +610,7 @@ theorem conductance_ballWalk_ge (hn : 1 ≤ n)
     by_cases hc2 : pi Sᶜ ≤ 2 * pi ((K \ S) \ S2)
     · left
       calc ENNReal.ofReal θ * pi S
-          ≤ ENNReal.ofReal θ * pi Sᶜ := mul_le_mul_left' (hShalf.trans hSc) _
+          ≤ ENNReal.ofReal θ * pi Sᶜ := mul_le_mul_right (hShalf.trans hSc) _
         _ ≤ ENNReal.ofReal θ * (2 * pi ((K \ S) \ S2)) := by gcongr
         _ = 2 * (ENNReal.ofReal θ * pi ((K \ S) \ S2)) := by ring
         _ ≤ 2 * (ENNReal.ofReal θ * (pi ((S ∩ K) \ S1) + pi ((K \ S) \ S2))) := by

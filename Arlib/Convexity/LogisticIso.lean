@@ -275,7 +275,7 @@ theorem logisticShift_measureReal_connectedComponentIn (hc : 0 < c) (hFc : Conti
   have hJsub : J ⊆ N := connectedComponentIn_subset N x
   have hJconn : IsConnected J := isConnected_connectedComponentIn_iff.2 hx
   have hJbA : BddAbove J := (bddAbove_Ioo (a := α) (b := β)).mono (hJsub.trans hNsub)
-  have hJbB : BddBelow J := (bddBelow_Ioo (a := α) (b := β)).mono (hJsub.trans hNsub)
+  have hJbB : BddBelow J := (bddBelow_Ioo (a := β) (b := α)).mono (hJsub.trans hNsub)
   set p := sInf J with hpdef
   set q := sSup J with hqdef
   have hpq : p ≤ q := csInf_le_csSup hJconn.nonempty hJbB hJbA

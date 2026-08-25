@@ -699,7 +699,7 @@ theorem volume_goodPoints_ge [NeZero n] {K : Set (EuclideanSpace ℝ (Fin n))}
           rw [← mul_assoc, hfour, one_mul]
       _ ≤ ENNReal.ofReal 4
             * (ENNReal.ofReal (4 * Real.exp 2 * (δ * Real.sqrt n)) * volume K) :=
-          mul_le_mul_left' h4 _
+          mul_le_mul_right h4 _
       _ = ENNReal.ofReal (16 * Real.exp 2 * (δ * Real.sqrt n)) * volume K := by
           rw [← mul_assoc, ← ENNReal.ofReal_mul (by norm_num),
             show (4:ℝ) * (4 * Real.exp 2 * (δ * Real.sqrt n))
@@ -772,7 +772,7 @@ theorem smoothSqrt_le_smoothBall_mul (hn : n ≠ 0) {δ : ℝ} (hδ : 0 < δ)
       = ENNReal.ofReal (8 * Real.exp 2 / Real.sqrt n) * ENNReal.ofReal ((n : ℝ) * δ / 2) := by
         rw [← ENNReal.ofReal_mul (by positivity), hid]
     _ ≤ ENNReal.ofReal (8 * Real.exp 2 / Real.sqrt n)
-          * (1 - ENNReal.ofReal ((1 - δ) ^ n)) := mul_le_mul_left' hold _
+          * (1 - ENNReal.ofReal ((1 - δ) ^ n)) := mul_le_mul_right hold _
 
 /-- **The improvement, as a strict inequality.**  From dimension `15000` on (with `nδ ≤ 1`),
 the `δ√n` constant is at most **half** the `1 − (1−δ)ⁿ` constant.  The threshold is an
@@ -796,7 +796,7 @@ theorem smoothSqrt_le_half_smoothBall (hn : 15000 ≤ n) {δ : ℝ} (hδ : 0 < �
     rw [div_le_iff₀ (by linarith : (0:ℝ) < Real.sqrt n)]
     nlinarith
   refine (smoothSqrt_le_smoothBall_mul hn0 hδ hδn).trans ?_
-  exact mul_le_mul_right' (ENNReal.ofReal_le_ofReal hratio) _
+  exact mul_le_mul_left (ENNReal.ofReal_le_ofReal hratio) _
 
 /-! ## 9. Non-vacuity (`CLAUDE.md` §11) -/
 

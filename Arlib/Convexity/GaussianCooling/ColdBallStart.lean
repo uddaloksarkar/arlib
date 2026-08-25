@@ -113,7 +113,7 @@ theorem isWarm_coldBallStart_gaussian {K : Set (EuclSpace n)} {s ρ : ℝ}
       ν Set.univ = ENNReal.ofReal 2 * (ENNReal.ofReal (1 / 2) * ν Set.univ) := by
         rw [← mul_assoc, ← ENNReal.ofReal_mul (by norm_num : (0 : ℝ) ≤ 2)]
         norm_num
-      _ ≤ ENNReal.ofReal 2 * ν B := mul_le_mul_left' hhalf _
+      _ ≤ ENNReal.ofReal 2 * ν B := mul_le_mul_right hhalf _
   have hK_le : ν K ≤ ENNReal.ofReal 2 * ν B :=
     (measure_mono (subset_univ K)).trans hamb_le
   have hratio : ν K / ν B ≤ ENNReal.ofReal 2 := by
@@ -132,7 +132,7 @@ theorem isWarm_coldBallStart_gaussian {K : Set (EuclSpace n)} {s ρ : ℝ}
       rw [show (ν K * (ν B)⁻¹) * (ν (S ∩ K) * (ν K)⁻¹) =
           (ν K * (ν K)⁻¹) * (ν (S ∩ K) * (ν B)⁻¹) by
         simp only [mul_comm, mul_assoc, mul_left_comm], hcancel, one_mul]
-    _ ≤ ENNReal.ofReal 2 * (ν (S ∩ K) / ν K) := mul_le_mul_right' hratio _
+    _ ≤ ENNReal.ofReal 2 * (ν (S ∩ K) / ν K) := mul_le_mul_left hratio _
 
 /-- **Phase-zero warm start.**  A cold ambient Gaussian rejected onto a strictly inner
 closed ball is `2`-warm for the speedy Gaussian law on `K`.

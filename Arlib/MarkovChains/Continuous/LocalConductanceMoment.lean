@@ -217,7 +217,7 @@ theorem measure_lt_ell_le_mul
       = (1 - ENNReal.ofReal ((1 - lam) ^ n)) * mu K := by
     rw [ENNReal.sub_mul (fun _ _ => hKtop), one_mul]
   rw [hfac]
-  refine mul_le_mul_right' ?_ _
+  refine mul_le_mul_left ?_ _
   rw [show (1 : ℝ≥0∞) = ENNReal.ofReal 1 from ENNReal.ofReal_one.symm,
     ← ENNReal.ofReal_sub _ hc0]
   exact ENNReal.ofReal_le_ofReal (one_sub_one_sub_pow_le n hlam0.le hlam1.le)
@@ -373,7 +373,7 @@ theorem lintegral_indicator_ell_lt_le
         rw [lintegral_indicator hSmeas, setLIntegral_const,
           Measure.restrict_apply hSmeas, Set.inter_comm]
     _ ≤ a * (ENNReal.ofReal ((n : ℝ) * lam) * mu K) := by
-        refine mul_le_mul_left' ?_ a
+        refine mul_le_mul_right ?_ a
         have hset : K ∩ S = {x ∈ K | ell K δ x < ENNReal.ofReal ((lam / δ) ^ n)} := by
           rw [hSdef, dyadicThreshold_eq_div_pow n k hδ0]
           rfl
@@ -452,7 +452,7 @@ theorem lintegral_ell_rpow_neg_le
         refine le_trans (lintegral_indicator_ell_lt_le hK hKc hball hshrink hKtop
           hδ0 hδ1 k (ENNReal.ofReal (Real.sqrt 2 ^ (k + 2)))) ?_
         rw [← mul_assoc, ← ENNReal.ofReal_mul (by positivity)]
-        refine mul_le_mul_right' (ENNReal.ofReal_le_ofReal ?_) _
+        refine mul_le_mul_left (ENNReal.ofReal_le_ofReal ?_) _
         calc Real.sqrt 2 ^ (k + 2) * ((n:ℝ) * (δ * ((1:ℝ)/2) ^ (k + 1)))
             = ((n:ℝ) * δ) * (Real.sqrt 2 ^ (k + 2) * ((1:ℝ)/2) ^ (k + 1)) := by ring
           _ = ((n:ℝ) * δ) * (Real.sqrt 2 / 2) ^ k := by rw [band_pow_eq]
@@ -460,7 +460,7 @@ theorem lintegral_ell_rpow_neg_le
               exact mul_le_mul_of_nonneg_right hnδ (by positivity)
     _ ≤ ENNReal.ofReal 6 * mu K := by
         rw [ENNReal.tsum_mul_right, ← add_mul]
-        refine mul_le_mul_right' ?_ _
+        refine mul_le_mul_left ?_ _
         have hsummable : Summable (fun k : ℕ => (1:ℝ) / 2 * (Real.sqrt 2 / 2) ^ k) :=
           (summable_geometric_of_lt_one (by positivity) sqrt_two_div_two_lt_one).mul_left _
         rw [← ENNReal.ofReal_tsum_of_nonneg (fun k => by positivity) hsummable,
@@ -528,7 +528,7 @@ theorem measureShrinks_withDensity
   rw [hval K hK (subset_refl K), hval (c • K) hsmulmeas hsmulK]
   have hind : Measurable ((c • K).indicator w) := hw.indicator hsmulmeas
   rw [lintegral_smul_set_eq hcne hind hc0]
-  refine mul_le_mul_left' (lintegral_mono fun y => ?_) _
+  refine mul_le_mul_right (lintegral_mono fun y => ?_) _
   by_cases hy : y ∈ K
   · have hcy : c • y ∈ c • K := ⟨y, hy, rfl⟩
     rw [Set.indicator_of_mem hy, Set.indicator_of_mem hcy]
@@ -665,7 +665,7 @@ theorem lintegral_ell_rpow_neg_ellGaussianProb_le
     refine lintegral_congr fun x => ?_
     simp [mul_comm]
   rw [hred _ hLmeas, hred _ hImeas, ← mul_assoc, mul_comm (ENNReal.ofReal 6) _, mul_assoc]
-  refine mul_le_mul_left' ?_ _
+  refine mul_le_mul_right ?_ _
   -- pointwise a.e. simplification of both integrands
   have hne : ∀ᵐ x ∂(volume.restrict K), ell K δ x ≠ 0 := ae_restrict_ell_ne_zero hK hδ0
   have hL : ∫⁻ x in K, (ell K δ x) ^ (-(1 + α)) * (ell K δ x * gaussianWeight s x)

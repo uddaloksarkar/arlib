@@ -224,19 +224,22 @@ theorem exists_circle_lift_of_cover {X : Type*} [TopologicalSpace X]
     FV ⟨x, by
       have : x ∈ U ∪ V := hUV ▸ mem_univ x
       exact this.resolve_left hx⟩ + c with hFdef
-  have hFUres : U.restrict F = fun u : ↥U => FU u := by
+  have hFUres : U.domRestrict F = fun u : ↥U => FU u := by
     funext u
-    simp only [Set.restrict_apply, hFdef, dif_pos u.2]
-  have hFVres : V.restrict F = fun v : ↥V => FV v + c := by
+    change F u = FU u
+    rw [hFdef]
+    exact dif_pos u.2
+  have hFVres : V.domRestrict F = fun v : ↥V => FV v + c := by
     funext v
-    simp only [Set.restrict_apply, hFdef]
+    change F v = FV v + c
+    rw [hFdef]
     by_cases hu : (v : X) ∈ U
-    · rw [dif_pos hu, hagree (v : X) hu v.2]
-    · rw [dif_neg hu]
+    · exact (dif_pos hu).trans (hagree (v : X) hu v.2)
+    · exact dif_neg hu
   have hFUon : ContinuousOn F U := by
-    rw [continuousOn_iff_continuous_restrict, hFUres]; exact FU.continuous
+    rw [continuousOn_iff_continuous_domRestrict, hFUres]; exact FU.continuous
   have hFVon : ContinuousOn F V := by
-    rw [continuousOn_iff_continuous_restrict, hFVres]
+    rw [continuousOn_iff_continuous_domRestrict, hFVres]
     exact FV.continuous.add continuous_const
   refine ⟨F, ?_, ?_⟩
   · rw [continuous_iff_continuousAt]

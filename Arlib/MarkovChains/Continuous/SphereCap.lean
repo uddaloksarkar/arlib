@@ -1291,7 +1291,7 @@ theorem volume_cone_le_of_21 {n : ℕ} [NeZero n] (hn : 21 ≤ n) :
   have hcast : ((m + 1 : ℕ) : ℝ) = (m : ℝ) + 1 := by push_cast; ring
   rw [hcast, sliceConeVol hm0, sliceBallVol hm0, lintegral_chord hm0, lintegral_min hm0,
     ← mul_assoc]
-  refine mul_le_mul_right' ?_ (unitVol m)
+  refine mul_le_mul_left ?_ (unitVol m)
   rw [← ENNReal.ofReal_mul (by norm_num)]
   refine ENNReal.ofReal_le_ofReal ?_
   exact integral_min_le hm

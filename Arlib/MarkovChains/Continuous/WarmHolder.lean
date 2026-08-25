@@ -44,7 +44,7 @@ theorem lintegral_le_of_isWarm_holder {M : ℝ≥0∞} {μ pi : Measure Om} (h :
   have hhold := ENNReal.lintegral_mul_le_Lp_mul_Lq μ hpq hf
     (aemeasurable_const (b := (1 : ℝ≥0∞)))
   simp only [Pi.mul_apply, mul_one, ENNReal.one_rpow, lintegral_one] at hhold
-  refine hhold.trans (mul_le_mul_right' ?_ _)
+  refine hhold.trans (mul_le_mul_left ?_ _)
   exact ENNReal.rpow_le_rpow (lintegral_le_of_isWarm h fun x => f x ^ p)
     (by positivity)
 
@@ -112,8 +112,8 @@ theorem sum_lintegral_le_of_isWarm_holder
       (∫⁻ x, f j x ∂(mu j)) ≤ (M * A) ^ (1 / p) * (mu j Set.univ) ^ (1 / q) := by
     intro j hj
     refine (lintegral_le_of_isWarm_holder (hwarm j (Finset.mem_range.1 hj)) (hf j) hpq).trans ?_
-    refine mul_le_mul_right' (ENNReal.rpow_le_rpow ?_ (div_nonneg zero_le_one hp0.le)) _
-    exact mul_le_mul_left' (hA j (Finset.mem_range.1 hj)) M
+    refine mul_le_mul_left (ENNReal.rpow_le_rpow ?_ (div_nonneg zero_le_one hp0.le)) _
+    exact mul_le_mul_right (hA j (Finset.mem_range.1 hj)) M
   calc ∑ j ∈ Finset.range L, ∫⁻ x, f j x ∂(mu j)
       ≤ ∑ j ∈ Finset.range L, (M * A) ^ (1 / p) * (mu j Set.univ) ^ (1 / q) :=
         Finset.sum_le_sum hstep
@@ -121,7 +121,7 @@ theorem sum_lintegral_le_of_isWarm_holder
         rw [Finset.mul_sum]
     _ ≤ (M * A) ^ (1 / p) *
           ((L : ℝ≥0∞) * eta ^ (1 / q) + (1 - r ^ (1 / q))⁻¹) :=
-        mul_le_mul_left' (sum_rpow_le_of_le_add_pow hb0 hb1 hs) _
+        mul_le_mul_right (sum_rpow_le_of_le_add_pow hb0 hb1 hs) _
 
 /-! ## Jensen and Minkowski, in the form the `L^p(π)` bound needs
 
@@ -312,7 +312,7 @@ theorem sum_lintegral_roundMean_le_holder
       ENNReal.mul_rpow_of_nonneg _ _ hp0.le, ← ENNReal.rpow_mul,
       inv_mul_cancel₀ hp0.ne', ENNReal.rpow_one] at hraise
     refine hraise.trans ?_
-    exact mul_le_mul_left' hA _
+    exact mul_le_mul_right hA _
   -- each round's mean is majorised by the `t`-step mean, so one `A` serves every round
   have hAj : ∀ j, j < L → ∫⁻ x, (∑ i ∈ Finset.range (steps j),
       ∫⁻ y, w y ∂(iterate P (Measure.dirac x) i)) ^ p ∂pi ≤ (t : ℝ≥0∞) ^ p * A := by

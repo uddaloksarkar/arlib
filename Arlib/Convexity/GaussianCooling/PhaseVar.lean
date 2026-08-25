@@ -129,7 +129,7 @@ theorem integral_le_bound [IsProbabilityMeasure μ] {W : Ω → ℝ} {B : ℝ}
     ∫ x, W x ∂μ ≤ B := by
   have hint : Integrable W μ := integrable_of_bounded (μ := μ) hWm hW0 hWB
   have h := integral_mono hint (integrable_const (μ := μ) B) hWB
-  rwa [integral_const, measureReal_univ_eq_one, one_smul] at h
+  rwa [integral_const, probReal_univ, one_smul] at h
 
 /-! ## The two transport steps
 

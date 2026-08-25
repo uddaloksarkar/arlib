@@ -834,7 +834,7 @@ theorem half_mul_lintegral_gaussianWeight_le_ellGaussianMeasure_univ (hn : 1 ≤
     ENNReal.ofReal_le_ofReal (by rw [hcdef]; exact half_le_one_sub_inv_two_mul_pow hn)
   rw [ellGaussianMeasure_univ]
   calc ENNReal.ofReal (1 / 2) * (∫⁻ x in K, gaussianWeight s x)
-      ≤ ENNReal.ofReal (c ^ n) * ∫⁻ x in K, gaussianWeight s x := mul_le_mul_right' hcn _
+      ≤ ENNReal.ofReal (c ^ n) * ∫⁻ x in K, gaussianWeight s x := mul_le_mul_left hcn _
     _ ≤ ENNReal.ofReal (c ^ n) * ∫⁻ x in K, gaussianWeight (s / c ^ 2) x := by gcongr
     _ = ∫⁻ x in c • K, ell K δ x * gaussianWeight s x := by rw [hnum, hscale]
     _ ≤ ∫⁻ x in K, ell K δ x * gaussianWeight s x :=

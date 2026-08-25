@@ -232,8 +232,10 @@ theorem exists_linearIsometryEquiv_apply_eq {w w' : E} (hw : ‖w‖ = 1) (hw' :
       ∃ b : OrthonormalBasis (Fin (finrank ℝ E)) ℝ E, b i₀ = v := by
     intro v hv
     have horth : Orthonormal ℝ
-        (Set.restrict ({i₀} : Set (Fin (finrank ℝ E))) (fun _ => v)) := by
-      refine ⟨fun i => by simpa using hv, ?_⟩
+        (({i₀} : Set (Fin (finrank ℝ E))).domRestrict (fun _ => v)) := by
+      refine ⟨fun _ => ?_, ?_⟩
+      · change ‖v‖ = 1
+        exact hv
       intro i j hij
       exact absurd (Subtype.ext (i.2.trans j.2.symm)) hij
     obtain ⟨b, hbv⟩ := horth.exists_orthonormalBasis_extension_of_card_eq hcard

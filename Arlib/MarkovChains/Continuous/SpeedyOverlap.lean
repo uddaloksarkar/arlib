@@ -413,10 +413,11 @@ theorem volume_ball_le_volume_inter_ball_add_sqrt (n : ℕ)
       rw [hwhdef, norm_smul, norm_inv, Real.norm_eq_abs, abs_of_pos ht0, ← htdef]
       field_simp
     haveI : Unique (({0} : Set (Fin (n + 2))) : Type) := Set.uniqueSingleton _
-    have hon : Orthonormal ℝ (({0} : Set (Fin (n + 2))).restrict (fun _ => wh)) := by
+    have hon : Orthonormal ℝ (({0} : Set (Fin (n + 2))).domRestrict (fun _ => wh)) := by
       constructor
       · intro i
-        simpa using hwh1
+        change ‖wh‖ = 1
+        exact hwh1
       · intro i j hij
         exact absurd (Subsingleton.elim i j) hij
     have hcard : Module.finrank ℝ (EuclideanSpace ℝ (Fin (n + 2)))

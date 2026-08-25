@@ -296,7 +296,7 @@ theorem exists_convex_partition {φ : EuclideanSpace ℝ (Fin n) →L[ℝ] ℝ} 
         rw [hvol, Nat.cast_succ]
         calc w = 1 * w := (one_mul w).symm
           _ ≤ ((k : ℝ≥0∞) + 1) * w := by
-              exact mul_le_mul_right' (by simp) w
+              exact mul_le_mul_left (by simp) w
       obtain ⟨t, ht⟩ := exists_volume_cut_eq hS hSR hφ hwle
       set A : Set (EuclideanSpace ℝ (Fin n)) := S ∩ {z | φ z ≤ t} with hA
       set B : Set (EuclideanSpace ℝ (Fin n)) := S ∩ {z | t < φ z} with hB
@@ -444,7 +444,7 @@ theorem ballSmoothing16_mul_volume_le {f : EuclideanSpace ℝ (Fin n) → ℝ≥
     (hδ : 0 < δ) (x : EuclideanSpace ℝ (Fin n)) {D : Set (EuclideanSpace ℝ (Fin n))}
     (hD : IsSixteenthBall δ D) :
     ballSmoothing16 f δ x * volume D ≤ ∫⁻ y in x +ᵥ D, f y := by
-  refine le_trans (mul_le_mul_right' (ballSmoothing16_le x hD) _) ?_
+  refine le_trans (mul_le_mul_left (ballSmoothing16_le x hD) _) ?_
   rw [ENNReal.div_mul_cancel (hD.volume_ne_zero hδ) hD.volume_ne_top]
 
 /-! ### Sixteenth-balls exist, and eight of them fill a half-ball -/
@@ -601,7 +601,7 @@ theorem ballSmoothing16_le_self (hn : 1 ≤ n)
   have hbound : (∫⁻ y in x +ᵥ P 0, f y) ≤ volume (P 0) * f x := by
     refine le_trans (lintegral_le_of_sep hK hfK hφ0 hφ
       (measurableSet_vadd_set (hP 0).measurableSet x) hsub) ?_
-    refine le_trans (mul_le_mul_right' (measure_mono Set.inter_subset_left) _) ?_
+    refine le_trans (mul_le_mul_left (measure_mono Set.inter_subset_left) _) ?_
     rw [volume_vadd_set]
   refine (ballSmoothing16_le x (hP 0)).trans (ENNReal.div_le_of_le_mul ?_)
   rw [mul_comm]
@@ -637,7 +637,7 @@ theorem ballSmoothing16_le_two_mul_ell_mul (hn : 1 ≤ n)
     refine hDle.trans ?_
     calc volume (ball x δ ∩ {y | φ y ≤ φ x} ∩ K) * f x
         ≤ volume (ball x δ ∩ K) * f x :=
-          mul_le_mul_right' (measure_mono (Set.inter_subset_inter_left _ Set.inter_subset_left)) _
+          mul_le_mul_left (measure_mono (Set.inter_subset_inter_left _ Set.inter_subset_left)) _
       _ = ell K δ x * (16 * volume D) * f x := by rw [h16, hellV]
       _ = 8 * (2 * ell K δ x * f x * volume D) := by ring
   have hcancel : (∫⁻ y in x +ᵥ D, f y) ≤ 2 * ell K δ x * f x * volume D :=
@@ -677,9 +677,9 @@ theorem ballSmoothing16_le_ell_mul_of_balanced
     rw [h2]
     calc (2 : ℝ≥0∞) * (8 * (∫⁻ y in x +ᵥ D, f y))
         ≤ 2 * (volume (ball x δ ∩ {y | φ y ≤ φ x} ∩ K) * f x) :=
-          mul_le_mul_left' hDle 2
+          mul_le_mul_right hDle 2
       _ = (2 * volume (ball x δ ∩ {y | φ y ≤ φ x} ∩ K)) * f x := by ring
-      _ ≤ volume (ball x δ ∩ K) * f x := mul_le_mul_right' hbal _
+      _ ≤ volume (ball x δ ∩ K) * f x := mul_le_mul_left hbal _
       _ = ell K δ x * (16 * volume D) * f x := by rw [h16, hellV]
       _ = 16 * (ell K δ x * f x * volume D) := by ring
   have hcancel : (∫⁻ y in x +ᵥ D, f y) ≤ ell K δ x * f x * volume D :=
@@ -835,11 +835,11 @@ theorem ballSmoothing16_mul_volume_le_two_mul (hn : 1 ≤ n)
     have := ballSmoothing16_mul_volume_le (f := f) hδ x hC
     rwa [ht] at this
   calc ballSmoothing16 f δ x * vD
-      ≤ ballSmoothing16 f δ x * (2 * ((m : ℝ≥0∞) * w)) := mul_le_mul_left' hvD_le _
+      ≤ ballSmoothing16 f δ x * (2 * ((m : ℝ≥0∞) * w)) := mul_le_mul_right hvD_le _
     _ = 2 * ((m : ℝ≥0∞) * (ballSmoothing16 f δ x * w)) := by ring
     _ ≤ 2 * ((m : ℝ≥0∞) * (∫⁻ y in x +ᵥ P i, f y)) :=
-        mul_le_mul_left' (mul_le_mul_left' hsmooth _) 2
-    _ ≤ 2 * ∫⁻ y in x +ᵥ D, f y := mul_le_mul_left' hi 2
+        mul_le_mul_right (mul_le_mul_right hsmooth _) 2
+    _ ≤ 2 * ∫⁻ y in x +ᵥ D, f y := mul_le_mul_right hi 2
 
 /-- **`f̂₁₆ ≤ 2 · f̂_{1/2}`.**  Lemma 6.1 applied to the half-volume sets of
 Cousins–Vempala's transcription: their smoothing and Lovász–Vempala's differ by at most a
@@ -860,7 +860,7 @@ theorem ballSmoothing16_le_two_mul_ballSmoothing (hn : 1 ≤ n)
     calc volume (ball (0 : EuclideanSpace ℝ (Fin n)) δ)
         = 1 * volume (ball (0 : EuclideanSpace ℝ (Fin n)) δ) := (one_mul _).symm
       _ ≤ 8 * volume (ball (0 : EuclideanSpace ℝ (Fin n)) δ) :=
-          mul_le_mul_right' (by norm_num) _
+          mul_le_mul_left (by norm_num) _
   have hkey := ballSmoothing16_mul_volume_le_two_mul (f := f) hn hδ x hD.convex hD.measurableSet
     hD.subset_ball hDvol
   have hassoc : (2 : ℝ≥0∞) * ((∫⁻ y in x +ᵥ D, f y) / volume D)
@@ -905,7 +905,7 @@ theorem isLogConcaveENN_div_const {E : Type*} [AddCommGroup E] [Module ℝ E] {g
         ring
     _ = g x ^ a * g y ^ b * c⁻¹ := by
         rw [← ENNReal.rpow_add _ _ hi0 hit, hab, ENNReal.rpow_one]
-    _ ≤ g (a • x + b • y) * c⁻¹ := mul_le_mul_right' (hg x y a b ha hb hab) _
+    _ ≤ g (a • x + b • y) * c⁻¹ := mul_le_mul_left (hg x y a b ha hb hab) _
 
 /-- Log-concavity in `ℝ≥0∞` is preserved by pointwise infima. -/
 theorem isLogConcaveENN_iInf {E : Type*} [AddCommGroup E] [Module ℝ E] {ι : Sort*}

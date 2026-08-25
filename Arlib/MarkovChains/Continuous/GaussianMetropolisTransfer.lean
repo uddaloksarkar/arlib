@@ -224,7 +224,7 @@ theorem mul_sub_le_flow_metropolisGaussian
       _ <= ellGaussianMeasure K delta sq Sᶜ := tsub_le_iff_right.2
         (gaussianRestrict_apply_le_ellGaussianMeasure_add hK delta sq hS.compl
           hsm1 hsm hGtop)
-  have hmono : Monotone (fun x : ENNReal => L * x) := fun _ _ h => mul_le_mul_left' h L
+  have hmono : Monotone (fun x : ENNReal => L * x) := fun _ _ h => mul_le_mul_right h L
   have hmm : min (L * ellGaussianProb K delta sq S)
       (L * ellGaussianProb K delta sq Sᶜ) =
       L * min (ellGaussianProb K delta sq S)

@@ -521,7 +521,7 @@ theorem conductance_metropolisGaussian_ge (hn : 1 ≤ n)
     · left
       calc ENNReal.ofReal th * pi S
           ≤ ENNReal.ofReal th * pi Sᶜ :=
-            mul_le_mul_left' (hShalf.trans hSc) (ENNReal.ofReal th)
+            mul_le_mul_right (hShalf.trans hSc) (ENNReal.ofReal th)
         _ ≤ ENNReal.ofReal th * (2 * pi ((K \ S) \ S2)) := by gcongr
         _ = 2 * (ENNReal.ofReal th * pi ((K \ S) \ S2)) := by ring
         _ ≤ 2 * (ENNReal.ofReal th * (pi ((S ∩ K) \ S1) + pi ((K \ S) \ S2))) := by

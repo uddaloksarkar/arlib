@@ -199,7 +199,7 @@ theorem isWarm_ellGaussianProb_of_supported_on_shrunken {K : Set (EuclSpace n)}
     refine lintegral_mono fun x => ?_
     calc MarkovChains.ell K δ x * MarkovChains.gaussianWeight s x
         ≤ 1 * MarkovChains.gaussianWeight s x :=
-          mul_le_mul_right' (MarkovChains.ell_le_one K δ x) _
+          mul_le_mul_left (MarkovChains.ell_le_one K δ x) _
       _ = MarkovChains.gaussianWeight s x := one_mul _
   rw [hπval]
   calc μ S = μ (S ∩ c • K) := hμS
@@ -211,7 +211,7 @@ theorem isWarm_ellGaussianProb_of_supported_on_shrunken {K : Set (EuclSpace n)}
         rw [div_eq_mul_inv, hell]
     _ ≤ M * ((∫⁻ x in S ∩ K, MarkovChains.ell K δ x * MarkovChains.gaussianWeight s x)
           * (∫⁻ x in K, MarkovChains.ell K δ x * MarkovChains.gaussianWeight s x)⁻¹) :=
-        mul_le_mul_left' (mul_le_mul' hAC (ENNReal.inv_le_inv.2 hZB)) M
+        mul_le_mul_right (mul_le_mul' hAC (ENNReal.inv_le_inv.2 hZB)) M
     _ = M * ((∫⁻ x in K, MarkovChains.ell K δ x * MarkovChains.gaussianWeight s x)⁻¹
           * ∫⁻ x in S ∩ K, MarkovChains.ell K δ x * MarkovChains.gaussianWeight s x) := by
         rw [mul_comm (∫⁻ x in S ∩ K, MarkovChains.ell K δ x * MarkovChains.gaussianWeight s x)]
@@ -231,7 +231,7 @@ theorem isWarm_condOn {Ω : Type*} [MeasurableSpace Ω] {μ ν : Measure Ω} {M 
     _ ≤ M * ν S * (μ A)⁻¹ := by
         gcongr
         exact le_trans (h (S ∩ A) (hS.inter hA))
-          (mul_le_mul_left' (measure_mono Set.inter_subset_left) M)
+          (mul_le_mul_right (measure_mono Set.inter_subset_left) M)
     _ = M * (μ A)⁻¹ * ν S := by ring
 
 /-- **The `ℓ`-free twin of `Arlib.MarkovChains.half_le_speedy_shrunken`**: at
@@ -271,7 +271,7 @@ theorem half_le_lintegral_gaussianWeight_smul_set (hn : 1 ≤ n) {K : Set (EuclS
         have hcn : ENNReal.ofReal (1 / 2) ≤ ENNReal.ofReal (c ^ n) :=
           ENNReal.ofReal_le_ofReal
             (by rw [hcdef]; exact MarkovChains.half_le_one_sub_inv_two_mul_pow hn)
-        exact mul_le_mul_right' hcn _
+        exact mul_le_mul_left hcn _
     _ ≤ ENNReal.ofReal (c ^ n) * ∫⁻ x in K, MarkovChains.gaussianWeight (s / c ^ 2) x := by
         gcongr
 

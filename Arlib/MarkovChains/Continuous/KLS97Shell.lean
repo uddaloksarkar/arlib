@@ -193,7 +193,7 @@ theorem half_le_speedy_shrunken (hn : 1 ≤ n) {K : Set (EuclideanSpace ℝ (Fin
   have hden : (∫⁻ x in K, ell K δ x * gaussianWeight s x) ≤ ∫⁻ x in K, gaussianWeight s x := by
     refine lintegral_mono fun x => ?_
     calc ell K δ x * gaussianWeight s x ≤ 1 * gaussianWeight s x := by
-          exact mul_le_mul_right' (ell_le_one K δ x) _
+          exact mul_le_mul_left (ell_le_one K δ x) _
       _ = gaussianWeight s x := one_mul _
   rw [hnum, hscale]
   calc ENNReal.ofReal (1 / 2) * ∫⁻ x in K, ell K δ x * gaussianWeight s x
@@ -201,7 +201,7 @@ theorem half_le_speedy_shrunken (hn : 1 ≤ n) {K : Set (EuclideanSpace ℝ (Fin
     _ ≤ ENNReal.ofReal (c ^ n) * ∫⁻ x in K, gaussianWeight s x := by
         have hcn : ENNReal.ofReal (1 / 2) ≤ ENNReal.ofReal (c ^ n) :=
           ENNReal.ofReal_le_ofReal (by rw [hcdef]; exact half_le_one_sub_inv_two_mul_pow hn)
-        exact mul_le_mul_right' hcn _
+        exact mul_le_mul_left hcn _
     _ ≤ ENNReal.ofReal (c ^ n) * ∫⁻ x in K, gaussianWeight (s / c ^ 2) x := by gcongr
 
 section AxiomCheck

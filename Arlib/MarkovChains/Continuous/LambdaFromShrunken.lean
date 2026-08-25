@@ -119,7 +119,7 @@ theorem half_mul_volume_le_lintegral_ell (hn : 1 ≤ n) {K : Set (EuclideanSpace
         have hcn : ENNReal.ofReal (1 / 2) ≤ ENNReal.ofReal (c ^ n) :=
           ENNReal.ofReal_le_ofReal
             (by rw [hcdef]; exact half_le_one_sub_inv_two_mul_pow hn)
-        exact mul_le_mul_right' hcn _
+        exact mul_le_mul_left hcn _
     _ = volume (c • K) := (volume_smul_set hc0 K).symm
     _ = ∫⁻ x in c • K, ell K δ x := hone.symm
     _ ≤ ∫⁻ x in K, ell K δ x := lintegral_mono_set hsub

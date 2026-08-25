@@ -328,7 +328,7 @@ theorem mul_sub_le_flow_ballWalk {K : Set (EuclideanSpace ℝ (Fin n))} (hK : Me
           tsub_le_tsub_right hle _
       _ ≤ ellMeasure K δ Sᶜ :=
           tsub_le_iff_right.2 (volume_inter_le_ellMeasure_add δ hS.compl hsm hsm1 hKtop)
-  have hmono : Monotone (fun x : ℝ≥0∞ => L * x) := fun _ _ h => mul_le_mul_left' h L
+  have hmono : Monotone (fun x : ℝ≥0∞ => L * x) := fun _ _ h => mul_le_mul_right h L
   have hmm : min (L * ellProb K δ S) (L * ellProb K δ Sᶜ)
       = L * min (ellProb K δ S) (ellProb K δ Sᶜ) := hmono.map_min.symm
   calc phi * (volume (S ∩ K) - sm * volume K)

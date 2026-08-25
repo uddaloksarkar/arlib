@@ -265,7 +265,7 @@ theorem volume_mul_volume_le_of_separated
           rfl
         rw [hset]
         exact le_trans (volume_inter_setOf_affine_mem_le _ _ _ hlam0)
-          (mul_le_mul_right' (ofReal_abs_inv_pow_le_two_pow hlam.1) _)
+          (mul_le_mul_left (ofReal_abs_inv_pow_le_two_pow hlam.1) _)
       calc ∫⁻ u, (volume.restrict B) (Prod.mk u ⁻¹' ((fun q => (q, lam)) ⁻¹' W))
               ∂(volume.restrict A)
           ≤ ∫⁻ _, 2 ^ n * volume ((K \ A) \ B) ∂(volume.restrict A) :=
@@ -307,7 +307,7 @@ theorem volume_mul_volume_le_of_separated
           rw [add_comm]
         rw [hset]
         refine le_trans (volume_inter_setOf_affine_mem_le _ _ _ hlam0)
-          (mul_le_mul_right' (ofReal_abs_inv_pow_le_two_pow ?_) _)
+          (mul_le_mul_left (ofReal_abs_inv_pow_le_two_pow ?_) _)
         linarith [hlam.2]
       calc ∫⁻ v, (volume.restrict A) ((fun u => (u, v)) ⁻¹' ((fun q => (q, lam)) ⁻¹' W))
               ∂(volume.restrict B)
@@ -332,8 +332,8 @@ theorem volume_mul_volume_le_of_separated
         + 2 ^ n * volume ((K \ A) \ B) * volume A * (1 / 2) := add_le_add hup1 hup2
     _ ≤ 2 ^ n * volume ((K \ A) \ B) * volume K * (1 / 2)
         + 2 ^ n * volume ((K \ A) \ B) * volume K * (1 / 2) :=
-        add_le_add (mul_le_mul_right' (mul_le_mul_left' hBKvol _) _)
-          (mul_le_mul_right' (mul_le_mul_left' hAKvol _) _)
+        add_le_add (mul_le_mul_left (mul_le_mul_right hBKvol _) _)
+          (mul_le_mul_left (mul_le_mul_right hAKvol _) _)
     _ = 2 ^ n * volume ((K \ A) \ B) * volume K := by
         rw [← mul_add]
         rw [ENNReal.add_halves]
@@ -417,7 +417,7 @@ theorem uniformOn_iso_of_convex
         * ((volume K)⁻¹) ^ 2
       ≤ ((2 : ℝ≥0∞) ^ n)⁻¹ * (2 ^ n * volume ((K \ A) \ B) * volume K)
           * ((volume K)⁻¹) ^ 2 := by
-        exact mul_le_mul_right' (mul_le_mul_left' hmain _) _
+        exact mul_le_mul_left (mul_le_mul_right hmain _) _
     _ = (((2 : ℝ≥0∞) ^ n)⁻¹ * 2 ^ n) * (volume ((K \ A) \ B) * (volume K)⁻¹)
           * (volume K * (volume K)⁻¹) := by ring
     _ = volume ((K \ A) \ B) * (volume K)⁻¹ := by
