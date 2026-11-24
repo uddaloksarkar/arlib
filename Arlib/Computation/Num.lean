@@ -5,6 +5,7 @@ Authors: Kuldeep S. Meel
 -/
 import Arlib.Computation.Charged
 import Mathlib.Algebra.Order.Floor.Defs
+import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
 /-!
 # A sealed numeric register, and the loop whose length it decides
@@ -55,6 +56,9 @@ round count is a function of the fold, so a development does not write a second
 * `NumOp`, `NumOps` — the currency, and what a development calls each operation.
 * `Num α` — a sealed number.
 * `Num.lit`, `add`, `sub`, `mul`, `div`, `max`, `min`, `le`, `ceil` — the arithmetic.
+* `RealOp`, `RealOps` — the real-RAM operations beyond `NumOp`, and what a development
+  calls them.
+* `Num.cast`, `sqrt`, `exp`, `log`, `root` — real-RAM arithmetic on a sealed real.
 * `Num.iterate`, `Num.iterateWhile` — the loop, and the loop with a `Break`.
 -/
 
@@ -104,6 +108,38 @@ class NumOps (κ : Type) where
 /-- The opcode an arithmetic operation charges in the currency `κ`. -/
 abbrev numOpcode (κ : Type) [NumOps κ] (o : NumOp) : κ := NumOps.charge o
 
+/-- **The operations of a real-RAM that `NumOp` does not have.**
+
+A development over the reals (a geometric random walk, a numerical integrator) uses
+these as primitives, one operation each; a development over words never names them. -/
+inductive RealOp
+  /-- Read a natural number as a real. -/
+  | cast
+  /-- The square root `√a`. -/
+  | sqrt
+  /-- The exponential `exp a`. -/
+  | exp
+  /-- The natural logarithm `log a`. -/
+  | log
+  /-- The `k`-th root `u^{1/k}`. -/
+  | root
+  deriving DecidableEq, Repr, Inhabited
+
+instance : Fintype RealOp where
+  elems := {.cast, .sqrt, .exp, .log, .root}
+  complete := fun x => by cases x <;> decide
+
+/-- **What a development's currency calls each real-RAM operation.**  A name, never an
+amount, as for `NumOps`. -/
+class RealOps (κ : Type) where
+  /-- The development's opcode for a real-RAM operation. -/
+  charge : RealOp → κ
+  /-- Distinct operations keep distinct names. -/
+  charge_injective : Function.Injective charge
+
+/-- The opcode a real-RAM operation charges in the currency `κ`. -/
+abbrev realOpcode (κ : Type) [RealOps κ] (o : RealOp) : κ := RealOps.charge o
+
 /-- **A sealed number.**
 
 The value is private and its view is `noncomputable`, so the only things a
@@ -120,6 +156,15 @@ variable {κ κₛ : Type} {α β : Type u} [DecidableEq κ] [NumOps κ]
 
 /-- The number held.  **Specification-only.** -/
 noncomputable def get (x : Num α) : α := x.value
+
+/-- A sealed number is determined by the number it holds.  A specification fact: it
+lets a proof identify two sealed numbers by their views, and gives a program nothing. -/
+theorem get_injective : Function.Injective (get : Num α → α) := by
+  rintro ⟨a⟩ ⟨b⟩ h
+  cases h
+  rfl
+
+@[ext] theorem ext {x y : Num α} (h : x.get = y.get) : x = y := get_injective h
 
 /-- **A constant**, at the price of one `NumOp.lit`.
 
@@ -204,6 +249,9 @@ def min [Min α] (x y : Num α) : Charged κ κₛ (Num α) :=
 @[simp] theorem get_min [Min α] (x y : Num α) :
     (min x y : Charged κ κₛ (Num α)).val.get = Min.min x.get y.get := rfl
 
+@[simp] theorem cost_min [Min α] (x y : Num α) :
+    (min x y : Charged κ κₛ (Num α)).cost = CostVec.one (numOpcode κ .min) := rfl
+
 /-- **Compare two numbers**, at the price of one `NumOp.cmp`.
 
 The only question a program can ask of a number, and therefore the only way a
@@ -233,6 +281,69 @@ def ceil [Semiring α] [PartialOrder α] [FloorSemiring α] (x : Num α) :
     (ceil x : Charged κ κₛ (Num ℕ)).cost = CostVec.one (numOpcode κ .ceil) := rfl
 
 end Arith
+
+/-! ## Real-RAM arithmetic
+
+The operations of a real-RAM beyond `NumOp`, each one operation of its `RealOp`.  They
+are sealed exactly as the standard ones are: the argument is a held number, and so is
+the result. -/
+
+section Real
+
+omit [NumOps κ]
+variable [RealOps κ]
+
+/-- A natural number read as a real, at the price of one `RealOp.cast`. -/
+def cast (k : Num ℕ) : Charged κ κₛ (Num ℝ) :=
+  Charged.op (realOpcode κ .cast) ⟨(k.value : ℝ)⟩
+
+@[simp] theorem get_cast (k : Num ℕ) :
+    (cast k : Charged κ κₛ (Num ℝ)).val.get = (k.get : ℝ) := rfl
+
+@[simp] theorem cost_cast (k : Num ℕ) :
+    (cast k : Charged κ κₛ (Num ℝ)).cost = CostVec.one (realOpcode κ .cast) := rfl
+
+/-- The square root, at the price of one `RealOp.sqrt`. -/
+noncomputable def sqrt (x : Num ℝ) : Charged κ κₛ (Num ℝ) :=
+  Charged.op (realOpcode κ .sqrt) ⟨Real.sqrt x.value⟩
+
+@[simp] theorem get_sqrt (x : Num ℝ) :
+    (sqrt x : Charged κ κₛ (Num ℝ)).val.get = Real.sqrt x.get := rfl
+
+@[simp] theorem cost_sqrt (x : Num ℝ) :
+    (sqrt x : Charged κ κₛ (Num ℝ)).cost = CostVec.one (realOpcode κ .sqrt) := rfl
+
+/-- The exponential, at the price of one `RealOp.exp`. -/
+noncomputable def exp (x : Num ℝ) : Charged κ κₛ (Num ℝ) :=
+  Charged.op (realOpcode κ .exp) ⟨Real.exp x.value⟩
+
+@[simp] theorem get_exp (x : Num ℝ) :
+    (exp x : Charged κ κₛ (Num ℝ)).val.get = Real.exp x.get := rfl
+
+@[simp] theorem cost_exp (x : Num ℝ) :
+    (exp x : Charged κ κₛ (Num ℝ)).cost = CostVec.one (realOpcode κ .exp) := rfl
+
+/-- The natural logarithm, at the price of one `RealOp.log`. -/
+noncomputable def log (x : Num ℝ) : Charged κ κₛ (Num ℝ) :=
+  Charged.op (realOpcode κ .log) ⟨Real.log x.value⟩
+
+@[simp] theorem get_log (x : Num ℝ) :
+    (log x : Charged κ κₛ (Num ℝ)).val.get = Real.log x.get := rfl
+
+@[simp] theorem cost_log (x : Num ℝ) :
+    (log x : Charged κ κₛ (Num ℝ)).cost = CostVec.one (realOpcode κ .log) := rfl
+
+/-- The `k`-th root `u^{1/k}`, at the price of one `RealOp.root`. -/
+noncomputable def root (u : Num ℝ) (k : Num ℕ) : Charged κ κₛ (Num ℝ) :=
+  Charged.op (realOpcode κ .root) ⟨u.value ^ ((k.value : ℝ)⁻¹)⟩
+
+@[simp] theorem get_root (u : Num ℝ) (k : Num ℕ) :
+    (root u k : Charged κ κₛ (Num ℝ)).val.get = u.get ^ ((k.get : ℝ)⁻¹) := rfl
+
+@[simp] theorem cost_root (u : Num ℝ) (k : Num ℕ) :
+    (root u k : Charged κ κₛ (Num ℝ)).cost = CostVec.one (realOpcode κ .root) := rfl
+
+end Real
 
 /-! ## The loop
 
